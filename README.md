@@ -1,5 +1,10 @@
 # Aledhemtek V2
 
+![CI/CD](https://github.com/seifeddine77/aledhemtek-v2/actions/workflows/ci-cd.yml/badge.svg)
+![Java](https://img.shields.io/badge/Java-17-orange)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.0-green)
+![Angular](https://img.shields.io/badge/Angular-15-red)
+
 Application web de gestion d'entreprise avec Spring Boot et Angular.
 
 ## Technologies
