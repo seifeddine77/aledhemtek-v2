@@ -116,7 +116,7 @@ jobs:
       - name: 🏗️ Build Frontend
         run: |
           cd service-frontend
-          npm run build -- --configuration=production
+          npm run build -- --configuration=production --no-build-optimizer
       
       - name: 📤 Upload Frontend Artifact
         uses: actions/upload-artifact@v4
