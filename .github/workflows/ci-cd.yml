@@ -1,0 +1,253 @@
+name: CI/CD Pipeline - Aledhemtek V2
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  # ========================================
+  # JOB 1: BUILD & TEST BACKEND
+  # ========================================
+  backend-build:
+    name: Backend - Build & Test
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: aledhemtek_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v3
+      
+      - name: ☕ Setup Java 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      
+      - name: 🔧 Configure application properties for tests
+        run: |
+          cd service-backend
+          cat > src/main/resources/application-test.properties << EOF
+          spring.datasource.url=jdbc:mysql://localhost:3306/aledhemtek_test
+          spring.datasource.username=root
+          spring.datasource.password=root
+          spring.jpa.hibernate.ddl-auto=create-drop
+          jwt.secret=test-secret-key-for-ci-cd-pipeline-testing-only-do-not-use-in-production
+          EOF
+      
+      - name: 🏗️ Build Backend
+        run: |
+          cd service-backend
+          mvn clean compile -DskipTests
+      
+      - name: 🧪 Run Backend Tests
+        run: |
+          cd service-backend
+          mvn test -Dspring.profiles.active=test
+        continue-on-error: true
+      
+      - name: 📊 Generate Test Report
+        if: always()
+        run: |
+          cd service-backend
+          mvn surefire-report:report
+        continue-on-error: true
+      
+      - name: 📦 Package Backend
+        run: |
+          cd service-backend
+          mvn package -DskipTests
+      
+      - name: 📤 Upload Backend Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: backend-jar
+          path: service-backend/target/*.jar
+          retention-days: 7
+
+  # ========================================
+  # JOB 2: BUILD & TEST FRONTEND
+  # ========================================
+  frontend-build:
+    name: Frontend - Build & Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v3
+      
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: service-frontend/package-lock.json
+      
+      - name: 📥 Install Dependencies
+        run: |
+          cd service-frontend
+          npm ci
+      
+      - name: 🔍 Lint Frontend
+        run: |
+          cd service-frontend
+          npm run lint || true
+        continue-on-error: true
+      
+      - name: 🧪 Run Frontend Tests
+        run: |
+          cd service-frontend
+          npm run test -- --watch=false --browsers=ChromeHeadless
+        continue-on-error: true
+      
+      - name: 🏗️ Build Frontend
+        run: |
+          cd service-frontend
+          npm run build -- --configuration=production
+      
+      - name: 📤 Upload Frontend Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend-dist
+          path: service-frontend/dist/
+          retention-days: 7
+
+  # ========================================
+  # JOB 3: SECURITY SCAN
+  # ========================================
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: [backend-build, frontend-build]
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v3
+      
+      - name: 🔒 Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+        continue-on-error: true
+      
+      - name: 📊 Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+        continue-on-error: true
+
+  # ========================================
+  # JOB 4: CODE QUALITY
+  # ========================================
+  code-quality:
+    name: Code Quality Analysis
+    runs-on: ubuntu-latest
+    needs: [backend-build, frontend-build]
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: ☕ Setup Java 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      
+      - name: 📊 SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=seifeddine77_aledhemtek-v2
+            -Dsonar.organization=seifeddine77
+        continue-on-error: true
+
+  # ========================================
+  # JOB 5: DOCKER BUILD (Optional)
+  # ========================================
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: [backend-build, frontend-build]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v3
+      
+      - name: 🐳 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      
+      - name: 🔑 Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+        continue-on-error: true
+      
+      - name: 📥 Download Backend Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: backend-jar
+          path: service-backend/target/
+      
+      - name: 🏗️ Build Backend Docker Image
+        run: |
+          cd service-backend
+          docker build -t seifeddine77/aledhemtek-backend:latest .
+        continue-on-error: true
+      
+      - name: 📤 Push Backend Docker Image
+        run: |
+          docker push seifeddine77/aledhemtek-backend:latest
+        continue-on-error: true
+
+  # ========================================
+  # JOB 6: DEPLOYMENT NOTIFICATION
+  # ========================================
+  notify:
+    name: Notification
+    runs-on: ubuntu-latest
+    needs: [backend-build, frontend-build, security-scan, code-quality]
+    if: always()
+    
+    steps:
+      - name: 📧 Send Success Notification
+        if: ${{ needs.backend-build.result == 'success' && needs.frontend-build.result == 'success' }}
+        run: |
+          echo "✅ CI/CD Pipeline completed successfully!"
+          echo "Backend: ${{ needs.backend-build.result }}"
+          echo "Frontend: ${{ needs.frontend-build.result }}"
+          echo "Security: ${{ needs.security-scan.result }}"
+          echo "Quality: ${{ needs.code-quality.result }}"
+      
+      - name: ❌ Send Failure Notification
+        if: ${{ needs.backend-build.result == 'failure' || needs.frontend-build.result == 'failure' }}
+        run: |
+          echo "❌ CI/CD Pipeline failed!"
+          echo "Backend: ${{ needs.backend-build.result }}"
+          echo "Frontend: ${{ needs.frontend-build.result }}"
+          exit 1

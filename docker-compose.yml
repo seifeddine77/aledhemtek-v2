@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  # ========================================
+  # DATABASE - MySQL
+  # ========================================
+  database:
+    image: mysql:8.0
+    container_name: aledhemtek-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-aledhemtek}
+      MYSQL_USER: ${DB_USER:-aledhemtek_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-userpassword}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - aledhemtek-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ========================================
+  # BACKEND - Spring Boot
+  # ========================================
+  backend:
+    build:
+      context: ./service-backend
+      dockerfile: Dockerfile
+    container_name: aledhemtek-backend
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://database:3306/${DB_NAME:-aledhemtek}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-aledhemtek_user}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-userpassword}
+      JWT_SECRET: ${JWT_SECRET}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      EMAIL_USERNAME: ${EMAIL_USERNAME}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+      STRIPE_PUBLIC_KEY: ${STRIPE_PUBLIC_KEY}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      PAYPAL_CLIENT_ID: ${PAYPAL_CLIENT_ID}
+      PAYPAL_CLIENT_SECRET: ${PAYPAL_CLIENT_SECRET}
+    ports:
+      - "8080:8080"
+    volumes:
+      - backend_uploads:/app/uploads
+      - backend_invoices:/app/invoices
+    networks:
+      - aledhemtek-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ========================================
+  # FRONTEND - Angular + Nginx
+  # ========================================
+  frontend:
+    build:
+      context: ./service-frontend
+      dockerfile: Dockerfile
+    container_name: aledhemtek-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    networks:
+      - aledhemtek-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+# ========================================
+# VOLUMES
+# ========================================
+volumes:
+  mysql_data:
+    driver: local
+  backend_uploads:
+    driver: local
+  backend_invoices:
+    driver: local
+
+# ========================================
+# NETWORKS
+# ========================================
+networks:
+  aledhemtek-network:
+    driver: bridge
