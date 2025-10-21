@@ -1,0 +1,367 @@
+<div class="create-reservation-container">
+  
+  <!-- Header -->
+  <div class="header-section">
+    <h2>Créer une nouvelle réservation</h2>
+    <p class="subtitle">Sélectionnez vos services et planifiez votre intervention</p>
+  </div>
+
+  <!-- Stepper -->
+  <mat-stepper #stepper orientation="horizontal" 
+               [linear]="true" 
+               (selectionChange)="onStepChange($event)"
+               class="reservation-stepper">
+    
+    <!-- Étape 1: Informations de base -->
+    <mat-step [stepControl]="reservationInfoForm" label="Informations">
+      <form [formGroup]="reservationInfoForm">
+        <mat-card class="step-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>info</mat-icon>
+              Informations de la réservation
+            </mat-card-title>
+          </mat-card-header>
+          
+          <mat-card-content>
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Titre de la réservation</mat-label>
+                <input matInput 
+                       formControlName="title" 
+                       placeholder="Ex: Réparation plomberie salle de bain">
+                <mat-icon matSuffix>title</mat-icon>
+                <mat-error *ngIf="reservationInfoForm.get('title')?.hasError('required')">
+                  Le titre est requis
+                </mat-error>
+                <mat-error *ngIf="reservationInfoForm.get('title')?.hasError('minlength')">
+                  Le titre doit contenir au moins 3 caractères
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Description (optionnel)</mat-label>
+                <textarea matInput 
+                          formControlName="description" 
+                          rows="3"
+                          placeholder="Décrivez votre besoin en détail..."></textarea>
+                <mat-icon matSuffix>description</mat-icon>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Date de début</mat-label>
+                <input matInput 
+                       [matDatepicker]="startDatePicker" 
+                       formControlName="startDate"
+                       [min]="minDate">
+                <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
+                <mat-datepicker #startDatePicker></mat-datepicker>
+                <mat-error *ngIf="reservationInfoForm.get('startDate')?.hasError('required')">
+                  La date de début est requise
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Heure de début</mat-label>
+                <input matInput 
+                       type="time" 
+                       formControlName="startTime">
+                <mat-icon matSuffix>schedule</mat-icon>
+                <mat-error *ngIf="reservationInfoForm.get('startTime')?.hasError('required')">
+                  L'heure de début est requise
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="info-note">
+              <mat-icon>info</mat-icon>
+              <span>La date et l'heure de fin seront calculées automatiquement en fonction des tâches sélectionnées</span>
+            </div>
+
+            <!-- Section Géolocalisation -->
+            <div class="geolocation-section">
+              <h4>
+                <mat-icon>location_on</mat-icon>
+                Localisation (optionnel)
+              </h4>
+              
+              <div class="geolocation-content">
+                <div class="geolocation-info" *ngIf="!geolocationSupported">
+                  <mat-icon color="warn">warning</mat-icon>
+                  <span>La géolocalisation n'est pas supportée par votre navigateur</span>
+                </div>
+                
+                <div class="geolocation-controls" *ngIf="geolocationSupported">
+                  <button mat-raised-button 
+                          color="accent" 
+                          type="button"
+                          (click)="getCurrentLocation()"
+                          [disabled]="geolocationLoading"
+                          class="location-btn">
+                    <mat-icon>my_location</mat-icon>
+                    <span *ngIf="!geolocationLoading">Obtenir ma position</span>
+                    <span *ngIf="geolocationLoading">Localisation...</span>
+                  </button>
+                  
+                  <button mat-button 
+                          type="button"
+                          (click)="clearLocation()"
+                          [disabled]="!currentPosition"
+                          class="clear-btn">
+                    <mat-icon>clear</mat-icon>
+                    Effacer
+                  </button>
+                </div>
+                
+                <!-- Affichage de la position actuelle -->
+                <div class="current-position" *ngIf="currentPosition">
+                  <mat-card class="position-card">
+                    <mat-card-content>
+                      <div class="position-info">
+                        <mat-icon color="primary">place</mat-icon>
+                        <div class="position-details">
+                          <div class="coordinates">
+                            <strong>Coordonnées:</strong> {{ formatCoordinates() }}
+                          </div>
+                          <div class="address" *ngIf="currentPosition.address">
+                            <strong>Adresse:</strong> {{ currentPosition.address }}
+                          </div>
+                          <div class="accuracy">
+                            <strong>Précision:</strong> ±{{ currentPosition.accuracy }}m
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <!-- Carte interactive -->
+                      <div class="map-container" style="margin-top: 15px;">
+                        <app-location-map 
+                          [position]="currentPosition"
+                          [height]="'200px'"
+                          [showHeader]="false"
+                          [showActions]="true"
+                          [showInfo]="false"
+                          style="width: 100%; display: block;">
+                        </app-location-map>
+                      </div>
+                    </mat-card-content>
+                  </mat-card>
+                </div>
+                
+                <!-- Message d'aide -->
+                <div class="geolocation-help" *ngIf="geolocationSupported && !currentPosition">
+                  <mat-icon>info_outline</mat-icon>
+                  <span>La géolocalisation permet au consultant de mieux comprendre votre demande et d'estimer les frais de déplacement.</span>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+
+          <mat-card-actions>
+            <button mat-raised-button 
+                    color="primary" 
+                    matStepperNext
+                    [disabled]="!reservationInfoForm.valid">
+              Suivant
+              <mat-icon>arrow_forward</mat-icon>
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      </form>
+    </mat-step>
+
+    <!-- Étape 2: Sélection des tâches -->
+    <mat-step [stepControl]="taskSelectionForm" label="Tâches">
+      <form [formGroup]="taskSelectionForm">
+        <mat-card class="step-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>assignment</mat-icon>
+              Sélection des tâches
+            </mat-card-title>
+            <mat-card-subtitle *ngIf="getSelectedTasksCount() > 0">
+              {{getSelectedTasksCount()}} tâche(s) sélectionnée(s) - 
+              Durée estimée: {{getEstimatedDuration()}} - 
+              Prix estimé: {{formatPrice(totalPrice)}}
+            </mat-card-subtitle>
+          </mat-card-header>
+          
+          <mat-card-content>
+            <app-task-selector 
+              (tasksSelected)="onTasksSelected($event)"
+              (totalPriceChanged)="onTotalPriceChanged($event)">
+            </app-task-selector>
+
+            <div class="selection-summary" *ngIf="getSelectedTasksCount() > 0">
+              <mat-divider></mat-divider>
+              <div class="summary-content">
+                <h4>Résumé de votre sélection</h4>
+                <div class="summary-stats">
+                  <div class="stat-item">
+                    <mat-icon>assignment</mat-icon>
+                    <span>{{getSelectedTasksCount()}} tâche(s)</span>
+                  </div>
+                  <div class="stat-item">
+                    <mat-icon>schedule</mat-icon>
+                    <span>{{getEstimatedDuration()}}</span>
+                  </div>
+                  <div class="stat-item">
+                    <mat-icon>euro</mat-icon>
+                    <span>{{formatPrice(totalPrice)}}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+
+          <mat-card-actions>
+            <button mat-button matStepperPrevious>
+              <mat-icon>arrow_back</mat-icon>
+              Précédent
+            </button>
+            <button mat-raised-button 
+                    color="primary" 
+                    matStepperNext
+                    [disabled]="!taskSelectionForm.valid || getSelectedTasksCount() === 0">
+              Suivant
+              <mat-icon>arrow_forward</mat-icon>
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      </form>
+    </mat-step>
+
+    <!-- Étape 3: Confirmation -->
+    <mat-step [stepControl]="confirmationForm" label="Confirmation">
+      <form [formGroup]="confirmationForm">
+        <mat-card class="step-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>check_circle</mat-icon>
+              Confirmation de la réservation
+            </mat-card-title>
+          </mat-card-header>
+          
+          <mat-card-content>
+            <!-- Résumé complet -->
+            <div class="confirmation-summary">
+              <h4>Détails de votre réservation</h4>
+              
+              <div class="detail-section">
+                <h5><mat-icon>info</mat-icon> Informations générales</h5>
+                <div class="detail-item">
+                  <strong>Titre:</strong> {{reservationInfoForm.get('title')?.value}}
+                </div>
+                <div class="detail-item" *ngIf="reservationInfoForm.get('description')?.value">
+                  <strong>Description:</strong> {{reservationInfoForm.get('description')?.value}}
+                </div>
+                <div class="detail-item">
+                  <strong>Date de début:</strong> 
+                  {{reservationInfoForm.get('startDate')?.value | date:'fullDate':'fr'}} 
+                  à {{reservationInfoForm.get('startTime')?.value}}
+                </div>
+                <div class="detail-item">
+                  <strong>Date de fin estimée:</strong> 
+                  {{reservationInfoForm.get('endDate')?.value | date:'fullDate':'fr'}} 
+                  à {{reservationInfoForm.get('endTime')?.value}}
+                </div>
+              </div>
+
+              <div class="detail-section">
+                <h5><mat-icon>assignment</mat-icon> Tâches sélectionnées</h5>
+                <div class="tasks-list">
+                  <div *ngFor="let selectedTask of selectedTasks" class="task-item">
+                    <div class="task-info">
+                      <strong>{{selectedTask.task.name}}</strong>
+                      <span class="task-quantity">x{{selectedTask.quantity}}</span>
+                    </div>
+                    <div class="task-details">
+                      <span class="duration">{{selectedTask.task.duration * selectedTask.quantity}} min</span>
+                      <span class="price">{{formatPrice(selectedTask.totalPrice)}}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="detail-section totals">
+                <div class="total-item">
+                  <strong>Durée totale estimée:</strong>
+                  <span>{{getEstimatedDuration()}}</span>
+                </div>
+                <div class="total-item final-total">
+                  <strong>Prix total estimé:</strong>
+                  <span class="price-highlight">{{totalPrice | currency:'EUR':'symbol':'1.2-2':'fr'}} TTC</span>
+                </div>
+                <div class="price-note">
+                  <mat-icon>info</mat-icon>
+                  <small>Prix calculé en temps réel selon les tarifs actuels</small>
+                </div>
+              </div>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <!-- Notes additionnelles -->
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Notes additionnelles (optionnel)</mat-label>
+                <textarea matInput 
+                          formControlName="notes" 
+                          rows="3"
+                          placeholder="Informations supplémentaires, instructions spéciales..."></textarea>
+                <mat-icon matSuffix>note</mat-icon>
+              </mat-form-field>
+            </div>
+
+            <!-- Acceptation des conditions -->
+            <div class="terms-section">
+              <mat-checkbox formControlName="termsAccepted" color="primary">
+                J'accepte les conditions générales de service et je confirme ma réservation
+              </mat-checkbox>
+              <mat-error *ngIf="confirmationForm.get('termsAccepted')?.hasError('required')">
+                Vous devez accepter les conditions pour continuer
+              </mat-error>
+            </div>
+
+            <div class="warning-note">
+              <mat-icon>warning</mat-icon>
+              <span>Une fois confirmée, votre réservation sera en attente d'assignation d'un consultant.</span>
+            </div>
+          </mat-card-content>
+
+          <mat-card-actions>
+            <button mat-button matStepperPrevious>
+              <mat-icon>arrow_back</mat-icon>
+              Précédent
+            </button>
+            <button mat-raised-button 
+                    color="primary" 
+                    (click)="createReservation()"
+                    [disabled]="!confirmationForm.valid || loading">
+              <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
+              <mat-icon *ngIf="!loading">check</mat-icon>
+              {{loading ? 'Création en cours...' : 'Confirmer la réservation'}}
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      </form>
+    </mat-step>
+
+  </mat-stepper>
+
+  <!-- Actions globales -->
+  <div class="global-actions" *ngIf="!loading">
+    <button mat-stroked-button (click)="resetForm()">
+      <mat-icon>refresh</mat-icon>
+      Recommencer
+    </button>
+    <button mat-button routerLink="/client/dashboard">
+      <mat-icon>cancel</mat-icon>
+      Annuler
+    </button>
+  </div>
+
+</div>

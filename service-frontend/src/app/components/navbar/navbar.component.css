@@ -1,0 +1,63 @@
+/* Layout helpers */
+.spacer {
+  flex: 1 1 auto;
+}
+
+/* Toolbar styling */
+mat-toolbar {
+  min-height: 140px; /* ensure toolbar tall enough for larger logo */
+  padding: 0 24px;
+  background: #ffffff;
+  color: #0d0d0d;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  position: relative;
+  z-index: 1001; /* Plus élevé que la sidebar (1000) */
+}
+
+/* Branding */
+.nav-logo {
+  display: flex;
+  align-items: center;
+}
+
+.logo-img {
+  height: 160px; /* keep height */
+  width: 160px; /* wider logo */
+  
+  
+  
+  object-fit: contain;
+  margin-right: 8px;
+}
+
+/* Links & buttons */
+mat-toolbar a,
+mat-toolbar button {
+  color: #1976d2;
+  text-decoration: none;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 14px;
+  margin-left: 16px;
+  transition: opacity 0.2s ease-in-out;
+}
+
+mat-toolbar a:hover,
+mat-toolbar button:hover {
+  opacity: 0.8;
+}
+
+/* Active route indicator */
+mat-toolbar a.active {
+  border-bottom: 2px solid #ffffff;
+  padding-bottom: 2px;
+}
+
+/* Small screens */
+@media (max-width: 600px) {
+  mat-toolbar a,
+  mat-toolbar button {
+    font-size: 12px;
+    margin-left: 8px;
+  }
+}

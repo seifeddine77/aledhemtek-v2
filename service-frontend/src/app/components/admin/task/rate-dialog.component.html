@@ -1,0 +1,25 @@
+<h2 mat-dialog-title>Ajouter un tarif</h2>
+<div mat-dialog-content class="dialog-content">
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Prix €</mat-label>
+    <input matInput type="number" [(ngModel)]="data.price" required />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Date début</mat-label>
+    <input matInput [matDatepicker]="pickerStart" [(ngModel)]="data.startDate" />
+    <mat-datepicker-toggle matSuffix [for]="pickerStart"></mat-datepicker-toggle>
+    <mat-datepicker #pickerStart></mat-datepicker>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Date fin</mat-label>
+    <input matInput [matDatepicker]="pickerEnd" [(ngModel)]="data.endDate" />
+    <mat-datepicker-toggle matSuffix [for]="pickerEnd"></mat-datepicker-toggle>
+    <mat-datepicker #pickerEnd></mat-datepicker>
+  </mat-form-field>
+</div>
+<div mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Annuler</button>
+  <button mat-raised-button color="primary" [mat-dialog-close]="data" [disabled]="data.price == null">Ajouter</button>
+</div>

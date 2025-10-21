@@ -1,0 +1,25 @@
+.category-form {
+    display: flex;
+    flex-direction: column;
+    padding-top: 1rem;
+}
+
+.full-width {
+    width: 100%;
+}
+
+.file-input-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 1rem;
+}
+
+.file-name {
+    font-style: italic;
+    color: #666;
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

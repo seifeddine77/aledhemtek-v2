@@ -1,0 +1,153 @@
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <h1>Tableau de Bord Client</h1>
+    <p>Bienvenue dans votre espace personnel</p>
+  </div>
+
+  <div class="dashboard-content" *ngIf="!loading; else loadingTemplate">
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon class="stat-icon total">assignment</mat-icon>
+            <div class="stat-info">
+              <h3>{{ totalReservations }}</h3>
+              <p>Total Réservations</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon class="stat-icon pending">schedule</mat-icon>
+            <div class="stat-info">
+              <h3>{{ pendingReservations }}</h3>
+              <p>En Attente</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon class="stat-icon completed">check_circle</mat-icon>
+            <div class="stat-info">
+              <h3>{{ completedReservations }}</h3>
+              <p>Terminées</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon class="stat-icon money">euro</mat-icon>
+            <div class="stat-info">
+              <h3>{{ totalSpent | currency:'EUR':'symbol':'1.0-0' }}</h3>
+              <p>Total Dépensé</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="actions-section">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Actions Rapides</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="action-buttons">
+            <button mat-raised-button color="primary" (click)="createNewReservation()">
+              <mat-icon>add</mat-icon>
+              Nouvelle Réservation
+            </button>
+            <button mat-raised-button color="accent" (click)="viewAllReservations()">
+              <mat-icon>list</mat-icon>
+              Mes Réservations
+            </button>
+            <button mat-raised-button color="warn" (click)="viewMyEvaluations()">
+              <mat-icon>star</mat-icon>
+              Mes Évaluations
+            </button>
+            <button mat-raised-button color="primary" (click)="viewMyInvoices()">
+              <mat-icon>receipt</mat-icon>
+              Mes Factures
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Recent Reservations -->
+    <div class="recent-section">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Réservations Récentes</mat-card-title>
+          <mat-card-subtitle>Vos 5 dernières réservations</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="reservation-list" *ngIf="recentReservations.length > 0; else noReservations">
+            <div class="reservation-item" *ngFor="let reservation of recentReservations" 
+                 (click)="viewReservationDetails(reservation.id!)">
+              <div class="reservation-info">
+                <h4>{{ reservation.title }}</h4>
+                <p class="reservation-date">{{ formatDate(reservation.startDate) }}</p>
+                <p class="reservation-consultant" *ngIf="reservation.consultantName">
+                  <mat-icon>person</mat-icon>
+                  {{ reservation.consultantName }}
+                </p>
+              </div>
+              <div class="reservation-status">
+                <mat-chip [style.background-color]="getStatusColor(reservation.status)" 
+                         [style.color]="'white'">
+                  {{ getStatusText(reservation.status) }}
+                </mat-chip>
+              </div>
+            </div>
+          </div>
+          
+          <ng-template #noReservations>
+            <div class="no-data">
+              <mat-icon>assignment</mat-icon>
+              <p>Aucune réservation trouvée</p>
+              <button mat-raised-button color="primary" (click)="createNewReservation()">
+                Créer votre première réservation
+              </button>
+            </div>
+          </ng-template>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Additional Stats -->
+    <div class="additional-stats">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Statistiques du Mois</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="monthly-stats">
+            <div class="stat-item">
+              <mat-icon>calendar_today</mat-icon>
+              <span>Ce mois: {{ stats.thisMonth }} réservations</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <ng-template #loadingTemplate>
+    <div class="loading-container">
+      <mat-spinner></mat-spinner>
+      <p>Chargement de vos données...</p>
+    </div>
+  </ng-template>
+</div>

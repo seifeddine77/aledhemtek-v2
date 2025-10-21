@@ -1,0 +1,174 @@
+# ===================================
+# ALEDHEMTEK V2 - GITIGNORE
+# ===================================
+
+# Excluded folder (local files not for Git)
+_EXCLUDED_FROM_GIT/
+
+# ===================================
+# BACKEND - Spring Boot / Java
+# ===================================
+
+# Compiled class files
+*.class
+
+# Log files
+*.log
+logs/
+*.log.*
+
+# Package Files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Maven
+service-backend/target/
+service-backend/pom.xml.tag
+service-backend/pom.xml.releaseBackup
+service-backend/pom.xml.versionsBackup
+service-backend/pom.xml.next
+service-backend/release.properties
+service-backend/dependency-reduced-pom.xml
+service-backend/buildNumber.properties
+service-backend/.mvn/timing.properties
+service-backend/.mvn/wrapper/maven-wrapper.jar
+
+# IDE - IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# IDE - Eclipse
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# IDE - VSCode
+.vscode/
+*.code-workspace
+
+# Spring Boot
+service-backend/application-local.properties
+service-backend/application-prod.properties
+
+# Uploads directory (user uploaded files)
+service-backend/uploads/
+service-backend/invoices/
+
+# ===================================
+# FRONTEND - Angular
+# ===================================
+
+# Dependencies
+service-frontend/node_modules/
+service-frontend/.pnp
+service-frontend/.pnp.js
+
+# Testing
+service-frontend/coverage/
+service-frontend/*.lcov
+
+# Production build
+service-frontend/dist/
+service-frontend/tmp/
+service-frontend/out-tsc/
+service-frontend/bazel-out/
+
+# Angular cache
+service-frontend/.angular/
+service-frontend/.sass-cache/
+service-frontend/connect.lock
+
+# IDEs and editors
+service-frontend/.idea/
+service-frontend/.project
+service-frontend/.classpath
+service-frontend/.c9/
+service-frontend/*.launch
+service-frontend/.settings/
+service-frontend/*.sublime-workspace
+
+# Misc
+service-frontend/.DS_Store
+service-frontend/Thumbs.db
+service-frontend/npm-debug.log*
+service-frontend/yarn-debug.log*
+service-frontend/yarn-error.log*
+service-frontend/testem.log
+service-frontend/typings/
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# ===================================
+# SECURITY & SENSITIVE FILES
+# ===================================
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+
+# Security keys and certificates
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+*~
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# ===================================
+# DOCUMENTATION & REPORTS
+# ===================================
+
+# Keep documentation
+!*.md
+!README.md
+!IMPROVEMENTS_REPORT.md
+!FULL_ANALYSIS_REPORT.md
+!PAYMENT_SYSTEM_ANALYSIS.md
+!BILLING_SYSTEM_README.md
+
+# ===================================
+# SCRIPTS
+# ===================================
+
+# Keep utility scripts
+!*.bat
+!*.sh
+
+# But exclude test outputs
+test-output/
+test-results/

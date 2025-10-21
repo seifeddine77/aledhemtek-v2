@@ -1,0 +1,144 @@
+.sidebar {
+  width: 280px;
+  height: 100vh;
+  background-color: #4097e5; /* Light blue background */
+  color: white;
+  position: fixed;
+  top: 80px;
+  left: 0;
+  padding: 1rem;
+  transition: width 0.3s ease-in-out;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #34495e;
+  z-index: 1000;
+}
+
+.sidebar.closed {
+  width: 70px;
+}
+
+/* Sidebar Header */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.toggle-btn {
+  background: none;
+  color: white;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.toggle-btn:hover {
+  background-color: rgba(255,255,255,0.1);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar.closed .sidebar-header {
+  justify-content: center;
+}
+
+.sidebar.closed .header-actions {
+  display: none;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-grow: 1;
+}
+
+.sidebar ul li {
+  margin: 10px 0;
+}
+
+.sidebar ul li a {
+  color: white;
+  text-decoration: none;
+  padding: 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center; /* vertical center icon + text */
+  gap: 10px; /* space between icon and text */
+  transition: background 0.2s ease;
+  font-weight: 500;
+  font-size: 16px;
+}
+
+/* reset margins on text paragraph to align */
+.sidebar ul li a p {
+  margin: 0;
+}
+
+.sidebar ul li a:hover {
+  background-color: #34495e;
+}
+
+.sidebar.closed ul li a {
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  padding: 10px 0;
+}
+
+/* hide the text label but keep icon */
+.sidebar.closed ul li a p {
+  display: none;
+}
+
+.sidebar.closed ul li a i {
+  font-size: 22px;
+  display: block;
+  color: #ffffff; /* ensure visible */
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    width: 100%;
+    height: auto;
+    top: 60px;
+    flex-direction: row;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .sidebar.closed {
+    width: 100%;
+  }
+
+  .sidebar ul {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  .sidebar ul li {
+    margin: 0;
+  }
+
+  .sidebar ul li a {
+    padding: 10px 15px;
+  }
+
+  .toggle-btn {
+    display: none;
+  }
+}

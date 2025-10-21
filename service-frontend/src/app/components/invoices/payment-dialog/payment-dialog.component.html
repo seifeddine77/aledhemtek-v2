@@ -1,0 +1,142 @@
+<div class="payment-dialog">
+  <h2 mat-dialog-title>
+    <mat-icon>payment</mat-icon>
+    Ajouter un Paiement
+  </h2>
+
+  <mat-dialog-content>
+    <div class="payment-info">
+      <div class="info-card">
+        <h3>Informations de Facturation</h3>
+        <div class="info-row">
+          <span class="label">Montant restant à payer:</span>
+          <span class="value remaining">{{data.remainingAmount | currency:'EUR':'symbol':'1.2-2'}}</span>
+        </div>
+      </div>
+    </div>
+
+    <form [formGroup]="paymentForm" class="payment-form">
+      <!-- Amount -->
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="amount-field">
+          <mat-label>Montant du paiement (€)</mat-label>
+          <input matInput 
+                 type="number" 
+                 formControlName="amount" 
+                 min="0.01" 
+                 [max]="data.remainingAmount"
+                 step="0.01" 
+                 required
+                 (input)="onAmountChange()">
+          <button mat-icon-button matSuffix 
+                  type="button" 
+                  (click)="setFullAmount()"
+                  matTooltip="Montant total restant">
+            <mat-icon>account_balance_wallet</mat-icon>
+          </button>
+          <mat-error *ngIf="paymentForm.get('amount')?.hasError('required')">
+            Le montant est requis
+          </mat-error>
+          <mat-error *ngIf="paymentForm.get('amount')?.hasError('min')">
+            Le montant doit être supérieur à 0
+          </mat-error>
+          <mat-error *ngIf="paymentForm.get('amount')?.hasError('max')">
+            Le montant ne peut pas dépasser {{data.remainingAmount | currency:'EUR':'symbol':'1.2-2'}}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Payment Method -->
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Méthode de paiement</mat-label>
+          <mat-select formControlName="paymentMethod" required>
+            <mat-option *ngFor="let method of paymentMethods" [value]="method">
+              {{getPaymentMethodLabel(method)}}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="paymentForm.get('paymentMethod')?.hasError('required')">
+            La méthode de paiement est requise
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Payment Date -->
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Date de paiement</mat-label>
+          <input matInput [matDatepicker]="paymentDatePicker" formControlName="paymentDate" required>
+          <mat-datepicker-toggle matSuffix [for]="paymentDatePicker"></mat-datepicker-toggle>
+          <mat-datepicker #paymentDatePicker></mat-datepicker>
+          <mat-error *ngIf="paymentForm.get('paymentDate')?.hasError('required')">
+            La date de paiement est requise
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Transaction ID -->
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="transaction-field">
+          <mat-label>ID de transaction (optionnel)</mat-label>
+          <input matInput formControlName="transactionId" placeholder="Ex: TXN-123456-ABC">
+          <button mat-icon-button matSuffix 
+                  type="button" 
+                  (click)="generateTransactionId()"
+                  matTooltip="Générer un ID automatique">
+            <mat-icon>refresh</mat-icon>
+          </button>
+          <mat-hint>Référence de la transaction (chèque, virement, etc.)</mat-hint>
+        </mat-form-field>
+      </div>
+
+      <!-- Notes -->
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Notes (optionnel)</mat-label>
+          <textarea matInput 
+                    formControlName="notes" 
+                    rows="3" 
+                    placeholder="Informations complémentaires sur le paiement..."></textarea>
+        </mat-form-field>
+      </div>
+    </form>
+
+    <!-- Payment Summary -->
+    <div class="payment-summary" *ngIf="paymentForm.get('amount')?.value">
+      <h3>Récapitulatif du Paiement</h3>
+      <div class="summary-row">
+        <span class="label">Montant à payer:</span>
+        <span class="value">{{paymentForm.get('amount')?.value | currency:'EUR':'symbol':'1.2-2'}}</span>
+      </div>
+      <div class="summary-row">
+        <span class="label">Méthode:</span>
+        <span class="value">{{getPaymentMethodLabel(paymentForm.get('paymentMethod')?.value)}}</span>
+      </div>
+      <div class="summary-row">
+        <span class="label">Montant restant après paiement:</span>
+        <span class="value" [ngClass]="{'zero': (data.remainingAmount - paymentForm.get('amount')?.value) <= 0}">
+          {{(data.remainingAmount - paymentForm.get('amount')?.value) | currency:'EUR':'symbol':'1.2-2'}}
+        </span>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()" [disabled]="loading">
+      Annuler
+    </button>
+    <button mat-raised-button 
+            color="primary" 
+            (click)="onSubmit()" 
+            [disabled]="loading || !paymentForm.valid">
+      <mat-icon *ngIf="loading">hourglass_empty</mat-icon>
+      <mat-icon *ngIf="!loading">payment</mat-icon>
+      {{loading ? 'Ajout...' : 'Ajouter le Paiement'}}
+    </button>
+  </mat-dialog-actions>
+
+  <!-- Loading Overlay -->
+  <div *ngIf="loading" class="loading-overlay">
+    <mat-spinner></mat-spinner>
+  </div>
+</div>

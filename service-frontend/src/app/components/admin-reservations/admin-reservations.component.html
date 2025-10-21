@@ -1,0 +1,242 @@
+<div class="admin-reservations-container">
+  <div class="header">
+    <h2>Gestion des Réservations</h2>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-grid">
+    <mat-card class="stat-card pending">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-number">{{ getStatusCount(ReservationStatus.PENDING) }}</div>
+          <div class="stat-label">En attente</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card assigned">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-number">{{ getStatusCount(ReservationStatus.ASSIGNED) }}</div>
+          <div class="stat-label">Assignées</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card in-progress">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-number">{{ getStatusCount(ReservationStatus.IN_PROGRESS) }}</div>
+          <div class="stat-label">En cours</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card completed">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-number">{{ getStatusCount(ReservationStatus.COMPLETED) }}</div>
+          <div class="stat-label">Terminées</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Unassigned Reservations -->
+  <mat-card class="unassigned-section" *ngIf="unassignedReservations.length > 0">
+    <mat-card-header>
+      <mat-card-title>Réservations non assignées ({{ unassignedReservations.length }})</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="unassigned-grid">
+        <div class="unassigned-item" *ngFor="let reservation of unassignedReservations">
+          <div class="reservation-info">
+            <h4>{{ reservation.title }}</h4>
+            <p>Client: {{ reservation.clientName }}</p>
+            <p>Date: {{ formatDate(reservation.startDate) }}</p>
+          </div>
+          <div class="assignment-section">
+            <mat-form-field appearance="outline">
+              <mat-label>Assigner à un consultant</mat-label>
+              <mat-select (selectionChange)="assignConsultant(reservation.id!, $event.value)">
+                <mat-option *ngFor="let consultant of getAvailableConsultants(reservation)" 
+                           [value]="consultant.id">
+                  {{ consultant.firstName }} {{ consultant.lastName }} - {{ consultant.profession }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- All Reservations Table -->
+  <mat-card class="reservations-table">
+    <mat-card-header>
+      <mat-card-title>Toutes les Réservations</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <table mat-table [dataSource]="reservations" multiTemplateDataRows class="mat-elevation-z2">
+        
+        <!-- Expand Column -->
+        <ng-container matColumnDef="expand">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let reservation">
+            <button mat-icon-button (click)="(expandedElement = expandedElement === reservation ? null : reservation); $event.stopPropagation()">
+              <mat-icon *ngIf="expandedElement !== reservation">keyboard_arrow_down</mat-icon>
+              <mat-icon *ngIf="expandedElement === reservation">keyboard_arrow_up</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="id">
+          <th mat-header-cell *matHeaderCellDef>ID</th>
+          <td mat-cell *matCellDef="let reservation">{{ reservation.id }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="title">
+          <th mat-header-cell *matHeaderCellDef>Titre</th>
+          <td mat-cell *matCellDef="let reservation">{{ reservation.title }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="client">
+          <th mat-header-cell *matHeaderCellDef>Client</th>
+          <td mat-cell *matCellDef="let reservation">{{ reservation.clientName }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="consultant">
+          <th mat-header-cell *matHeaderCellDef>Consultant</th>
+          <td mat-cell *matCellDef="let reservation">
+            <span *ngIf="reservation.consultantName; else noConsultant">
+              {{ reservation.consultantName }}
+            </span>
+            <ng-template #noConsultant>
+              <span class="no-consultant">Non assigné</span>
+            </ng-template>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="startDate">
+          <th mat-header-cell *matHeaderCellDef>Date début</th>
+          <td mat-cell *matCellDef="let reservation">{{ formatDate(reservation.startDate) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="endDate">
+          <th mat-header-cell *matHeaderCellDef>Date fin</th>
+          <td mat-cell *matCellDef="let reservation">{{ formatDate(reservation.endDate) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="location">
+          <th mat-header-cell *matHeaderCellDef>Localisation</th>
+          <td mat-cell *matCellDef="let reservation">
+            <button mat-icon-button 
+                    *ngIf="hasLocation(reservation)" 
+                    (click)="viewLocation(reservation); $event.stopPropagation()" 
+                    matTooltip="Voir la localisation">
+              <mat-icon>location_on</mat-icon>
+            </button>
+            <span *ngIf="!hasLocation(reservation)" class="no-location">-</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Statut</th>
+          <td mat-cell *matCellDef="let reservation">
+            <mat-chip [style.background-color]="getStatusColor(reservation.status)" 
+                     [style.color]="'white'">
+              {{ reservation.status }}
+            </mat-chip>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let reservation">
+            <div class="action-buttons">
+              
+              <!-- Assign Consultant -->
+              <mat-form-field appearance="outline" *ngIf="!reservation.consultantId" class="consultant-select">
+                <mat-label>Assigner</mat-label>
+                <mat-select (selectionChange)="assignConsultant(reservation.id!, $event.value)">
+                  <mat-option *ngFor="let consultant of getAvailableConsultants(reservation)" 
+                             [value]="consultant.id">
+                    {{ consultant.firstName }} {{ consultant.lastName }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <!-- Status Update -->
+              <mat-form-field appearance="outline" class="status-select">
+                <mat-label>Statut</mat-label>
+                <mat-select [value]="reservation.status" 
+                           (selectionChange)="updateReservationStatus(reservation.id!, $event.value)">
+                  <mat-option [value]="ReservationStatus.PENDING">En attente</mat-option>
+                  <mat-option [value]="ReservationStatus.ASSIGNED">Assignée</mat-option>
+                  <mat-option [value]="ReservationStatus.IN_PROGRESS">En cours</mat-option>
+                  <mat-option [value]="ReservationStatus.COMPLETED">Terminée</mat-option>
+                  <mat-option [value]="ReservationStatus.CANCELLED">Annulée</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <!-- Delete Button -->
+              <button mat-icon-button color="warn" (click)="deleteReservation(reservation.id!)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let reservation; columns: displayedColumns;"
+            class="element-row"
+            [class.expanded-row]="expandedElement === reservation"
+            (click)="expandedElement = expandedElement === reservation ? null : reservation">
+        </tr>
+        <tr class="detail-row" mat-row *matRowDef="let row; columns: ['expandedDetail']" [@detailExpand]>
+        </tr>
+
+        <!-- Expanded Content Column - The detail row is made up of this one column that spans across all columns -->
+        <ng-container matColumnDef="expandedDetail">
+          <td mat-cell *matCellDef="let reservation" [attr.colspan]="displayedColumns.length">
+            <div class="element-detail" *ngIf="reservation.tasks && reservation.tasks.length > 0">
+              <div class="detail-header">
+                <h4>Tâches associées</h4>
+                <div class="task-actions">
+                  <button mat-stroked-button color="accent" (click)="openTasksDialog(reservation); $event.stopPropagation();">
+                    <mat-icon>visibility</mat-icon> Voir les tâches
+                  </button>
+                  <button mat-stroked-button color="primary" (click)="openTasksEditorDialog(reservation); $event.stopPropagation();">
+                    <mat-icon>edit</mat-icon> Gérer les tâches
+                  </button>
+                </div>
+              </div>
+              <table class="tasks-table">
+                <thead>
+                  <tr>
+                    <th>Nom</th>
+                    <th>Description</th>
+                    <th>Durée (min)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let task of reservation.tasks">
+                    <td>{{ task.name }}</td>
+                    <td>{{ task.description }}</td>
+                    <td>{{ task.duration }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="element-detail no-tasks" *ngIf="!reservation.tasks || reservation.tasks.length === 0">
+              <p>Aucune tâche associée à cette réservation.</p>
+              <button mat-stroked-button color="primary" (click)="openTasksEditorDialog(reservation); $event.stopPropagation();">
+                <mat-icon>add</mat-icon> Ajouter des tâches
+              </button>
+            </div>
+          </td>
+        </ng-container>
+      </table>
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -1,0 +1,102 @@
+.sidebar {
+  width: 280px;
+  height: 100vh;
+  background-color: #4097e5; /* Light blue background */
+  color: white;
+  position: fixed;
+  top: 80px;
+  left: 0;
+  padding: 1rem;
+  transition: width 0.3s ease-in-out;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #34495e;
+  z-index: 1000;
+}
+
+.sidebar.closed {
+  width: 70px;
+}
+
+.toggle-btn {
+  background: none;
+  color: white;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  align-self: center; /* Center the toggle button */
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-grow: 1;
+}
+
+.sidebar ul li {
+  margin: 10px 0;
+}
+
+.sidebar ul li a {
+  color: white;
+  text-decoration: none;
+  padding: 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  transition: background 0.2s ease;
+  font-weight: bold;           /* Bold text */
+  font-size: 16px;             /* Slightly bigger */
+}
+
+.sidebar ul li a:hover {
+  background-color: #34495e;
+}
+
+.sidebar.closed ul li a {
+  justify-content: center;
+  padding: 10px 0;
+  font-size: 0;
+}
+
+.sidebar.closed ul li a::before {
+  content: attr(data-icon);
+  font-size: 18px;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    width: 100%;
+    height: auto;
+    top: 60px;
+    flex-direction: row;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .sidebar.closed {
+    width: 100%;
+  }
+
+  .sidebar ul {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  .sidebar ul li {
+    margin: 0;
+  }
+
+  .sidebar ul li a {
+    padding: 10px 15px;
+  }
+
+  .toggle-btn {
+    display: none;
+  }
+}

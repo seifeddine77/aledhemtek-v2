@@ -1,0 +1,59 @@
+<div class="container">
+  <h1>Gestion des Services</h1>
+
+  <div class="form-card">
+    <h2>Créer un Nouveau Service</h2>
+    <form [formGroup]="serviceForm" (ngSubmit)="postService()" class="service-form">
+
+      <div class="form-row">
+        <label for="name">Nom du Service</label>
+        <input id="name" formControlName="name" placeholder="Ex: Plomberie Générale">
+      </div>
+
+      <div class="form-row">
+        <label for="description">Description</label>
+        <textarea id="description" formControlName="description" placeholder="Décrivez le service..."></textarea>
+      </div>
+
+      <div class="form-row">
+        <label for="categoryId">Catégorie</label>
+        <select id="categoryId" formControlName="categoryId">
+          <option [ngValue]="null" disabled>Choisissez une catégorie</option>
+          <option *ngFor="let category of categories" [value]="category.id">
+            {{ category.name }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-row file-input-row">
+        <button type="button" class="file-btn" (click)="fileInput.click()">
+          Choisir une image
+        </button>
+        <input hidden (change)="onFileSelected($event)" #fileInput type="file" accept="image/*">
+        <span class="file-name" *ngIf="selectedFile">{{ selectedFile.name }}</span>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="submit-btn" [disabled]="!serviceForm.valid || !selectedFile">Enregistrer le Service</button>
+      </div>
+
+    </form>
+  </div>
+
+  <div class="list-card">
+    <h2>Liste des Services</h2>
+    <div class="service-list">
+      <div *ngFor="let service of services" class="service-item">
+        <img [src]="'data:image/jpeg;base64,' + service.returnedImg" alt="{{ service.name }}">
+        <div class="service-details">
+          <h3>{{ service.name }}</h3>
+          <p>{{ service.description }}</p>
+        </div>
+      </div>
+      <div *ngIf="services.length === 0" class="no-services">
+        <p>Aucun service n'a encore été créé.</p>
+      </div>
+    </div>
+  </div>
+
+</div>

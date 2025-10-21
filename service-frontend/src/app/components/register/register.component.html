@@ -1,0 +1,114 @@
+<div class="register-wrapper">
+  <div class="register-container">
+
+
+    <!-- Welcome Panel -->
+    <div class="register-welcome-panel">
+      <div class="welcome-content">
+        <h1>Join Aledhemtek</h1>
+        <p>Create a free account to book reliable home services and keep track of all your interventions in one place.</p>
+      </div>
+    </div>
+
+    <!-- Form Panel -->
+    <div class="register-form-panel">
+
+  
+    <h2 class="title">Create Account</h2>
+    <form (ngSubmit)="onSubmit()" #profileForm="ngForm" class="form-grid">
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>First Name</mat-label>
+        <mat-icon matPrefix>person</mat-icon>
+        <input matInput id="firstName" name="firstName" [(ngModel)]="client.firstName" autocomplete="given-name" required />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Last Name</mat-label>
+        <mat-icon matPrefix>person</mat-icon>
+        <input matInput id="lastName" name="lastName" [(ngModel)]="client.lastName" autocomplete="family-name" required />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Email</mat-label>
+        <mat-icon matPrefix>mail</mat-icon>
+        <input matInput id="email" type="email" name="email" [(ngModel)]="client.email" autocomplete="email" required />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Password</mat-label>
+        <input matInput id="password" [type]="hidePassword ? 'password' : 'text'" name="password" [(ngModel)]="client.password" autocomplete="new-password" required />
+        <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
+          <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Phone</mat-label>
+        <mat-icon matPrefix>phone</mat-icon>
+        <input matInput id="phone" type="tel" name="phone" [(ngModel)]="client.phone" autocomplete="tel" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Date of Birth</mat-label>
+        <mat-icon matPrefix>calendar_today</mat-icon>
+        <input matInput id="dob" name="dob" [matDatepicker]="picker" [(ngModel)]="client.dob" autocomplete="bday" required />
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Country</mat-label>
+        <mat-icon matPrefix>public</mat-icon>
+        <mat-select id="country" name="country" [(ngModel)]="client.country" autocomplete="country">
+          <mat-option value="Tunisie">Tunisie</mat-option>
+          <mat-option value="Italy">Italy</mat-option>
+          <mat-option value="USA">USA</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Zip Code</mat-label>
+        <mat-icon matPrefix>location_on</mat-icon>
+        <input matInput id="zip" name="zip" [(ngModel)]="client.zip" type="number" autocomplete="postal-code" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Address</mat-label>
+        <mat-icon matPrefix>home</mat-icon>
+        <textarea matInput id="address" name="address" [(ngModel)]="client.address" autocomplete="street-address"></textarea>
+      </mat-form-field>
+
+      <!-- File Upload -->
+      <div class="form-group mt-3">
+        <label for="profilePicture" class="form-label fw-semibold">Profile Picture</label>
+        <div class="file-row mt-2">
+          <button type="button" class="btn btn-outline-primary" (click)="fileInput.click()">Choose Image</button>
+          <span *ngIf="selectedFileName" class="file-name text-muted">{{ selectedFileName }}</span>
+          <input type="file" id="profilePicture" #fileInput class="d-none" (change)="onFileSelected($event)" accept="image/*" />
+          <button *ngIf="profile_picture_preview" type="button" class="btn btn-sm btn-outline-danger" (click)="resetImage()">Remove</button>
+        </div>
+        <div *ngIf="profile_picture_preview" class="mt-3">
+          <img [src]="profile_picture_preview" alt="Preview" class="img-thumbnail rounded border" width="150" />
+        </div>
+      </div>
+
+      <div class="form-group mt-4">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Profession</mat-label>
+          <mat-icon matPrefix>work</mat-icon>
+          <mat-select id="occupation" name="occupation" [(ngModel)]="selectedOccupation" (selectionChange)="onOccupationChange($event.value)" autocomplete="organization">
+            <mat-option value="client">Client</mat-option>
+            <mat-option value="consultant">Consultant</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="btn-group mt-4">
+        <button mat-raised-button color="primary" type="submit" [disabled]="!profileForm.form.valid">Register</button>
+        <button mat-button type="reset" (click)="resetForm()">Reset</button>
+      </div>
+    </form>
+  </div>
+</div>
+</div>

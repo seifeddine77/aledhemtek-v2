@@ -1,0 +1,173 @@
+<div class="consultant-management-container">
+  <mat-card class="header-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>people</mat-icon>
+        Gestion des Consultants
+      </mat-card-title>
+      <mat-card-subtitle>
+        Gérer les consultants, leurs CVs et leurs statuts d'approbation
+      </mat-card-subtitle>
+    </mat-card-header>
+  </mat-card>
+
+  <div class="loading-container" *ngIf="loading">
+    <mat-spinner></mat-spinner>
+    <p>Chargement des consultants...</p>
+  </div>
+
+  <div class="table-container" *ngIf="!loading">
+    <table mat-table [dataSource]="consultants" class="mat-elevation-z8 consultant-table">
+
+      <!-- ID Column -->
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef> #ID </th>
+        <td mat-cell *matCellDef="let consultant"> {{consultant.id}} </td>
+      </ng-container>
+
+      <!-- Name Column -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef> Nom Complet </th>
+        <td mat-cell *matCellDef="let consultant"> 
+          <div class="consultant-name">
+            <strong>{{consultant.firstName}} {{consultant.lastName}}</strong>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Email Column -->
+      <ng-container matColumnDef="email">
+        <th mat-header-cell *matHeaderCellDef> Email </th>
+        <td mat-cell *matCellDef="let consultant"> 
+          <a href="mailto:{{consultant.email}}" class="email-link">{{consultant.email}}</a>
+        </td>
+      </ng-container>
+
+      <!-- Profession Column -->
+      <ng-container matColumnDef="profession">
+        <th mat-header-cell *matHeaderCellDef> Profession </th>
+        <td mat-cell *matCellDef="let consultant"> {{consultant.profession || 'Non spécifiée'}} </td>
+      </ng-container>
+
+      <!-- Experience Column -->
+      <ng-container matColumnDef="experience">
+        <th mat-header-cell *matHeaderCellDef> Expérience </th>
+        <td mat-cell *matCellDef="let consultant"> 
+          <span *ngIf="consultant.exp !== null && consultant.exp !== undefined; else noExp">
+            {{consultant.exp}} ans
+          </span>
+          <ng-template #noExp>
+            <span class="no-data-text">Non spécifiée</span>
+          </ng-template>
+        </td>
+      </ng-container>
+
+      <!-- Company Column -->
+      <ng-container matColumnDef="company">
+        <th mat-header-cell *matHeaderCellDef> Entreprise </th>
+        <td mat-cell *matCellDef="let consultant">
+          <span *ngIf="consultant.companyName; else noCompany">
+            {{consultant.companyName}}
+          </span>
+          <ng-template #noCompany>
+            <span class="no-data-text">Non spécifiée</span>
+          </ng-template>
+        </td>
+      </ng-container>
+
+      <!-- Status Column -->
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef> Statut </th>
+        <td mat-cell *matCellDef="let consultant"> 
+          <mat-chip [color]="getStatusColor(consultant.status)" selected>
+            {{getStatusText(consultant.status)}}
+          </mat-chip>
+        </td>
+      </ng-container>
+
+      <!-- Resume Column -->
+      <ng-container matColumnDef="resume">
+        <th mat-header-cell *matHeaderCellDef> CV </th>
+        <td mat-cell *matCellDef="let consultant">
+          <div class="resume-actions" *ngIf="consultant.resumePath; else noResume">
+            <button
+              mat-icon-button
+              color="accent"
+              matTooltip="Voir le CV"
+              (click)="viewResume(consultant)"
+              class="resume-btn">
+              <mat-icon>visibility</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              color="primary"
+              matTooltip="Télécharger le CV"
+              (click)="downloadResume(consultant)"
+              class="resume-btn">
+              <mat-icon>download</mat-icon>
+            </button>
+          </div>
+          <ng-template #noResume>
+            <span class="no-resume">Aucun CV</span>
+          </ng-template>
+        </td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef> Actions </th>
+        <td mat-cell *matCellDef="let consultant">
+          <div class="action-buttons">
+            <!-- Approve Button -->
+            <button 
+              mat-icon-button 
+              color="primary"
+              matTooltip="Approuver le consultant"
+              [disabled]="consultant.status === 'APPROVED'"
+              (click)="approve(consultant)"
+              class="action-btn approve-btn">
+              <mat-icon>check_circle</mat-icon>
+            </button>
+            
+            <!-- Reject Button -->
+            <button 
+              mat-icon-button 
+              color="warn"
+              matTooltip="Rejeter le consultant"
+              [disabled]="consultant.status === 'REJECTED'"
+              (click)="reject(consultant.id!)"
+              class="action-btn reject-btn">
+              <mat-icon>cancel</mat-icon>
+            </button>
+            
+            <!-- Delete Button -->
+            <button 
+              mat-icon-button 
+              color="warn"
+              matTooltip="Supprimer le consultant"
+              (click)="delete(consultant.id!)"
+              class="action-btn delete-btn">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  </div>
+
+  <div class="no-data" *ngIf="!loading && consultants.length === 0">
+    <mat-card>
+      <mat-card-content>
+        <div class="no-data-content">
+          <mat-icon>people_outline</mat-icon>
+          <h3>Aucun consultant trouvé</h3>
+          <p>Il n'y a actuellement aucun consultant dans le système.</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
+

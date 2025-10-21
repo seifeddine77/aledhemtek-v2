@@ -1,0 +1,11 @@
+.container { padding: 2rem; }
+.form-card { max-width: 600px; margin: 0 auto 2rem auto; }
+.service-form .form-row { display: flex; align-items: center; gap: 16px; margin-bottom: 1rem; }
+.full-width { flex-grow: 1; }
+.category-select { flex-grow: 1; }
+.file-input-row { display: flex; align-items: center; gap: 1rem; }
+.file-name { font-style: italic; }
+.task-section { margin-top: 2rem; }
+.task-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.tasks-table { width: 100%; }
+.no-tasks-message { text-align: center; color: grey; margin-top: 1rem; }

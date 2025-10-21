@@ -1,0 +1,417 @@
+<div class="home-container">
+  <!-- Hero Section -->
+  <div class="hero-section section-animate">
+    <div class="hero-content section-inner">
+      <h1 class="hero-title">Des services à domicile <span class="hero-highlight">fiables et rapides</span></h1>
+      <p class="hero-subtitle">Trouvez un professionnel qualifié en quelques clics pour tous vos besoins du quotidien.</p>
+      <div class="hero-actions">
+        <button mat-raised-button color="primary" (click)="handleSignup()">{{ getSignupButtonText() }}</button>
+        <button mat-stroked-button class="cta-secondary" routerLink="/contact">Contactez-nous</button>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=1200&q=80" alt="Artisan à domicile" class="hero-illustration" loading="lazy" onerror="this.src='https://via.placeholder.com/1200x800/4f46e5/ffffff?text=Services+à+Domicile'" />
+    </div>
+  </div>
+
+  <svg class="section-separator" viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill="#f7fafd" d="M0,0 C480,80 960,-20 1440,60 L1440,0 L0,0 Z"></path></svg>
+  <!-- Section Comment ça marche -->
+  <div class="how-section section-animate">
+    <h2>Comment ça marche&nbsp;?</h2>
+    <div class="how-steps">
+      <div class="how-step">
+        <div class="how-step-icon"><mat-icon>search</mat-icon></div>
+        <div class="how-step-num">1</div>
+        <div class="how-step-title">Je trouve mon service</div>
+        <div class="how-step-desc">Parmi des dizaines de prestations à domicile, filtrées par besoin et localisation.</div>
+      </div>
+      <div class="how-step">
+        <div class="how-step-icon"><mat-icon>event_available</mat-icon></div>
+        <div class="how-step-num">2</div>
+        <div class="how-step-title">Je réserve en ligne</div>
+        <div class="how-step-desc">En quelques clics, choisissez la date, l’artisan et confirmez votre demande.</div>
+      </div>
+      <div class="how-step">
+        <div class="how-step-icon"><mat-icon>thumb_up</mat-icon></div>
+        <div class="how-step-num">3</div>
+        <div class="how-step-title">C’est fait, en toute confiance</div>
+        <div class="how-step-desc">Un professionnel intervient, vous évaluez la prestation après service.</div>
+      </div>
+    </div>
+  </div>
+  <svg class="section-separator" viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill="#fff" d="M0,0 C480,80 960,-20 1440,60 L1440,0 L0,0 Z"></path></svg>
+  <!-- Trust Band -->
+  <div class="trust-band section-animate">
+    <div class="trust-item"><span class="icon">★</span> 4.9/5 Avis Clients</div>
+    <div class="trust-item"><span class="icon">🔒</span> Sécurité & Fiabilité</div>
+    <div class="trust-item"><span class="icon">⚡</span> Intervention Rapide</div>
+  </div>
+
+  <svg class="section-separator" viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path fill="#f8faff" d="M0,0 C480,100 960,20 1440,100 L1440,0 L0,0 Z"></path>
+  </svg>
+
+  <!-- Services Section -->
+  <section class="services-section section-animate">
+    <div class="section-header">
+      <span class="section-subtitle">Ce que nous offrons</span>
+      <h2 class="section-title">Nos Services d'Excellence</h2>
+      <div class="section-divider">
+        <span></span>
+        <mat-icon>build</mat-icon>
+        <span></span>
+      </div>
+      <p class="section-description">Découvrez notre gamme complète de services professionnels pour tous vos besoins à domicile</p>
+    </div>
+
+    <div class="services-grid">
+      <!-- Boucle sur les services dynamiques -->
+      <div *ngFor="let service of services; let i = index" class="service-card-modern" data-aos="fade-up" [attr.data-aos-delay]="50 * (i + 1)">
+        <div class="service-card-inner">
+          <div class="service-img-wrap">
+            <div class="service-img-overlay"></div>
+            <img class="service-img" [src]="service.processedImg" [alt]="service.name" loading="lazy" (error)="onImageError($event)">
+            <div class="service-actions">
+              <button mat-raised-button class="service-button" (click)="handleReservation(service.id)">
+                {{ getReservationButtonText() }}
+                <mat-icon>{{ isLoggedIn ? 'arrow_forward' : 'login' }}</mat-icon>
+              </button>
+            </div>
+          </div>
+          <div class="service-content">
+            <div class="service-icon">
+              <!-- Vous pouvez rendre cette icône dynamique si vous l'ajoutez au DTO -->
+              <mat-icon>build</mat-icon>
+            </div>
+            <h3 class="service-title">{{ service.name }}</h3>
+            <p class="service-description">{{ service.description }}</p>
+            <div class="service-footer">
+              <span class="service-price">À partir de <strong>{{ service.price | currency:'EUR' }}</strong></span>
+              <a [routerLink]="['/service', service.id]" class="service-link">En savoir plus <mat-icon>arrow_forward</mat-icon></a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Message si aucun service n'est disponible -->
+      <div *ngIf="services.length === 0" class="no-services-message">
+        <mat-icon>info</mat-icon>
+        <p>Aucun service n'est disponible pour le moment. Revenez bientôt !</p>
+      </div>
+    </div>
+
+    <!-- Bouton pour voir tous les services -->
+    <div class="view-all-services" data-aos="fade-up" *ngIf="services.length >= 6">
+      <button mat-raised-button color="primary" (click)="handleViewAllServices()">
+        {{ getViewAllServicesText() }}
+        <mat-icon>{{ isLoggedIn ? 'visibility' : 'login' }}</mat-icon>
+      </button>
+    </div>
+
+    <div class="services-cta" data-aos="fade-up">
+      <p>Vous ne trouvez pas le service dont vous avez besoin ?</p>
+      <button mat-stroked-button color="primary" class="outline-button" routerLink="/contact">
+        Contactez-nous pour une demande personnalisée
+        <mat-icon>arrow_forward</mat-icon>
+      </button>
+    </div>
+  </section>
+
+  <svg class="section-separator" viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill="#f7fafd" d="M0,0 C480,80 960,-20 1440,60 L1440,0 L0,0 Z"></path></svg>
+  <!-- Evaluations Section -->
+  <div class="testimonials-section section-animate">
+    <div class="section-header">
+      <span class="section-subtitle">Témoignages clients</span>
+      <h2 class="section-title">Ils nous font confiance</h2>
+      <div class="section-divider">
+        <span></span>
+        <mat-icon>star</mat-icon>
+        <span></span>
+      </div>
+      <p class="section-description">Découvrez les avis authentiques de nos clients satisfaits</p>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loadingEvaluations" class="evaluations-loading">
+      <mat-icon>hourglass_empty</mat-icon>
+      <p>Chargement des témoignages...</p>
+    </div>
+
+    <!-- Dynamic Evaluations -->
+    <div *ngIf="!loadingEvaluations && recentEvaluations.length > 0" class="testimonials-list-modern">
+      <div *ngFor="let evaluation of recentEvaluations" class="testimonial-card-modern">
+        <div class="testimonial-avatar-modern">
+          <div class="avatar-placeholder">
+            <mat-icon>person</mat-icon>
+          </div>
+        </div>
+        <div class="testimonial-content-modern">
+          <div class="testimonial-quote-mark">"</div>
+          <div class="testimonial-text-modern">
+            {{ evaluation.comment || 'Service excellent, je recommande vivement !' }}
+          </div>
+          <div class="testimonial-name-modern">
+            {{ getReservation(evaluation.reservationId)?.clientName || 'Client satisfait' }}
+          </div>
+          <div class="testimonial-date">
+            {{ formatDate(evaluation.createdAt || '') }}
+          </div>
+          <div class="testimonial-stars-modern">
+            <span *ngFor="let star of getStarArray(getEvaluationAverage(evaluation))" 
+                  class="star" 
+                  [class.filled]="star <= getEvaluationAverage(evaluation)">
+              ★
+            </span>
+            <span class="rating-number">({{ getEvaluationAverage(evaluation) | number:'1.1-1' }})</span>
+          </div>
+          <div class="testimonial-service" *ngIf="getReservation(evaluation.reservationId)">
+            <mat-icon>build</mat-icon>
+            <span>Intervention du {{ formatDate(getReservation(evaluation.reservationId)!.startDate) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fallback to static testimonials if no evaluations -->
+    <div *ngIf="!loadingEvaluations && recentEvaluations.length === 0" class="testimonials-list-modern">
+      <div class="testimonial-card-modern">
+        <div class="testimonial-avatar-modern">
+          <img src="https://images.unsplash.com/photo-1566753323558-f4e0952af115?auto=format&fit=crop&w=256&q=80" alt="Client 1">
+        </div>
+        <div class="testimonial-content-modern">
+          <div class="testimonial-quote-mark">"</div>
+          <div class="testimonial-text-modern">Service rapide et professionnel, j'ai trouvé un plombier en 10 minutes !</div>
+          <div class="testimonial-name-modern">Yassine B.</div>
+          <div class="testimonial-stars-modern">
+            <mat-icon color="warn">star</mat-icon>
+            <mat-icon color="warn">star</mat-icon>
+            <mat-icon color="warn">star</mat-icon>
+            <mat-icon color="warn">star</mat-icon>
+            <mat-icon color="warn">star_half</mat-icon>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card-modern">
+        <div class="testimonial-avatar-modern">
+          <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&q=80" alt="Client 2">
+        </div>
+        <div class="testimonial-content-modern">
+          <div class="testimonial-quote-mark">"</div>
+          <div class="testimonial-text-modern">Excellent ! Le service client est très réactif et les prestataires sont fiables.</div>
+          <div class="testimonial-name-modern">Sophie L.</div>
+          <div class="testimonial-stars-modern">
+            <mat-icon color="warn">star</mat-icon>
+            <mat-icon color="warn">star</mat-icon>
+            <mat-icon color="warn">star</mat-icon>
+            <mat-icon color="warn">star</mat-icon>
+            <mat-icon color="warn">star</mat-icon>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card-modern">
+        <div class="testimonial-avatar-modern">
+          <img src="https://images.unsplash.com/photo-1568602471122-7832951cc4c5?auto=format&fit=crop&w=256&q=80" alt="Client 3">
+        </div>
+        <div class="testimonial-content-modern">
+          <div class="testimonial-quote-mark">"</div>
+          <div class="testimonial-text-modern">Très satisfait : intervention rapide et résultat impeccable. Je recommande !</div>
+          <div class="testimonial-name-modern">Mohamed K.</div>
+          <div class="testimonial-stars-modern">
+            <mat-icon color="warn">star</mat-icon>
+            <mat-icon color="warn">star</mat-icon>
+            <mat-icon color="warn">star</mat-icon>
+            <mat-icon color="warn">star</mat-icon>
+            <mat-icon color="warn">star</mat-icon>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <svg class="section-separator" viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill="#fff" d="M0,0 C480,80 960,-20 1440,60 L1440,0 L0,0 Z"></path></svg>
+  <!-- FAQ Section -->
+  <div class="faq-section section-animate">
+    <h2>FAQ</h2>
+    <mat-accordion>
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>Comment réserver un service ?</mat-panel-title>
+        </mat-expansion-panel-header>
+        <p>Créez un compte, choisissez le service souhaité et réservez en quelques clics !</p>
+      </mat-expansion-panel>
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>Les prestataires sont-ils vérifiés ?</mat-panel-title>
+        </mat-expansion-panel-header>
+        <p>Oui, chaque professionnel est vérifié et noté par nos clients après chaque intervention.</p>
+      </mat-expansion-panel>
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>Puis-je annuler une réservation ?</mat-panel-title>
+        </mat-expansion-panel-header>
+        <p>Vous pouvez annuler sans frais jusqu’à 2h avant l’intervention prévue.</p>
+      </mat-expansion-panel>
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>Comment contacter le support ?</mat-panel-title>
+        </mat-expansion-panel-header>
+        <p>Notre équipe est disponible 24/7 via le bouton “Contactez-nous” ou par email.</p>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </div>
+
+  <svg class="section-separator" viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill="#f7fafd" d="M0,0 C480,80 960,-20 1440,60 L1440,0 L0,0 Z"></path></svg>
+  <!-- Team Section with Advanced Effects -->
+  <div class="team-section section-animate">
+    <!-- Animated Background Elements -->
+    <div class="team-bg-shape-1"></div>
+    <div class="team-bg-shape-2"></div>
+    <div class="team-wave">
+      <svg viewBox="0 0 1440 320" preserveAspectRatio="none">
+        <path d="M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" fill="#f0f4ff" fill-opacity="0.3"></path>
+      </svg>
+    </div>
+
+    <div class="team-container">
+      <div class="section-header">
+        <span class="section-subtitle">Notre équipe</span>
+        <h2 class="section-title">Rencontrez nos experts</h2>
+        <div class="section-divider">
+          <span></span>
+          <mat-icon>groups</mat-icon>
+          <span></span>
+        </div>
+      </div>
+
+      <div class="team-list">
+        <!-- Team Member 1 -->
+        <div class="team-card" data-aos="fade-up" data-aos-delay="100">
+          <div class="team-card-inner">
+            <div class="team-avatar-wrapper">
+              <div class="avatar-glow"></div>
+              <img class="team-avatar" src="https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&w=256&q=80" alt="Seif Eddine" loading="lazy">
+              <div class="team-socials">
+                <a href="#" class="social-icon" aria-label="LinkedIn" data-tooltip="LinkedIn">
+                  <mat-icon>linkedin</mat-icon>
+                </a>
+                <a href="#" class="social-icon" aria-label="Twitter" data-tooltip="Twitter">
+                  <mat-icon>twitter</mat-icon>
+                </a>
+                <a href="#" class="social-icon" aria-label="Email" data-tooltip="Email">
+                  <mat-icon>email</mat-icon>
+                </a>
+              </div>
+              <div class="team-shape"></div>
+            </div>
+            <div class="team-info">
+              <div class="team-badge">Fondateur</div>
+              <h3 class="team-name">Seif Eddine</h3>
+              <span class="team-role">CEO & Tech Lead</span>
+              <p class="team-bio">Visionnaire tech, passionné d'innovation et d'expérience utilisateur. Il apporte plus de 10 ans d'expérience dans le développement web.</p>
+              <div class="team-skills">
+                <span class="skill-tag">Stratégie</span>
+                <span class="skill-tag">Innovation</span>
+                <span class="skill-tag">Tech</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Team Member 2 -->
+        <div class="team-card" data-aos="fade-up" data-aos-delay="200">
+          <div class="team-card-inner">
+            <div class="team-avatar-wrapper">
+              <div class="avatar-glow"></div>
+              <img class="team-avatar" src="https://images.unsplash.com/photo-1589156280159-27698a70f29e?auto=format&fit=crop&w=256&q=80" alt="Ghofrane" loading="lazy">
+              <div class="team-socials">
+                <a href="#" class="social-icon" aria-label="LinkedIn" data-tooltip="LinkedIn">
+                  <mat-icon>linkedin</mat-icon>
+                </a>
+                <a href="#" class="social-icon" aria-label="Twitter" data-tooltip="Twitter">
+                  <mat-icon>twitter</mat-icon>
+                </a>
+                <a href="#" class="social-icon" aria-label="Email" data-tooltip="Email">
+                  <mat-icon>email</mat-icon>
+                </a>
+              </div>
+              <div class="team-shape"></div>
+            </div>
+            <div class="team-info">
+              <div class="team-badge">Responsable</div>
+              <h3 class="team-name">Ghofrane</h3>
+              <span class="team-role">Responsable Qualité</span>
+              <p class="team-bio">Toujours à l'écoute, elle veille à la satisfaction de chaque client avec professionnalisme et bienveillance.</p>
+              <div class="team-skills">
+                <span class="skill-tag">Service Client</span>
+                <span class="skill-tag">Qualité</span>
+                <span class="skill-tag">Relation Client</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Team Member 3 -->
+        <div class="team-card" data-aos="fade-up" data-aos-delay="300">
+          <div class="team-card-inner">
+            <div class="team-avatar-wrapper">
+              <div class="avatar-glow"></div>
+              <img class="team-avatar" src="https://images.unsplash.com/photo-1615109398623-88346a601842?auto=format&fit=crop&w=256&q=80" alt="Imed" loading="lazy">
+              <div class="team-socials">
+                <a href="#" class="social-icon" aria-label="LinkedIn" data-tooltip="LinkedIn">
+                  <mat-icon>linkedin</mat-icon>
+                </a>
+                <a href="#" class="social-icon" aria-label="GitHub" data-tooltip="GitHub">
+                  <mat-icon>code</mat-icon>
+                </a>
+                <a href="#" class="social-icon" aria-label="Email" data-tooltip="Email">
+                  <mat-icon>email</mat-icon>
+                </a>
+              </div>
+              <div class="team-shape"></div>
+            </div>
+            <div class="team-info">
+              <div class="team-badge">Expert</div>
+              <h3 class="team-name">Imed</h3>
+              <span class="team-role">Lead Développeur</span>
+              <p class="team-bio">Expert Angular & Spring, il garantit la fiabilité de la plateforme.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <svg class="section-separator" viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill="#fff" d="M0,0 C480,80 960,-20 1440,60 L1440,0 L0,0 Z"></path></svg>
+  <!-- Partners Section -->
+  <div class="partners-section section-animate">
+    <h2>Nos partenaires</h2>
+    <div class="partners-logos">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft" />
+      <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" />
+      <img src="https://upload.wikimedia.org/wikipedia/commons/c/c8/Orange_logo.svg" alt="Orange" />
+      <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/IBM_logo.svg" alt="IBM" />
+    </div>
+  </div>
+
+  <svg class="section-separator" viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill="#f7fafd" d="M0,0 C480,80 960,-20 1440,60 L1440,0 L0,0 Z"></path></svg>
+  <!-- Footer -->
+  <!-- Duplicate footer removed -->
+  <div class="footer-content">
+    <div class="footer-logo">
+      <span class="footer-logo-text">Aledhemtek</span>
+    </div>
+    <div class="footer-links">
+      <a href="#" aria-label="Facebook" target="_blank"><mat-icon>facebook</mat-icon></a>
+      <a href="#" aria-label="Twitter" target="_blank"><mat-icon>twitter</mat-icon></a>
+      <a href="#" aria-label="Instagram" target="_blank"><mat-icon>instagram</mat-icon></a>
+    </div>
+  </div>
+  <div class="footer-copyright">
+    &copy; 2025 Aledhemtek. Tous droits réservés.
+  </div>
+
+  <!-- Scroll to top button -->
+  <button class="scroll-top-btn" title="Remonter" [style.display]="showScrollTopBtn ? 'flex' : 'none'" (click)="scrollToTop()">
+    <mat-icon>arrow_upward</mat-icon>
+  </button>
+</div>

@@ -1,0 +1,40 @@
+<mat-card class="dialog-card">
+  <div class="dialog-header">
+    <mat-card-title>Consultant Info</mat-card-title>
+    <button mat-icon-button class="close-button" (click)="onCancel()" aria-label="Close">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-card-content>
+    <form (ngSubmit)="onSave()">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Company Name</mat-label>
+        <input matInput id="companyName" name="companyName" [(ngModel)]="consultantData.companyName" autocomplete="organization" required />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Job Title</mat-label>
+        <input matInput id="jobTitle" name="jobTitle" [(ngModel)]="consultantData.jobTitle" autocomplete="organization-title" required />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Years of Experience</mat-label>
+        <input matInput id="experienceYears" name="experienceYears" [(ngModel)]="consultantData.experienceYears" type="number" required />
+      </mat-form-field>
+
+      <div class="file-upload mt-3">
+        <label for="resumeFile" class="form-label fw-semibold">Resume (PDF or DOCX)</label>
+        <input type="file" id="resumeFile" name="resumeFile" (change)="onFileSelected($event)" accept=".pdf,.doc,.docx" />
+        <div *ngIf="resumeFileName" class="mt-1 text-muted">
+          Selected file: <strong>{{ resumeFileName }}</strong>
+        </div>
+      </div>
+
+      <div class="dialog-actions mt-4">
+        <button mat-raised-button color="warn" type="button" (click)="onCancel()">Cancel</button>
+        <button mat-raised-button color="primary" type="submit">Save</button>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>

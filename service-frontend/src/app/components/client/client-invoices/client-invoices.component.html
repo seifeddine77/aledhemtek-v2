@@ -1,0 +1,282 @@
+<div class="invoices-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <mat-card class="header-card">
+      <mat-card-content>
+        <div class="header-content">
+          <div class="title-section">
+            <mat-icon class="header-icon">receipt_long</mat-icon>
+            <div>
+              <h1>Mes Factures</h1>
+              <p class="subtitle">Consultez et gérez vos factures</p>
+            </div>
+          </div>
+          <div class="header-actions">
+            <button mat-raised-button (click)="refreshData()" [disabled]="loading">
+              <mat-icon>refresh</mat-icon>
+              Actualiser
+            </button>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Statistics Section -->
+  <div class="stats-section" *ngIf="stats">
+    <div class="stats-grid">
+      <mat-card class="stat-card total">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon">
+              <mat-icon>account_balance_wallet</mat-icon>
+            </div>
+            <div class="stat-info">
+              <h3>Total Factures</h3>
+              <div class="stat-value">{{ formatCurrency(stats.totalAmount) }}</div>
+              <div class="stat-detail">{{ stats.totalInvoices }} facture(s)</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card paid">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon">
+              <mat-icon>check_circle</mat-icon>
+            </div>
+            <div class="stat-info">
+              <h3>Montant Payé</h3>
+              <div class="stat-value">{{ formatCurrency(stats.paidAmount) }}</div>
+              <div class="stat-detail">{{ getPaidCount() }} facture(s) payée(s)</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card pending">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon">
+              <mat-icon>schedule</mat-icon>
+            </div>
+            <div class="stat-info">
+              <h3>En Attente</h3>
+              <div class="stat-value">{{ formatCurrency(stats.pendingAmount) }}</div>
+              <div class="stat-detail">{{ getPendingCount() }} facture(s) en attente</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card overdue" *ngIf="getOverdueCount() > 0">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon">
+              <mat-icon>warning</mat-icon>
+            </div>
+            <div class="stat-info">
+              <h3>En Retard</h3>
+              <div class="stat-value">{{ formatCurrency(stats.overdueAmount) }}</div>
+              <div class="stat-detail">{{ getOverdueCount() }} facture(s) en retard</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <mat-card>
+      <mat-card-content>
+        <div class="filters-content">
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Rechercher</mat-label>
+            <input matInput 
+                   [(ngModel)]="searchTerm" 
+                   (ngModelChange)="onSearchChange()"
+                   placeholder="Numéro de facture, réservation...">
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Statut</mat-label>
+            <mat-select [(value)]="selectedStatus" (selectionChange)="onStatusChange()">
+              <mat-option *ngFor="let option of statusOptions" [value]="option.value">
+                {{ option.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <div class="results-info">
+            <span class="results-count">
+              {{ filteredInvoices.length }} facture(s) trouvée(s)
+            </span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="loading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Chargement des factures...</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-container" *ngIf="error && !loading">
+    <mat-icon class="error-icon">error_outline</mat-icon>
+    <p>{{ error }}</p>
+    <button mat-raised-button color="primary" (click)="refreshData()">
+      <mat-icon>refresh</mat-icon>
+      Réessayer
+    </button>
+  </div>
+
+  <!-- Invoices Table -->
+  <div class="table-section" *ngIf="!loading && !error">
+    <mat-card>
+      <mat-card-content class="table-content">
+        <div class="table-header">
+          <h2>Liste des Factures</h2>
+        </div>
+
+        <div class="table-container" *ngIf="filteredInvoices.length > 0; else noInvoices">
+          <table mat-table [dataSource]="filteredInvoices" class="invoices-table">
+            
+            <!-- Invoice Number Column -->
+            <ng-container matColumnDef="invoiceNumber">
+              <th mat-header-cell *matHeaderCellDef>N° Facture</th>
+              <td mat-cell *matCellDef="let invoice">
+                <div class="invoice-number">
+                  <strong>{{ invoice.invoiceNumber }}</strong>
+                  <div class="reservation-info" *ngIf="invoice.reservation">
+                    <small>{{ invoice.reservation.title }}</small>
+                  </div>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Issue Date Column -->
+            <ng-container matColumnDef="issueDate">
+              <th mat-header-cell *matHeaderCellDef>Date d'émission</th>
+              <td mat-cell *matCellDef="let invoice">
+                {{ formatDate(invoice.issueDate) }}
+              </td>
+            </ng-container>
+
+            <!-- Due Date Column -->
+            <ng-container matColumnDef="dueDate">
+              <th mat-header-cell *matHeaderCellDef>Date d'échéance</th>
+              <td mat-cell *matCellDef="let invoice">
+                <div class="due-date" 
+                     [class.overdue]="invoice.status === InvoiceStatus.OVERDUE">
+                  {{ formatDate(invoice.dueDate) }}
+                  <mat-icon *ngIf="invoice.status === InvoiceStatus.OVERDUE" 
+                            class="overdue-icon" 
+                            matTooltip="Facture en retard">
+                    warning
+                  </mat-icon>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Total Amount Column -->
+            <ng-container matColumnDef="totalAmount">
+              <th mat-header-cell *matHeaderCellDef>Montant Total</th>
+              <td mat-cell *matCellDef="let invoice">
+                <div class="amount-info">
+                  <strong>{{ formatCurrency(invoice.totalAmount) }}</strong>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Paid Amount Column -->
+            <ng-container matColumnDef="paidAmount">
+              <th mat-header-cell *matHeaderCellDef>Paiement</th>
+              <td mat-cell *matCellDef="let invoice">
+                <div class="payment-info">
+                  <div class="payment-amount">
+                    {{ formatCurrency(invoice.paidAmount) }}
+                  </div>
+                  <mat-progress-bar 
+                    [value]="getPaymentProgress(invoice)"
+                    [color]="getProgressBarColor(getPaymentProgress(invoice))"
+                    class="payment-progress">
+                  </mat-progress-bar>
+                  <small class="progress-text">
+                    {{ getPaymentProgress(invoice) }}% payé
+                  </small>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Status Column -->
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Statut</th>
+              <td mat-cell *matCellDef="let invoice">
+                <mat-chip 
+                  [style.background-color]="getStatusColor(invoice.status)"
+                  [style.color]="'white'"
+                  class="status-chip">
+                  {{ getStatusText(invoice.status) }}
+                </mat-chip>
+              </td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let invoice">
+                <div class="actions-container">
+                  <button mat-icon-button 
+                          color="primary"
+                          (click)="viewInvoiceDetail(invoice)"
+                          matTooltip="Voir les détails">
+                    <mat-icon>visibility</mat-icon>
+                  </button>
+
+                  <button mat-icon-button 
+                          color="accent"
+                          [disabled]="!isDownloadable(invoice)"
+                          (click)="downloadPDF(invoice)"
+                          matTooltip="Télécharger PDF">
+                    <mat-icon>download</mat-icon>
+                  </button>
+
+                  <button mat-icon-button 
+                          color="warn"
+                          *ngIf="isPayable(invoice)"
+                          (click)="payInvoice(invoice)"
+                          matTooltip="Payer la facture">
+                    <mat-icon>payment</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+        </div>
+
+        <!-- No Invoices State -->
+        <ng-template #noInvoices>
+          <div class="no-invoices">
+            <mat-icon class="no-invoices-icon">receipt_long</mat-icon>
+            <h3>Aucune facture trouvée</h3>
+            <p *ngIf="searchTerm || selectedStatus !== 'ALL'">
+              Essayez de modifier vos critères de recherche.
+            </p>
+            <p *ngIf="!searchTerm && selectedStatus === 'ALL'">
+              Vous n'avez pas encore de factures.
+            </p>
+          </div>
+        </ng-template>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

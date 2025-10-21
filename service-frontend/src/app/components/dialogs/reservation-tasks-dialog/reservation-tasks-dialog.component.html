@@ -1,0 +1,108 @@
+<div class="dialog-container">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>Services de la réservation</h2>
+    <button mat-icon-button (click)="onClose()" class="close-button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div mat-dialog-content class="dialog-content">
+    <!-- Informations de la réservation -->
+    <mat-card class="reservation-info">
+      <mat-card-header>
+        <mat-card-title>{{ reservation.title }}</mat-card-title>
+        <mat-card-subtitle>
+          Client: {{ reservation.clientName || 'Non spécifié' }} | 
+          Consultant: {{ reservation.consultantName || 'Non assigné' }}
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p><strong>Description:</strong> {{ reservation.description || 'Aucune description' }}</p>
+        <p><strong>Date de début:</strong> {{ reservation.startDate | date:'dd/MM/yyyy HH:mm' }}</p>
+        <p><strong>Date de fin:</strong> {{ reservation.endDate | date:'dd/MM/yyyy HH:mm' }}</p>
+        <div class="status-chip">
+          <mat-chip [style.background-color]="getStatusColor(reservation.status)">
+            {{ reservation.status }}
+          </mat-chip>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-divider></mat-divider>
+
+    <!-- Liste des services/tâches -->
+    <div class="tasks-section">
+      <h3>Services sélectionnés</h3>
+      
+      <div *ngIf="tasks.length === 0" class="no-tasks">
+        <mat-icon>info</mat-icon>
+        <p>Aucun service spécifique sélectionné pour cette réservation.</p>
+      </div>
+
+      <div *ngIf="tasks.length > 0">
+        <table mat-table [dataSource]="tasks" class="tasks-table">
+          <!-- Nom du service -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Service</th>
+            <td mat-cell *matCellDef="let task">
+              <div class="task-name">
+                <mat-icon>build</mat-icon>
+                {{ task.name }}
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Description -->
+          <ng-container matColumnDef="description">
+            <th mat-header-cell *matHeaderCellDef>Description</th>
+            <td mat-cell *matCellDef="let task">
+              {{ task.description || 'Aucune description' }}
+            </td>
+          </ng-container>
+
+          <!-- Durée -->
+          <ng-container matColumnDef="duration">
+            <th mat-header-cell *matHeaderCellDef>Durée estimée</th>
+            <td mat-cell *matCellDef="let task">
+              <div class="duration-cell">
+                <mat-icon>schedule</mat-icon>
+                {{ formatDuration(task.duration) }}
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <!-- Résumé -->
+        <div class="summary-section">
+          <mat-card class="summary-card">
+            <mat-card-content>
+              <div class="summary-row">
+                <span class="summary-label">
+                  <mat-icon>schedule</mat-icon>
+                  Durée totale estimée:
+                </span>
+                <span class="summary-value">{{ formatDuration(totalDuration) }}</span>
+              </div>
+              <div class="summary-row" *ngIf="totalPrice > 0">
+                <span class="summary-label">
+                  <mat-icon>euro</mat-icon>
+                  Prix total:
+                </span>
+                <span class="summary-value price">{{ formatPrice(totalPrice) }}</span>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div mat-dialog-actions class="dialog-actions">
+    <button mat-raised-button color="primary" (click)="onClose()">
+      Fermer
+    </button>
+  </div>
+</div>

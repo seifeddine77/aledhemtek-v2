@@ -1,0 +1,248 @@
+.invoices-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  margin: 0;
+  color: #333;
+  font-weight: 500;
+}
+
+.create-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Filters */
+.filters-card {
+  margin-bottom: 20px;
+}
+
+.filters-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.search-field {
+  flex: 2;
+  min-width: 250px;
+}
+
+.status-field {
+  flex: 1;
+  min-width: 150px;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Table */
+.table-card {
+  margin-bottom: 20px;
+}
+
+.table-container {
+  overflow-x: auto;
+  min-height: 400px;
+}
+
+.invoices-table {
+  width: 100%;
+}
+
+.invoices-table th {
+  background-color: #f5f5f5;
+  font-weight: 600;
+  color: #333;
+}
+
+.invoices-table td {
+  padding: 12px 8px;
+}
+
+/* Status Chips */
+.status-pending {
+  background-color: #fff3cd !important;
+  color: #856404 !important;
+}
+
+.status-sent {
+  background-color: #d1ecf1 !important;
+  color: #0c5460 !important;
+}
+
+.status-paid {
+  background-color: #d4edda !important;
+  color: #155724 !important;
+}
+
+.status-overdue {
+  background-color: #f8d7da !important;
+  color: #721c24 !important;
+}
+
+.status-cancelled {
+  background-color: #e2e3e5 !important;
+  color: #383d41 !important;
+}
+
+/* Actions */
+.actions-container {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.actions-container button {
+  min-width: 40px;
+  height: 40px;
+}
+
+/* Loading */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  gap: 16px;
+}
+
+.loading-container p {
+  margin: 0;
+  color: #666;
+}
+
+/* No Data */
+.no-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+  color: #666;
+}
+
+.no-data mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  color: #ccc;
+}
+
+.no-data h3 {
+  margin: 0 0 8px 0;
+  color: #333;
+}
+
+.no-data p {
+  margin: 0;
+  color: #666;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .invoices-container {
+    padding: 10px;
+  }
+  
+  .header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  
+  .filters-row {
+    flex-direction: column;
+  }
+  
+  .search-field,
+  .status-field {
+    flex: none;
+    width: 100%;
+  }
+  
+  .filter-actions {
+    justify-content: center;
+  }
+  
+  .actions-container {
+    justify-content: center;
+  }
+}
+
+/* Snackbar Styles */
+::ng-deep .success-snackbar {
+  background-color: #4caf50 !important;
+  color: white !important;
+}
+
+::ng-deep .error-snackbar {
+  background-color: #f44336 !important;
+  color: white !important;
+}
+
+/* Table Hover Effects */
+.invoices-table tr:hover {
+  background-color: #f5f5f5;
+}
+
+/* Button Hover Effects */
+.actions-container button:hover {
+  transform: scale(1.05);
+  transition: transform 0.2s ease;
+}
+
+/* Pagination */
+::ng-deep .mat-paginator {
+  border-top: 1px solid #e0e0e0;
+  margin-top: 16px;
+}
+
+/* Form Fields */
+::ng-deep .mat-form-field-appearance-outline .mat-form-field-outline {
+  color: #e0e0e0;
+}
+
+::ng-deep .mat-form-field-appearance-outline.mat-focused .mat-form-field-outline-thick {
+  color: #1976d2;
+}
+
+/* Cards */
+.filters-card,
+.table-card {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+/* Chips */
+::ng-deep .mat-chip {
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 12px;
+  padding: 4px 12px;
+}
+
+/* Icons */
+.mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}

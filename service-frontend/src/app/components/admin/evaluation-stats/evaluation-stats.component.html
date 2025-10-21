@@ -1,0 +1,222 @@
+<div class="evaluation-stats">
+  <!-- Header -->
+  <div class="stats-header">
+    <h2>
+      <mat-icon>analytics</mat-icon>
+      Statistiques des Évaluations
+    </h2>
+    <p>Vue d'ensemble des performances et de la satisfaction client</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Chargement des statistiques...</p>
+  </div>
+
+  <!-- Stats Content -->
+  <div *ngIf="!loading" class="stats-content">
+    
+    <!-- Main Stats Grid -->
+    <div class="main-stats-grid">
+      <!-- Total Evaluations -->
+      <mat-card class="stat-card primary">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon">
+              <mat-icon>star</mat-icon>
+            </div>
+            <div class="stat-details">
+              <div class="stat-number">{{ stats.totalEvaluations }}</div>
+              <div class="stat-label">Total Évaluations</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Average Rating -->
+      <mat-card class="stat-card success">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon">
+              <mat-icon>grade</mat-icon>
+            </div>
+            <div class="stat-details">
+              <div class="stat-number">{{ stats.averageRating | number:'1.1-1' }}</div>
+              <div class="stat-label">Note Moyenne</div>
+              <div class="stat-sublabel" [style.color]="getRatingColor(stats.averageRating)">
+                {{ getRatingText(stats.averageRating) }}
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Recent Evaluations -->
+      <mat-card class="stat-card info">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon">
+              <mat-icon>schedule</mat-icon>
+            </div>
+            <div class="stat-details">
+              <div class="stat-number">{{ stats.recentCount }}</div>
+              <div class="stat-label">Cette Semaine</div>
+              <div class="stat-sublabel">{{ getPercentage(stats.recentCount) | number:'1.0-0' }}% du total</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- With Comments -->
+      <mat-card class="stat-card warning">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon">
+              <mat-icon>comment</mat-icon>
+            </div>
+            <div class="stat-details">
+              <div class="stat-number">{{ stats.withCommentsCount }}</div>
+              <div class="stat-label">Avec Commentaires</div>
+              <div class="stat-sublabel">{{ getPercentage(stats.withCommentsCount) | number:'1.0-0' }}% du total</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Detailed Stats Grid -->
+    <div class="detailed-stats-grid">
+      
+      <!-- Category Ratings -->
+      <mat-card class="detailed-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>category</mat-icon>
+            Notes par Catégorie
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="category-stats">
+            <div class="category-item">
+              <div class="category-info">
+                <span class="category-label">Qualité Générale</span>
+                <span class="category-rating">{{ stats.averageGeneralRating | number:'1.1-1' }}</span>
+              </div>
+              <div class="category-bar">
+                <div class="bar-fill" [style.width.%]="(stats.averageGeneralRating / 5) * 100" [style.background-color]="getRatingColor(stats.averageGeneralRating)"></div>
+              </div>
+            </div>
+            
+            <div class="category-item">
+              <div class="category-info">
+                <span class="category-label">Qualité du Service</span>
+                <span class="category-rating">{{ stats.averageServiceQuality | number:'1.1-1' }}</span>
+              </div>
+              <div class="category-bar">
+                <div class="bar-fill" [style.width.%]="(stats.averageServiceQuality / 5) * 100" [style.background-color]="getRatingColor(stats.averageServiceQuality)"></div>
+              </div>
+            </div>
+            
+            <div class="category-item">
+              <div class="category-info">
+                <span class="category-label">Ponctualité</span>
+                <span class="category-rating">{{ stats.averagePunctuality | number:'1.1-1' }}</span>
+              </div>
+              <div class="category-bar">
+                <div class="bar-fill" [style.width.%]="(stats.averagePunctuality / 5) * 100" [style.background-color]="getRatingColor(stats.averagePunctuality)"></div>
+              </div>
+            </div>
+            
+            <div class="category-item">
+              <div class="category-info">
+                <span class="category-label">Communication</span>
+                <span class="category-rating">{{ stats.averageCommunication | number:'1.1-1' }}</span>
+              </div>
+              <div class="category-bar">
+                <div class="bar-fill" [style.width.%]="(stats.averageCommunication / 5) * 100" [style.background-color]="getRatingColor(stats.averageCommunication)"></div>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Rating Distribution -->
+      <mat-card class="detailed-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>pie_chart</mat-icon>
+            Répartition des Notes
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="distribution-stats">
+            <div class="distribution-item excellent">
+              <div class="distribution-info">
+                <mat-icon>sentiment_very_satisfied</mat-icon>
+                <div class="distribution-details">
+                  <span class="distribution-label">Excellent (4.5-5)</span>
+                  <span class="distribution-count">{{ stats.excellentCount }}</span>
+                </div>
+              </div>
+              <div class="distribution-percentage">{{ getPercentage(stats.excellentCount) | number:'1.0-0' }}%</div>
+            </div>
+            
+            <div class="distribution-item good">
+              <div class="distribution-info">
+                <mat-icon>sentiment_satisfied</mat-icon>
+                <div class="distribution-details">
+                  <span class="distribution-label">Très bien (3.5-4.4)</span>
+                  <span class="distribution-count">{{ stats.goodCount }}</span>
+                </div>
+              </div>
+              <div class="distribution-percentage">{{ getPercentage(stats.goodCount) | number:'1.0-0' }}%</div>
+            </div>
+            
+            <div class="distribution-item average">
+              <div class="distribution-info">
+                <mat-icon>sentiment_neutral</mat-icon>
+                <div class="distribution-details">
+                  <span class="distribution-label">Bien (2.5-3.4)</span>
+                  <span class="distribution-count">{{ stats.averageCount }}</span>
+                </div>
+              </div>
+              <div class="distribution-percentage">{{ getPercentage(stats.averageCount) | number:'1.0-0' }}%</div>
+            </div>
+            
+            <div class="distribution-item poor">
+              <div class="distribution-info">
+                <mat-icon>sentiment_dissatisfied</mat-icon>
+                <div class="distribution-details">
+                  <span class="distribution-label">À améliorer (1-2.4)</span>
+                  <span class="distribution-count">{{ stats.poorCount }}</span>
+                </div>
+              </div>
+              <div class="distribution-percentage">{{ getPercentage(stats.poorCount) | number:'1.0-0' }}%</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button mat-raised-button color="primary" routerLink="/admin/evaluations">
+        <mat-icon>list</mat-icon>
+        Voir Toutes les Évaluations
+      </button>
+      
+      <button mat-raised-button color="accent" (click)="loadEvaluationStats()">
+        <mat-icon>refresh</mat-icon>
+        Actualiser
+      </button>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="stats.totalEvaluations === 0" class="empty-state">
+      <mat-icon>star_border</mat-icon>
+      <h3>Aucune évaluation disponible</h3>
+      <p>Les statistiques apparaîtront ici dès que les premiers clients auront évalué vos consultants.</p>
+    </div>
+  </div>
+</div>

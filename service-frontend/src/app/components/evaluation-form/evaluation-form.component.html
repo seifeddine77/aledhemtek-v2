@@ -1,0 +1,106 @@
+<div class="evaluation-form-container">
+  <h2 mat-dialog-title>
+    {{ existingEvaluation ? 'Éditer l\'évaluation' : 'Évaluer l\'intervention' }}
+  </h2>
+  
+  <div class="reservation-info">
+    <h3>{{ reservation.title }}</h3>
+    <p><strong>Consultant:</strong> {{ reservation.consultantName }}</p>
+    <p><strong>Date:</strong> {{ reservation.startDate | date:'dd/MM/yyyy à HH:mm' }}</p>
+  </div>
+
+  <form [formGroup]="evaluationForm" (ngSubmit)="onSubmit()" class="evaluation-form">
+    <!-- Overall Rating -->
+    <div class="rating-section">
+      <h4>Note générale</h4>
+      <div class="star-rating">
+        <button type="button" 
+                *ngFor="let star of getStarArray(5)" 
+                class="star-button"
+                [class.filled]="star <= getRating('generalRating')"
+                (click)="setRating('generalRating', star)">
+          <mat-icon>{{ star <= getRating('generalRating') ? 'star' : 'star_border' }}</mat-icon>
+        </button>
+      </div>
+      <span class="rating-text">{{ getRating('generalRating') }}/5</span>
+    </div>
+
+    <!-- Service Quality Rating -->
+    <div class="rating-section">
+      <h4>Qualité du service</h4>
+      <div class="star-rating">
+        <button type="button" 
+                *ngFor="let star of getStarArray(5)" 
+                class="star-button"
+                [class.filled]="star <= getRating('serviceQualityRating')"
+                (click)="setRating('serviceQualityRating', star)">
+          <mat-icon>{{ star <= getRating('serviceQualityRating') ? 'star' : 'star_border' }}</mat-icon>
+        </button>
+      </div>
+      <span class="rating-text">{{ getRating('serviceQualityRating') }}/5</span>
+    </div>
+
+    <!-- Punctuality Rating -->
+    <div class="rating-section">
+      <h4>Ponctualité</h4>
+      <div class="star-rating">
+        <button type="button" 
+                *ngFor="let star of getStarArray(5)" 
+                class="star-button"
+                [class.filled]="star <= getRating('punctualityRating')"
+                (click)="setRating('punctualityRating', star)">
+          <mat-icon>{{ star <= getRating('punctualityRating') ? 'star' : 'star_border' }}</mat-icon>
+        </button>
+      </div>
+      <span class="rating-text">{{ getRating('punctualityRating') }}/5</span>
+    </div>
+
+
+
+    <!-- Communication Rating -->
+    <div class="rating-section">
+      <h4>Communication</h4>
+      <div class="star-rating">
+        <button type="button" 
+                *ngFor="let star of getStarArray(5)" 
+                class="star-button"
+                [class.filled]="star <= getRating('communicationRating')"
+                (click)="setRating('communicationRating', star)">
+          <mat-icon>{{ star <= getRating('communicationRating') ? 'star' : 'star_border' }}</mat-icon>
+        </button>
+      </div>
+      <span class="rating-text">{{ getRating('communicationRating') }}/5</span>
+    </div>
+
+    <!-- Comment -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Commentaire (optionnel)</mat-label>
+      <textarea matInput 
+                formControlName="comment" 
+                rows="4" 
+                placeholder="Partagez votre expérience avec ce consultant..."
+                maxlength="1000"></textarea>
+      <mat-hint align="end">{{ evaluationForm.get('comment')?.value?.length || 0 }}/1000</mat-hint>
+      <mat-error *ngIf="evaluationForm.get('comment')?.hasError('maxlength')">
+        Le commentaire ne peut pas dépasser 1000 caractères
+      </mat-error>
+    </mat-form-field>
+
+    <!-- Action Buttons -->
+    <div class="form-actions">
+      <button type="button" 
+              mat-button 
+              (click)="onCancel()" 
+              [disabled]="loading">
+        Annuler
+      </button>
+      <button type="submit" 
+              mat-raised-button 
+              color="primary" 
+              [disabled]="!evaluationForm.valid || loading">
+        <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
+        {{ loading ? 'Sauvegarde...' : (existingEvaluation ? 'Mettre à jour' : 'Envoyer l\'évaluation') }}
+      </button>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,194 @@
+<div class="invoice-dashboard-container">
+  <div class="header">
+    <h1>Tableau de Bord - Facturation</h1>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="navigateToCreateInvoice()">
+        <mat-icon>add</mat-icon>
+        Nouvelle Facture
+      </button>
+      <button mat-button (click)="navigateToInvoices()">
+        <mat-icon>list</mat-icon>
+        Voir toutes les factures
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Chargement des statistiques...</p>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div *ngIf="!loading && statistics" class="dashboard-content">
+    <!-- Key Metrics -->
+    <div class="metrics-section">
+      <h2>Métriques Principales</h2>
+      <mat-grid-list cols="4" rowHeight="200px" gutterSize="20px">
+        <!-- Total Invoices -->
+        <mat-grid-tile>
+          <mat-card class="metric-card">
+            <mat-card-content>
+              <div class="metric-icon">
+                <mat-icon>description</mat-icon>
+              </div>
+              <div class="metric-value">{{statistics.totalInvoices}}</div>
+              <div class="metric-label">Total Factures</div>
+            </mat-card-content>
+          </mat-card>
+        </mat-grid-tile>
+
+        <!-- Total Amount -->
+        <mat-grid-tile>
+          <mat-card class="metric-card">
+            <mat-card-content>
+              <div class="metric-icon">
+                <mat-icon>euro</mat-icon>
+              </div>
+              <div class="metric-value">{{statistics.totalAmount | currency:'EUR':'symbol':'1.0-0'}}</div>
+              <div class="metric-label">Montant Total</div>
+            </mat-card-content>
+          </mat-card>
+        </mat-grid-tile>
+
+        <!-- Paid Amount -->
+        <mat-grid-tile>
+          <mat-card class="metric-card paid">
+            <mat-card-content>
+              <div class="metric-icon">
+                <mat-icon>payment</mat-icon>
+              </div>
+              <div class="metric-value">{{statistics.paidAmount | currency:'EUR':'symbol':'1.0-0'}}</div>
+              <div class="metric-label">Montant Payé</div>
+            </mat-card-content>
+          </mat-card>
+        </mat-grid-tile>
+
+        <!-- Pending Amount -->
+        <mat-grid-tile>
+          <mat-card class="metric-card pending">
+            <mat-card-content>
+              <div class="metric-icon">
+                <mat-icon>schedule</mat-icon>
+              </div>
+              <div class="metric-value">{{statistics.pendingAmount | currency:'EUR':'symbol':'1.0-0'}}</div>
+              <div class="metric-label">En Attente</div>
+            </mat-card-content>
+          </mat-card>
+        </mat-grid-tile>
+      </mat-grid-list>
+    </div>
+
+    <!-- Performance Indicators -->
+    <div class="performance-section">
+      <h2>Indicateurs de Performance</h2>
+      <div class="performance-grid">
+        <mat-card class="performance-card">
+          <mat-card-header>
+            <mat-card-title>Taux de Recouvrement</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="performance-value">{{calculateCollectionRate() | number:'1.1-1'}}%</div>
+            <div class="performance-description">
+              {{statistics.paidAmount | currency:'EUR':'symbol':'1.0-0'}} sur 
+              {{statistics.totalAmount | currency:'EUR':'symbol':'1.0-0'}}
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="performance-card">
+          <mat-card-header>
+            <mat-card-title>Montant Moyen</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="performance-value">{{statistics.averageAmount | currency:'EUR':'symbol':'1.0-0'}}</div>
+            <div class="performance-description">
+              Par facture
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="performance-card" *ngIf="calculateOverdueRate() > 0">
+          <mat-card-header>
+            <mat-card-title>Taux de Retard</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="performance-value overdue">{{calculateOverdueRate() | number:'1.1-1'}}%</div>
+            <div class="performance-description">
+              Factures en retard
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Status Distribution -->
+    <div class="status-section">
+      <h2>Répartition par Statut</h2>
+      <div class="status-grid">
+        <mat-card 
+          *ngFor="let status of getStatusKeys()" 
+          class="status-card"
+          [style.border-left-color]="getStatusColor(status)"
+          (click)="navigateToInvoicesByStatus(status)">
+          <mat-card-content>
+            <div class="status-header">
+              <mat-icon [style.color]="getStatusColor(status)">{{getStatusIcon(status)}}</mat-icon>
+              <span class="status-label">{{getStatusLabel(status)}}</span>
+            </div>
+            <div class="status-count">{{getStatusCount(status)}}</div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="actions-section">
+      <h2>Actions Rapides</h2>
+      <div class="actions-grid">
+        <mat-card class="action-card" (click)="navigateToCreateInvoice()">
+          <mat-card-content>
+            <mat-icon>add_circle</mat-icon>
+            <h3>Créer une Facture</h3>
+            <p>Générer une nouvelle facture pour un client</p>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="action-card" (click)="navigateToInvoicesByStatus(InvoiceStatus.OVERDUE)">
+          <mat-card-content>
+            <mat-icon>warning</mat-icon>
+            <h3>Factures en Retard</h3>
+            <p>Gérer les factures échues</p>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="action-card" (click)="navigateToInvoicesByStatus(InvoiceStatus.PENDING)">
+          <mat-card-content>
+            <mat-icon>schedule</mat-icon>
+            <h3>En Attente de Paiement</h3>
+            <p>Suivre les paiements en cours</p>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="action-card" (click)="loadStatistics()">
+          <mat-card-content>
+            <mat-icon>refresh</mat-icon>
+            <h3>Actualiser</h3>
+            <p>Mettre à jour les statistiques</p>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="!loading && !statistics" class="error-container">
+    <mat-icon>error</mat-icon>
+    <h2>Erreur de chargement</h2>
+    <p>Impossible de charger les statistiques de facturation.</p>
+    <button mat-raised-button color="primary" (click)="loadStatistics()">
+      <mat-icon>refresh</mat-icon>
+      Réessayer
+    </button>
+  </div>
+</div>

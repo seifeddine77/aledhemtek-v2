@@ -1,0 +1,27 @@
+<h1 mat-dialog-title>Ajouter une Nouvelle Catégorie</h1>
+<div mat-dialog-content>
+  <form #categoryForm="ngForm" class="category-form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Nom de la Catégorie</mat-label>
+      <input matInput [(ngModel)]="data.name" name="name" required>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Description de la Catégorie</mat-label>
+      <textarea matInput [(ngModel)]="data.description" name="description" required></textarea>
+    </mat-form-field>
+
+    <div class="file-input-row">
+        <button type="button" mat-stroked-button (click)="fileInput.click()">
+            <mat-icon>attach_file</mat-icon>
+            Choisir une image
+        </button>
+        <input hidden (change)="onFileSelected($event)" #fileInput type="file" accept="image/*">
+        <span class="file-name" *ngIf="data.file">{{ data.file.name }}</span>
+    </div>
+  </form>
+</div>
+<div mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Annuler</button>
+  <button mat-raised-button color="primary" [mat-dialog-close]="data" [disabled]="!categoryForm.form.valid || !data.file">Ajouter</button>
+</div>

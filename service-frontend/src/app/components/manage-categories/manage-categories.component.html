@@ -1,0 +1,43 @@
+<div class="container">
+  <div class="form-container">
+    <h2>Ajouter une Nouvelle Catégorie</h2>
+    <form [formGroup]="categoryForm" (ngSubmit)="postCategory()" class="category-form">
+      
+      <div class="form-group">
+        <label for="name">Nom de la Catégorie</label>
+        <input id="name" type="text" formControlName="name" placeholder="Ex: Plomberie" required>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea id="description" formControlName="description" placeholder="Une courte description de la catégorie" required></textarea>
+      </div>
+
+      <div class="form-group file-input-group">
+        <label>Image de la catégorie</label>
+        <button type="button" class="btn-file" (click)="fileInput.click()">
+          <span>Choisir une image</span>
+        </button>
+        <input hidden (change)="onFileSelected($event)" #fileInput type="file" accept="image/*">
+        <span class="file-name" *ngIf="selectedFile">{{ selectedFile.name }}</span>
+      </div>
+
+      <button type="submit" class="btn-submit" [disabled]="categoryForm.invalid || !selectedFile">Ajouter la Catégorie</button>
+    </form>
+  </div>
+
+  <hr>
+
+  <div class="list-container">
+    <h2>Liste des Catégories</h2>
+    <div class="category-grid">
+      <div *ngFor="let category of categories" class="category-card">
+        <img [src]="'data:image/jpeg;base64,' + category.returnedImg" alt="Image de {{ category.name }}">
+        <div class="card-content">
+          <h3>{{ category.name }}</h3>
+          <p>{{ category.description }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,31 @@
+<!--<nav class="navbar">
+  <div class="nav-logo">Home</div>
+  <ul class="nav-links">
+    <li><a routerLink="/home" routerLinkActive="active">Alaa-Dhemtk</a></li>
+    <li><a routerLink="/register" routerLinkActive="active">Register</a></li>
+    <li><a routerLink="/login" routerLinkActive="active">Login</a></li>
+    <li *ngIf="showLogout">
+      <button (click)="logout()">Logout</button>
+    </li>
+  </ul>
+</nav>-->
+<mat-toolbar color="primary" class="mat-elevation-z4">
+  <a class="nav-logo" routerLink="/home">
+    <img src="/img/logo.png" alt="Aledhemtek Logo" class="logo-img" />
+</a>
+  <span class="spacer"></span>
+
+  <a mat-button routerLink="/home" routerLinkActive="active">Home</a>
+
+  <!-- Show these links only if the user is NOT logged in -->
+  <ng-container *ngIf="!isLoggedIn">
+    <a mat-button routerLink="/register" routerLinkActive="active">Register</a>
+    <a mat-button routerLink="/login" routerLinkActive="active">Login</a>
+  </ng-container>
+
+  <!-- Show these links only if the user IS logged in -->
+  <ng-container *ngIf="isLoggedIn">
+    <a mat-button [routerLink]="getDashboardLink()" routerLinkActive="active">Dashboard</a>
+    <button mat-button (click)="logout()">Logout</button>
+  </ng-container>
+</mat-toolbar>

@@ -1,0 +1,302 @@
+.create-reservation-container {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.date-time-section {
+  margin: 24px 0;
+}
+
+.date-time-section h3 {
+  color: #333;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.date-time-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.date-field {
+  flex: 2;
+}
+
+.time-field {
+  flex: 1;
+}
+
+.info-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background-color: #e3f2fd;
+  border-radius: 8px;
+  border-left: 4px solid #2196f3;
+  margin: 24px 0;
+}
+
+.info-box mat-icon {
+  color: #2196f3;
+  margin-top: 2px;
+}
+
+.info-content {
+  flex: 1;
+}
+
+.info-content strong {
+  color: #1976d2;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.info-content p {
+  margin: 0;
+  color: #333;
+  line-height: 1.5;
+}
+
+mat-card-actions {
+  padding: 16px 24px;
+  gap: 12px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .create-reservation-container {
+    margin: 10px;
+    padding: 10px;
+  }
+  
+  .date-time-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .date-field,
+  .time-field {
+    flex: 1;
+  }
+  
+  .info-box {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  mat-card-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+  
+  mat-card-actions button {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+}
+
+/* Form Validation Styles */
+.mat-mdc-form-field.mat-form-field-invalid .mat-mdc-text-field-wrapper {
+  border-color: #f44336;
+}
+
+.mat-mdc-form-field.mat-form-field-invalid .mat-mdc-floating-label {
+  color: #f44336;
+}
+
+/* Loading State */
+button[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Custom Datepicker Styles */
+.mat-datepicker-toggle {
+  color: #666;
+}
+
+.mat-datepicker-toggle:hover {
+  color: #2196f3;
+}
+
+/* Time Input Styles */
+input[type="time"] {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* Card Styling */
+mat-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+}
+
+mat-card-header {
+  padding-bottom: 16px;
+}
+
+mat-card-title {
+  color: #333;
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+mat-card-subtitle {
+  color: #666;
+  margin-top: 8px;
+}
+
+/* Géolocalisation Styles */
+.geolocation-section {
+  margin: 24px 0;
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #fafafa;
+}
+
+.geolocation-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #333;
+  margin-bottom: 16px;
+  font-weight: 500;
+  font-size: 1.1rem;
+}
+
+.geolocation-section h3 mat-icon {
+  color: #4caf50;
+}
+
+.geolocation-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.geolocation-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 6px;
+  color: #856404;
+}
+
+.geolocation-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.location-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.clear-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.current-position {
+  margin-top: 8px;
+}
+
+.position-card {
+  background-color: #e8f5e8;
+  border: 1px solid #4caf50;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.position-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.position-details {
+  flex: 1;
+}
+
+.position-details > div {
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.position-details > div:last-child {
+  margin-bottom: 0;
+}
+
+.coordinates {
+  color: #333;
+}
+
+.address {
+  color: #555;
+  word-break: break-word;
+}
+
+.accuracy {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.geolocation-help {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  background-color: #e3f2fd;
+  border: 1px solid #bbdefb;
+  border-radius: 6px;
+  color: #1565c0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.geolocation-help mat-icon {
+  color: #2196f3;
+  margin-top: 2px;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* Responsive pour géolocalisation */
+@media (max-width: 768px) {
+  .geolocation-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .location-btn,
+  .clear-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .position-info {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .geolocation-help {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

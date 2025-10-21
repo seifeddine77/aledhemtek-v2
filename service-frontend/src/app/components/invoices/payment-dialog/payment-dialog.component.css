@@ -1,0 +1,286 @@
+.payment-dialog {
+  min-width: 500px;
+  max-width: 600px;
+  position: relative;
+}
+
+/* Dialog Title */
+h2[mat-dialog-title] {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 20px 0;
+  color: #333;
+  font-weight: 500;
+  font-size: 24px;
+}
+
+h2[mat-dialog-title] mat-icon {
+  color: #1976d2;
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+}
+
+/* Payment Info */
+.payment-info {
+  margin-bottom: 24px;
+}
+
+.info-card {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.info-card h3 {
+  margin: 0 0 12px 0;
+  color: #333;
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.info-row .label {
+  color: #666;
+  font-weight: 500;
+}
+
+.info-row .value {
+  color: #333;
+  font-weight: 600;
+}
+
+.info-row .value.remaining {
+  color: #f44336;
+  font-size: 18px;
+}
+
+/* Form */
+.payment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.amount-field {
+  flex: 1;
+}
+
+.transaction-field {
+  flex: 1;
+}
+
+/* Payment Summary */
+.payment-summary {
+  background-color: #e3f2fd;
+  border: 1px solid #bbdefb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 20px;
+}
+
+.payment-summary h3 {
+  margin: 0 0 12px 0;
+  color: #1976d2;
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.summary-row:last-child {
+  margin-bottom: 0;
+  padding-top: 8px;
+  border-top: 1px solid #bbdefb;
+  font-weight: 600;
+}
+
+.summary-row .label {
+  color: #666;
+}
+
+.summary-row .value {
+  color: #333;
+  font-weight: 500;
+}
+
+.summary-row .value.zero {
+  color: #4caf50;
+  font-weight: 600;
+}
+
+/* Dialog Actions */
+mat-dialog-actions {
+  margin: 0;
+  padding: 20px 0 0 0;
+  border-top: 1px solid #e0e0e0;
+}
+
+mat-dialog-actions button {
+  min-width: 100px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Loading Overlay */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  border-radius: 8px;
+}
+
+/* Form Field Styles */
+::ng-deep .mat-form-field-appearance-outline .mat-form-field-outline {
+  color: #e0e0e0;
+}
+
+::ng-deep .mat-form-field-appearance-outline.mat-focused .mat-form-field-outline-thick {
+  color: #1976d2;
+}
+
+::ng-deep .mat-form-field-appearance-outline .mat-form-field-label {
+  color: #666;
+}
+
+::ng-deep .mat-form-field-appearance-outline.mat-focused .mat-form-field-label {
+  color: #1976d2;
+}
+
+/* Error States */
+::ng-deep .mat-form-field.mat-form-field-invalid .mat-form-field-outline-thick {
+  color: #f44336;
+}
+
+::ng-deep .mat-error {
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Hints */
+::ng-deep .mat-hint {
+  font-size: 12px;
+  color: #666;
+}
+
+/* Buttons */
+button[mat-raised-button] {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+button[mat-raised-button]:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+}
+
+/* Icon Buttons */
+button[mat-icon-button] {
+  color: #666;
+}
+
+button[mat-icon-button]:hover {
+  color: #1976d2;
+  background-color: rgba(25, 118, 210, 0.1);
+}
+
+/* Select Dropdown */
+::ng-deep .mat-select-panel {
+  max-height: 300px;
+}
+
+::ng-deep .mat-option {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .payment-dialog {
+    min-width: auto;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .form-row {
+    flex-direction: column;
+  }
+  
+  .amount-field,
+  .transaction-field {
+    width: 100%;
+  }
+  
+  mat-dialog-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  mat-dialog-actions button {
+    width: 100%;
+  }
+}
+
+/* Animation */
+.payment-dialog {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Textarea */
+textarea[matInput] {
+  resize: vertical;
+  min-height: 60px;
+}
+
+/* Date Picker */
+::ng-deep .mat-datepicker-toggle {
+  color: #666;
+}
+
+::ng-deep .mat-datepicker-toggle:hover {
+  color: #1976d2;
+}

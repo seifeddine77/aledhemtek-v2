@@ -1,0 +1,62 @@
+
+
+
+
+  <!-- Section pour toutes les tâches -->
+  <div class="container">
+  <h1>Gestion des Tâches</h1>
+
+  <section class="task-section">
+    <div class="task-header">
+      <h2>Toutes les Tâches</h2>
+      <button mat-raised-button color="primary" routerLink="/admin/tasks/new">
+        <mat-icon>add</mat-icon>
+        Ajouter une tâche
+      </button>
+    </div>
+
+    <table mat-table [dataSource]="allTasksDataSource" class="mat-elevation-z1 tasks-table">
+      <!-- Colonnes du tableau -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef> Nom de tâche </th>
+        <td mat-cell *matCellDef="let task"> {{task.name}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="description">
+        <th mat-header-cell *matHeaderCellDef> Description </th>
+        <td mat-cell *matCellDef="let task"> {{task.description}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="duration">
+        <th mat-header-cell *matHeaderCellDef> Durée (min) </th>
+        <td mat-cell *matCellDef="let task"> {{task.duration}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="price">
+        <th mat-header-cell *matHeaderCellDef> Tarif </th>
+        <td mat-cell *matCellDef="let task"> {{(task.rates && task.rates.length > 0 ? task.rates[0].price : 'N/A') | currency:'EUR'}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef> Actions </th>
+        <td mat-cell *matCellDef="let task">
+          <button mat-icon-button color="primary" (click)="editTask(task)">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button color="warn" (click)="deleteTask(task.id)">
+            <mat-icon>delete</mat-icon>
+          </button>
+          <button mat-icon-button color="accent" (click)="manageMaterials(task)">
+            <mat-icon>build</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="allTasksDisplayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: allTasksDisplayedColumns;"></tr>
+    </table>
+    <p *ngIf="!allTasksDataSource.data || allTasksDataSource.data.length === 0" class="no-tasks-message">
+        Aucune tâche trouvée.
+    </p>
+  </section>
+

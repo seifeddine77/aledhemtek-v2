@@ -1,0 +1,99 @@
+label{
+  display: block;
+  font-weight: bold;
+  color: black;
+}
+
+:host {
+  display: block;
+
+  height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.register-wrapper {
+
+
+
+
+  height: 100%;
+
+}
+
+.register-container {
+
+
+  max-width: 900px;
+  min-height: 600px;
+  background-color: #fff;
+  border-radius: 24px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+
+/* removed register-card styles */
+/* Panel layouts */
+.register-welcome-panel {
+  flex: 0 0 40%;
+  background: linear-gradient(160deg, #3b82f6 0%, #60a5fa 100%);
+  color: #ffffff;
+
+  flex-direction: column;
+
+  padding: 3rem;
+}
+
+.register-form-panel {
+
+  padding: 3rem;
+  background: #ffffff;
+}
+
+/* Typography */
+.title {
+  margin-bottom: 24px;
+  font-weight: 600;
+}
+
+/* Form grid remains the same */
+
+/* === Clean overrides === */
+:host{
+  display:block;height:100vh;
+  background:linear-gradient(135deg,#f5f7fa 0%,#c3cfe2 100%);
+}
+
+.register-wrapper{display:flex;align-items:center;justify-content:center;height:100%}
+.register-container{display:flex;max-width:980px;width:100%;border-radius:24px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,.25)}
+.register-welcome-panel{flex:0 0 40%;background:linear-gradient(160deg,#3b82f6 0%,#60a5fa 100%);color:#fff;display:flex;flex-direction:column;justify-content:center;padding:48px}
+.register-form-panel{flex:1;background:#fff;padding:48px}
+.title{margin-bottom:24px;font-size:1.75rem;font-weight:600;color:#1e293b;text-align:center}
+.form-grid{display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:992px){.form-grid{grid-template-columns:1fr 1fr}}
+.full-width{width:100%;margin-bottom:16px}
+.btn-group{display:flex;justify-content:space-between}
+
+/* File upload row */
+.file-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.file-name{max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+

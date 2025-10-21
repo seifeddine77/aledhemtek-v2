@@ -1,0 +1,242 @@
+<div class="dashboard-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <mat-card class="header-card">
+      <mat-card-header>
+        <div class="header-content">
+          <div class="title-section">
+            <mat-icon class="header-icon">dashboard</mat-icon>
+            <div>
+              <h1>Tableau de Bord Factures</h1>
+              <p class="subtitle">Indicateurs de Performance</p>
+            </div>
+          </div>
+          <div class="header-actions">
+            <button mat-raised-button color="primary" (click)="refresh()" [disabled]="loading">
+              <mat-icon>refresh</mat-icon>
+              Actualiser
+            </button>
+            <button mat-raised-button (click)="goToInvoices()" class="manage-btn">
+              <mat-icon>receipt_long</mat-icon>
+              Gérer les Factures
+            </button>
+          </div>
+        </div>
+      </mat-card-header>
+    </mat-card>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Chargement des statistiques...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-container">
+    <mat-icon class="error-icon">error</mat-icon>
+    <h3>Erreur de chargement</h3>
+    <p>{{ error }}</p>
+    <button mat-raised-button color="primary" (click)="refresh()">
+      <mat-icon>refresh</mat-icon>
+      Réessayer
+    </button>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div *ngIf="!loading && !error && stats" class="dashboard-content">
+    
+    <!-- Key Performance Indicators -->
+    <div class="kpi-section">
+      <h2>Indicateurs de Performance</h2>
+      
+      <div class="kpi-grid">
+        <!-- Recovery Rate -->
+        <mat-card class="kpi-card recovery-rate">
+          <mat-card-content>
+            <div class="kpi-content">
+              <div class="kpi-icon">
+                <mat-icon>trending_up</mat-icon>
+              </div>
+              <div class="kpi-info">
+                <h3>Taux de Recouvrement</h3>
+                <div class="kpi-value">{{ formatPercentage(getRecoveryRate()) }}</div>
+                <div class="kpi-detail">{{ formatCurrency(stats.paidAmount) }} sur {{ formatCurrency(stats.totalAmount) }}</div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Average Amount -->
+        <mat-card class="kpi-card average-amount">
+          <mat-card-content>
+            <div class="kpi-content">
+              <div class="kpi-icon">
+                <mat-icon>euro</mat-icon>
+              </div>
+              <div class="kpi-info">
+                <h3>Montant Moyen</h3>
+                <div class="kpi-value">{{ formatCurrency(getAverageAmount()) }}</div>
+                <div class="kpi-detail">Par facture</div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Status Distribution -->
+    <div class="status-section">
+      <h2>Répartition par Statut</h2>
+      
+      <div class="status-grid">
+        <!-- Draft Invoices -->
+        <mat-card class="status-card draft">
+          <mat-card-content>
+            <div class="status-content">
+              <div class="status-icon">
+                <mat-icon>edit</mat-icon>
+              </div>
+              <div class="status-info">
+                <h3>Brouillons</h3>
+                <div class="status-count">{{ stats.pendingCount }}</div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Sent Invoices -->
+        <mat-card class="status-card sent">
+          <mat-card-content>
+            <div class="status-content">
+              <div class="status-icon">
+                <mat-icon>send</mat-icon>
+              </div>
+              <div class="status-info">
+                <h3>Envoyées</h3>
+                <div class="status-count">{{ stats.sentCount }}</div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Paid Invoices -->
+        <mat-card class="status-card paid">
+          <mat-card-content>
+            <div class="status-content">
+              <div class="status-icon">
+                <mat-icon>check_circle</mat-icon>
+              </div>
+              <div class="status-info">
+                <h3>Payées</h3>
+                <div class="status-count">{{ stats.paidCount }}</div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Overdue Invoices -->
+        <mat-card class="status-card overdue">
+          <mat-card-content>
+            <div class="status-content">
+              <div class="status-icon">
+                <mat-icon>warning</mat-icon>
+              </div>
+              <div class="status-info">
+                <h3>En retard</h3>
+                <div class="status-count">{{ stats.overdueCount }}</div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Cancelled Invoices -->
+        <mat-card class="status-card cancelled">
+          <mat-card-content>
+            <div class="status-content">
+              <div class="status-icon">
+                <mat-icon>cancel</mat-icon>
+              </div>
+              <div class="status-info">
+                <h3>Annulées</h3>
+                <div class="status-count">{{ stats.cancelledCount }}</div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Financial Summary -->
+    <div class="financial-section">
+      <h2>Résumé Financier</h2>
+      
+      <div class="financial-grid">
+        <!-- Total Amount -->
+        <mat-card class="financial-card total">
+          <mat-card-content>
+            <div class="financial-content">
+              <div class="financial-icon">
+                <mat-icon>account_balance</mat-icon>
+              </div>
+              <div class="financial-info">
+                <h3>Montant Total</h3>
+                <div class="financial-amount">{{ formatCurrency(stats.totalAmount) }}</div>
+                <div class="financial-detail">{{ stats.totalInvoices }} factures</div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Paid Amount -->
+        <mat-card class="financial-card paid-amount">
+          <mat-card-content>
+            <div class="financial-content">
+              <div class="financial-icon">
+                <mat-icon>payments</mat-icon>
+              </div>
+              <div class="financial-info">
+                <h3>Montant Encaissé</h3>
+                <div class="financial-amount">{{ formatCurrency(stats.paidAmount) }}</div>
+                <div class="financial-detail">Factures payées</div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Pending Amount -->
+        <mat-card class="financial-card pending-amount">
+          <mat-card-content>
+            <div class="financial-content">
+              <div class="financial-icon">
+                <mat-icon>schedule</mat-icon>
+              </div>
+              <div class="financial-info">
+                <h3>Montant en Attente</h3>
+                <div class="financial-amount">{{ formatCurrency(stats.pendingAmount) }}</div>
+                <div class="financial-detail">À encaisser</div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="actions-section">
+      <h2>Actions Rapides</h2>
+      
+      <div class="actions-grid">
+        <button mat-raised-button color="primary" (click)="goToInvoices()" class="action-btn">
+          <mat-icon>receipt_long</mat-icon>
+          Voir Toutes les Factures
+        </button>
+        
+        <button mat-raised-button color="accent" (click)="refresh()" class="action-btn">
+          <mat-icon>refresh</mat-icon>
+          Actualiser les Données
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

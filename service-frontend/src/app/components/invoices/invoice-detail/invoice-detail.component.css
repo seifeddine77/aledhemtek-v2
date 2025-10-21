@@ -1,0 +1,395 @@
+.invoice-detail-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Loading */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  gap: 20px;
+}
+
+.loading-container p {
+  margin: 0;
+  color: #666;
+  font-size: 16px;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #666;
+}
+
+.header h1 {
+  margin: 0;
+  color: #333;
+  font-weight: 500;
+  font-size: 28px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.actions-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Cards */
+.invoice-info-card,
+.invoice-items-card,
+.payments-card {
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+}
+
+.invoice-info-card mat-card-title,
+.invoice-items-card mat-card-title,
+.payments-card mat-card-title {
+  color: #333;
+  font-weight: 500;
+  font-size: 20px;
+}
+
+/* Invoice Info Grid */
+.invoice-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 32px;
+  margin-bottom: 24px;
+}
+
+.info-section h3 {
+  margin: 0 0 16px 0;
+  color: #1976d2;
+  font-weight: 500;
+  font-size: 16px;
+  border-bottom: 2px solid #e3f2fd;
+  padding-bottom: 8px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 8px 0;
+}
+
+.info-row .label {
+  color: #666;
+  font-weight: 500;
+  min-width: 120px;
+}
+
+.info-row .value {
+  color: #333;
+  font-weight: 400;
+  text-align: right;
+}
+
+.info-row.total {
+  border-top: 1px solid #e0e0e0;
+  margin-top: 16px;
+  padding-top: 16px;
+  font-size: 18px;
+}
+
+.info-row .value.paid {
+  color: #4caf50;
+  font-weight: 600;
+}
+
+.info-row .value.remaining {
+  color: #f44336;
+  font-weight: 600;
+}
+
+/* Status Chips */
+.status-draft {
+  background-color: #f5f5f5 !important;
+  color: #666 !important;
+}
+
+.status-pending {
+  background-color: #fff3cd !important;
+  color: #856404 !important;
+}
+
+.status-sent {
+  background-color: #d1ecf1 !important;
+  color: #0c5460 !important;
+}
+
+.status-paid {
+  background-color: #d4edda !important;
+  color: #155724 !important;
+}
+
+.status-overdue {
+  background-color: #f8d7da !important;
+  color: #721c24 !important;
+}
+
+.status-cancelled {
+  background-color: #e2e3e5 !important;
+  color: #383d41 !important;
+}
+
+.status-completed {
+  background-color: #d4edda !important;
+  color: #155724 !important;
+}
+
+.status-failed {
+  background-color: #f8d7da !important;
+  color: #721c24 !important;
+}
+
+/* Notes Section */
+.notes-section {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.notes-section h3 {
+  margin: 0 0 12px 0;
+  color: #333;
+  font-weight: 500;
+}
+
+.notes-section p {
+  margin: 0;
+  color: #666;
+  line-height: 1.6;
+  background-color: #f9f9f9;
+  padding: 16px;
+  border-radius: 8px;
+  border-left: 4px solid #1976d2;
+}
+
+/* Tables */
+.table-container {
+  overflow-x: auto;
+  margin-top: 16px;
+}
+
+.invoice-items-table,
+.payments-table {
+  width: 100%;
+}
+
+.invoice-items-table th,
+.payments-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.invoice-items-table td,
+.payments-table td {
+  padding: 16px 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.item-designation {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.task-name {
+  font-size: 12px;
+  color: #666;
+  font-style: italic;
+}
+
+/* Payments Card */
+.payments-card mat-card-header {
+  display: flex;
+  align-items: center;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.no-payments {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+  color: #666;
+}
+
+.no-payments mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  color: #ccc;
+}
+
+.no-payments h3 {
+  margin: 0 0 8px 0;
+  color: #333;
+}
+
+.no-payments p {
+  margin: 0;
+  color: #666;
+}
+
+/* Error State */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  text-align: center;
+  color: #666;
+}
+
+.error-container mat-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 20px;
+  color: #f44336;
+}
+
+.error-container h2 {
+  margin: 0 0 12px 0;
+  color: #333;
+}
+
+.error-container p {
+  margin: 0 0 24px 0;
+  color: #666;
+}
+
+/* Menu Styles */
+::ng-deep .mat-menu-item.danger {
+  color: #f44336;
+}
+
+::ng-deep .mat-menu-item.danger mat-icon {
+  color: #f44336;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .invoice-detail-container {
+    padding: 10px;
+  }
+  
+  .header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  
+  .header-left {
+    justify-content: space-between;
+  }
+  
+  .header h1 {
+    font-size: 24px;
+  }
+  
+  .invoice-info-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  
+  .info-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .info-row .value {
+    text-align: left;
+  }
+  
+  .table-container {
+    font-size: 14px;
+  }
+  
+  .invoice-items-table td,
+  .payments-table td {
+    padding: 12px 4px;
+  }
+}
+
+/* Hover Effects */
+.invoice-items-table tr:hover,
+.payments-table tr:hover {
+  background-color: #f5f5f5;
+}
+
+/* Button Animations */
+button:hover {
+  transform: translateY(-1px);
+  transition: transform 0.2s ease;
+}
+
+/* Card Animations */
+.invoice-info-card,
+.invoice-items-card,
+.payments-card {
+  transition: box-shadow 0.3s ease;
+}
+
+.invoice-info-card:hover,
+.invoice-items-card:hover,
+.payments-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Chips */
+::ng-deep .mat-chip {
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 12px;
+  padding: 4px 12px;
+}
+
+/* Icons */
+.mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}

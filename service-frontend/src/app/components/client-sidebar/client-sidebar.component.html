@@ -1,0 +1,11 @@
+<div class="sidebar" [class.closed]="isClosed">
+  <button class="toggle-btn" (click)="isClosed = !isClosed">☰</button>
+  <ul>
+    <li><a routerLink="/client/dashboard" data-icon="🏠" routerLinkActive="active">Dashboard</a></li>
+    <li><a routerLink="/client/create-reservation-with-tasks" data-icon="➕" routerLinkActive="active">Créer une réservation</a></li>
+    <li><a routerLink="/client/create-reservation" data-icon="📝" routerLinkActive="active">Réservation simple</a></li>
+    <li><a routerLink="/client/reservations" data-icon="📅" routerLinkActive="active">Mes Réservations</a></li>
+    <li><a routerLink="/client/invoices" data-icon="💰" routerLinkActive="active">Mes Factures</a></li>
+    <li><a routerLink="/client/evaluations" data-icon="⭐" routerLinkActive="active">Mes Évaluations</a></li>
+  </ul>
+</div>

@@ -1,0 +1,79 @@
+<div class="sidebar" [class.closed]="isClosed">
+  <div class="sidebar-header">
+    <button class="toggle-btn" (click)="isClosed = !isClosed">☰</button>
+    <div class="header-actions" *ngIf="!isClosed">
+      <app-notification-panel></app-notification-panel>
+    </div>
+  </div>
+  <ul>
+    <li class="nav-item">
+      <a routerLink="/admin/dashboard" class="nav-link" routerLinkActive="active">
+        <i class="nav-icon fas fa-tachometer-alt"></i>
+        <p>Dashboard</p>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a routerLink="/admin/reservations" class="nav-link" routerLinkActive="active">
+        <i class="nav-icon fas fa-calendar-alt"></i>
+        <p>Gérer les Réservations</p>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a routerLink="/admin/employees" class="nav-link" routerLinkActive="active">
+        <i class="nav-icon fas fa-users"></i>
+        <p>Gérer les Employés</p>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a routerLink="/admin/tasks-management" class="nav-link" routerLinkActive="active">
+        <i class="nav-icon fas fa-tasks"></i>
+        <p>Gestion des Tâches</p>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a routerLink="/admin/services" class="nav-link" routerLinkActive="active">
+        <i class="nav-icon fas fa-concierge-bell"></i>
+        <p>Gestion des Services</p>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a routerLink="/admin/services-tasks" class="nav-link" routerLinkActive="active">
+        <i class="nav-icon fas fa-list-alt"></i>
+        <p>Services & Tâches</p>
+      </a>
+    </li>
+    
+    <li class="nav-item">
+      <a routerLink="/admin/evaluations" class="nav-link" routerLinkActive="active">
+        <i class="nav-icon fas fa-star"></i>
+        <p>Gestion des Évaluations</p>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a routerLink="/admin/evaluation-stats" class="nav-link" routerLinkActive="active">
+        <i class="nav-icon fas fa-chart-bar"></i>
+        <p>Statistiques Évaluations</p>
+      </a>
+    </li>
+    
+    <li class="nav-item">
+      <a routerLink="/admin/invoices" class="nav-link" routerLinkActive="active">
+        <i class="nav-icon fas fa-file-invoice"></i>
+        <p>Gestion des Factures</p>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a routerLink="/admin/invoices/dashboard" class="nav-link" routerLinkActive="active">
+        <i class="nav-icon fas fa-chart-line"></i>
+        <p>Dashboard Financier</p>
+      </a>
+    </li>
+    
+    <li class="nav-item">
+      <a routerLink="/admin/assign-service" class="nav-link" routerLinkActive="active">
+        <i class="nav-icon fas fa-wrench"></i>
+        <p>Assigner des Services</p>
+      </a>
+    </li>
+  </ul>
+</div>

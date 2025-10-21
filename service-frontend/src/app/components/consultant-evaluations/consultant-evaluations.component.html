@@ -1,0 +1,140 @@
+<div class="consultant-evaluations-container">
+  <!-- Evaluation Summary -->
+  <div class="evaluation-summary" *ngIf="evaluationSummary">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Résumé des Évaluations</mat-card-title>
+        <mat-card-subtitle>{{ evaluationSummary.totalEvaluations }} avis client(s)</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="summary-stats">
+          <!-- Overall Rating -->
+          <div class="stat-item overall-rating">
+            <div class="rating-display">
+              <span class="rating-number">{{ evaluationSummary.averageRating | number:'1.1-1' }}</span>
+              <div class="stars">
+                <mat-icon *ngFor="let star of getStarArray(5)" 
+                         [style.color]="star <= evaluationSummary.averageRating ? '#ffc107' : '#e0e0e0'">
+                  {{ star <= evaluationSummary.averageRating ? 'star' : 'star_border' }}
+                </mat-icon>
+              </div>
+              <span class="rating-text">{{ getRatingText(evaluationSummary.averageRating) }}</span>
+            </div>
+          </div>
+
+          <!-- Detailed Ratings -->
+          <div class="detailed-ratings">
+            <div class="rating-detail">
+              <span class="label">Qualité:</span>
+              <div class="rating-bar">
+                <div class="stars-small">
+                  <mat-icon *ngFor="let star of getStarArray(5)" 
+                           [style.color]="star <= evaluationSummary.averageServiceQuality ? '#ffc107' : '#e0e0e0'">
+                    {{ star <= evaluationSummary.averageServiceQuality ? 'star' : 'star_border' }}
+                  </mat-icon>
+                </div>
+                <span class="rating-value">{{ evaluationSummary.averageServiceQuality | number:'1.1-1' }}</span>
+              </div>
+            </div>
+
+            <div class="rating-detail">
+              <span class="label">Ponctualité:</span>
+              <div class="rating-bar">
+                <div class="stars-small">
+                  <mat-icon *ngFor="let star of getStarArray(5)" 
+                           [style.color]="star <= evaluationSummary.averagePunctuality ? '#ffc107' : '#e0e0e0'">
+                    {{ star <= evaluationSummary.averagePunctuality ? 'star' : 'star_border' }}
+                  </mat-icon>
+                </div>
+                <span class="rating-value">{{ evaluationSummary.averagePunctuality | number:'1.1-1' }}</span>
+              </div>
+            </div>
+
+
+
+            <div class="rating-detail">
+              <span class="label">Communication:</span>
+              <div class="rating-bar">
+                <div class="stars-small">
+                  <mat-icon *ngFor="let star of getStarArray(5)" 
+                           [style.color]="star <= evaluationSummary.averageCommunication ? '#ffc107' : '#e0e0e0'">
+                    {{ star <= evaluationSummary.averageCommunication ? 'star' : 'star_border' }}
+                  </mat-icon>
+                </div>
+                <span class="rating-value">{{ evaluationSummary.averageCommunication | number:'1.1-1' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Individual Evaluations -->
+  <div class="evaluations-list" *ngIf="!showSummaryOnly">
+    <h3 *ngIf="evaluations.length > 0">Avis Clients</h3>
+    
+    <div class="loading-container" *ngIf="loading">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Chargement des évaluations...</p>
+    </div>
+
+    <div class="evaluation-cards" *ngIf="!loading">
+      <mat-card class="evaluation-card" *ngFor="let evaluation of evaluations">
+        <mat-card-content>
+          <div class="evaluation-header">
+            <div class="rating-info">
+              <div class="stars">
+                <mat-icon *ngFor="let star of getStarArray(5)" 
+                         [style.color]="star <= evaluation.generalRating ? '#ffc107' : '#e0e0e0'">
+                  {{ star <= evaluation.generalRating ? 'star' : 'star_border' }}
+                </mat-icon>
+              </div>
+              <span class="rating-number">{{ evaluation.generalRating }}/5</span>
+            </div>
+            <span class="evaluation-date">{{ formatDate(evaluation.createdAt!) }}</span>
+          </div>
+
+          <div class="evaluation-content" *ngIf="evaluation.comment">
+            <p class="comment">{{ evaluation.comment }}</p>
+          </div>
+
+          <div class="evaluation-details">
+            <div class="detail-ratings">
+              <div class="detail-rating">
+                <mat-icon>work</mat-icon>
+                <span>Qualité: {{ evaluation.serviceQualityRating }}/5</span>
+              </div>
+              <div class="detail-rating">
+                <mat-icon>schedule</mat-icon>
+                <span>Ponctualité: {{ evaluation.punctualityRating }}/5</span>
+              </div>
+
+              <div class="detail-rating">
+                <mat-icon>chat</mat-icon>
+                <span>Communication: {{ evaluation.communicationRating }}/5</span>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <div class="no-evaluations" *ngIf="!loading && evaluations.length === 0">
+      <mat-icon>star_border</mat-icon>
+      <p>Aucune évaluation disponible pour ce consultant</p>
+    </div>
+  </div>
+
+  <!-- No Summary Available -->
+  <div class="no-summary" *ngIf="!evaluationSummary && !loading">
+    <mat-card>
+      <mat-card-content>
+        <div class="no-data">
+          <mat-icon>star_border</mat-icon>
+          <p>Aucune évaluation disponible</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

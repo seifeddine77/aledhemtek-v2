@@ -1,0 +1,94 @@
+<div class="pagination-container" *ngIf="config.totalItems > 0">
+  <!-- Items info -->
+  <div class="pagination-info">
+    <span>Affichage de {{ startItem }} à {{ endItem }} sur {{ config.totalItems }} éléments</span>
+  </div>
+
+  <!-- Page size selector -->
+  <div class="page-size-selector">
+    <mat-form-field appearance="outline" class="page-size-field">
+      <mat-label>Éléments par page</mat-label>
+      <mat-select [value]="config.itemsPerPage" (selectionChange)="onPageSizeChange($event.value)">
+        <mat-option *ngFor="let size of config.pageSizeOptions" [value]="size">
+          {{ size }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <!-- Pagination controls -->
+  <div class="pagination-controls">
+    <!-- First page -->
+    <button 
+      mat-icon-button 
+      [disabled]="config.currentPage === 1"
+      (click)="goToFirstPage()"
+      matTooltip="Première page">
+      <mat-icon>first_page</mat-icon>
+    </button>
+
+    <!-- Previous page -->
+    <button 
+      mat-icon-button 
+      [disabled]="config.currentPage === 1"
+      (click)="goToPreviousPage()"
+      matTooltip="Page précédente">
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+
+    <!-- Page numbers -->
+    <div class="page-numbers">
+      <!-- Show first page if not in visible range -->
+      <button 
+        *ngIf="visiblePages[0] > 1"
+        mat-button
+        class="page-number"
+        (click)="onPageChange(1)">
+        1
+      </button>
+      
+      <!-- Show ellipsis if gap -->
+      <span *ngIf="visiblePages[0] > 2" class="ellipsis">...</span>
+
+      <!-- Visible page numbers -->
+      <button 
+        *ngFor="let page of visiblePages"
+        mat-button
+        class="page-number"
+        [class.active]="page === config.currentPage"
+        (click)="onPageChange(page)">
+        {{ page }}
+      </button>
+
+      <!-- Show ellipsis if gap -->
+      <span *ngIf="visiblePages[visiblePages.length - 1] < totalPages - 1" class="ellipsis">...</span>
+
+      <!-- Show last page if not in visible range -->
+      <button 
+        *ngIf="visiblePages[visiblePages.length - 1] < totalPages"
+        mat-button
+        class="page-number"
+        (click)="onPageChange(totalPages)">
+        {{ totalPages }}
+      </button>
+    </div>
+
+    <!-- Next page -->
+    <button 
+      mat-icon-button 
+      [disabled]="config.currentPage === totalPages"
+      (click)="goToNextPage()"
+      matTooltip="Page suivante">
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+
+    <!-- Last page -->
+    <button 
+      mat-icon-button 
+      [disabled]="config.currentPage === totalPages"
+      (click)="goToLastPage()"
+      matTooltip="Dernière page">
+      <mat-icon>last_page</mat-icon>
+    </button>
+  </div>
+</div>

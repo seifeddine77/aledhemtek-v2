@@ -1,0 +1,177 @@
+.dialog-container {
+  max-width: 800px;
+  width: 100%;
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.dialog-header h2 {
+  margin: 0;
+  color: #1976d2;
+}
+
+.close-button {
+  color: #666;
+}
+
+.dialog-content {
+  padding: 24px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.reservation-info {
+  margin-bottom: 24px;
+}
+
+.reservation-info mat-card-content p {
+  margin: 8px 0;
+}
+
+.status-chip {
+  margin-top: 12px;
+}
+
+.status-chip mat-chip {
+  color: white;
+  font-weight: 500;
+}
+
+.tasks-section {
+  margin-top: 24px;
+}
+
+.tasks-section h3 {
+  color: #333;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.no-tasks {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+}
+
+.no-tasks mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  color: #999;
+}
+
+.tasks-table {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.task-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.task-name mat-icon {
+  color: #1976d2;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.duration-cell {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.duration-cell mat-icon {
+  color: #ff9800;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.summary-section {
+  margin-top: 24px;
+}
+
+.summary-card {
+  background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+  border: 1px solid #ddd;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 12px 0;
+  padding: 8px 0;
+}
+
+.summary-row:not(:last-child) {
+  border-bottom: 1px solid #ddd;
+}
+
+.summary-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.summary-label mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.summary-value {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.summary-value.price {
+  color: #4caf50;
+  font-size: 18px;
+}
+
+.dialog-actions {
+  padding: 16px 24px;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .dialog-container {
+    max-width: 100%;
+    margin: 0;
+  }
+  
+  .dialog-content {
+    padding: 16px;
+  }
+  
+  .tasks-table {
+    font-size: 14px;
+  }
+  
+  .summary-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}

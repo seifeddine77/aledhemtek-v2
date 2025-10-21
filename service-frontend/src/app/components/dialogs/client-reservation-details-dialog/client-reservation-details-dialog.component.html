@@ -1,0 +1,162 @@
+<div class="dialog-header">
+  <h2 mat-dialog-title>
+    <mat-icon>assignment</mat-icon>
+    Détails de votre réservation
+  </h2>
+  <button mat-icon-button mat-dialog-close>
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<mat-dialog-content class="dialog-content">
+  <mat-tab-group>
+    <!-- Onglet Informations générales -->
+    <mat-tab label="Informations">
+      <div class="tab-content">
+        <div class="info-section">
+          <h3>
+            <mat-icon>info</mat-icon>
+            Informations générales
+          </h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="label">Titre :</span>
+              <span class="value">{{ data.reservation.title }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Statut :</span>
+              <div class="status-container">
+                <mat-chip [style.background-color]="getStatusColor(data.reservation.status)" 
+                         [style.color]="'white'">
+                  {{ getStatusText(data.reservation.status) }}
+                </mat-chip>
+                <p class="status-description">{{ getStatusDescription(data.reservation.status) }}</p>
+              </div>
+            </div>
+            <div class="info-item">
+              <span class="label">Date début :</span>
+              <span class="value">{{ formatDateTime(data.reservation.startDate) }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Date fin :</span>
+              <span class="value">{{ formatDateTime(data.reservation.endDate) }}</span>
+            </div>
+            <div class="info-item" *ngIf="data.reservation.description">
+              <span class="label">Description :</span>
+              <span class="value">{{ data.reservation.description }}</span>
+            </div>
+            <div class="info-item" *ngIf="hasConsultant()">
+              <span class="label">Consultant assigné :</span>
+              <span class="value consultant-name">
+                <mat-icon>person</mat-icon>
+                {{ data.reservation.consultantName }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Onglet Tâches -->
+    <mat-tab label="Services demandés" [disabled]="!hasTasks()">
+      <div class="tab-content">
+        <div class="tasks-section">
+          <h3>
+            <mat-icon>build</mat-icon>
+            Services demandés
+          </h3>
+          <div *ngIf="hasTasks()" class="tasks-list">
+            <mat-card *ngFor="let task of data.reservation.tasks" class="task-card">
+              <mat-card-content>
+                <div class="task-header">
+                  <h4>{{ task.name }}</h4>
+                </div>
+                <p *ngIf="task.description" class="task-description">
+                  {{ task.description }}
+                </p>
+                <div *ngIf="task.duration" class="task-duration">
+                  <mat-icon>schedule</mat-icon>
+                  Durée estimée : {{ task.duration }} minutes
+                </div>
+              </mat-card-content>
+            </mat-card>
+            
+            <div class="total-price" *ngIf="getTotalTasksPrice() > 0">
+              <mat-divider></mat-divider>
+              <div class="total-row">
+                <span class="total-label">Total estimé :</span>
+                <span class="total-amount">{{ formatPrice(getTotalTasksPrice()) }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div *ngIf="!hasTasks()" class="no-tasks">
+            <mat-icon>info</mat-icon>
+            <p>Aucun service spécifique n'a été défini pour cette réservation.</p>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Onglet Localisation -->
+    <mat-tab label="Localisation" [disabled]="!hasLocation()">
+      <div class="tab-content">
+        <div class="location-section">
+          <h3>
+            <mat-icon>location_on</mat-icon>
+            Lieu d'intervention
+          </h3>
+          
+          <div *ngIf="hasLocation()">
+            <div class="location-info">
+              <div class="address" *ngIf="data.reservation.address">
+                <mat-icon>home</mat-icon>
+                <span>{{ data.reservation.address }}</span>
+              </div>
+              <div class="coordinates">
+                <mat-icon>my_location</mat-icon>
+                <span>{{ data.reservation.latitude }}, {{ data.reservation.longitude }}</span>
+                <button mat-icon-button (click)="copyCoordinates()" title="Copier les coordonnées">
+                  <mat-icon>content_copy</mat-icon>
+                </button>
+              </div>
+            </div>
+            
+            <div class="map-container" *ngIf="showMap">
+              <app-location-map 
+                [position]="getLocationPosition()"
+                [readonly]="true">
+              </app-location-map>
+            </div>
+            
+            <div class="location-actions">
+              <button mat-raised-button color="primary" (click)="showMap = !showMap">
+                <mat-icon>{{ showMap ? 'visibility_off' : 'map' }}</mat-icon>
+                {{ showMap ? 'Masquer la carte' : 'Voir sur la carte' }}
+              </button>
+              <button mat-stroked-button (click)="openInMaps()">
+                <mat-icon>open_in_new</mat-icon>
+                Ouvrir dans Maps
+              </button>
+            </div>
+          </div>
+          
+          <div *ngIf="!hasLocation()" class="no-location">
+            <mat-icon>location_off</mat-icon>
+            <p>Aucune localisation n'a été définie pour cette réservation.</p>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</mat-dialog-content>
+
+<mat-dialog-actions class="dialog-actions">
+  <button mat-button mat-dialog-close>Fermer</button>
+  <button mat-raised-button color="primary" 
+          *ngIf="data.reservation.status === 'COMPLETED'"
+          (click)="dialogRef.close('evaluate')">
+    <mat-icon>star</mat-icon>
+    Évaluer le service
+  </button>
+</mat-dialog-actions>

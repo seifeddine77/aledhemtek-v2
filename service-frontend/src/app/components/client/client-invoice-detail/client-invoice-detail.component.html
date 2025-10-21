@@ -1,0 +1,317 @@
+<div class="invoice-detail-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <mat-card class="header-card">
+      <mat-card-content>
+        <div class="header-content">
+          <div class="title-section">
+            <button mat-icon-button (click)="goBack()" class="back-button">
+              <mat-icon>arrow_back</mat-icon>
+            </button>
+            <mat-icon class="header-icon">receipt_long</mat-icon>
+            <div>
+              <h1>Détail de la Facture</h1>
+              <p class="subtitle" *ngIf="invoice">{{ invoice.invoiceNumber }}</p>
+            </div>
+          </div>
+          <div class="header-actions" *ngIf="invoice">
+            <button mat-raised-button 
+                    [disabled]="!isDownloadable()"
+                    (click)="downloadPDF()">
+              <mat-icon>download</mat-icon>
+              Télécharger PDF
+            </button>
+            <button mat-raised-button 
+                    color="warn"
+                    *ngIf="isPayable()"
+                    (click)="payInvoice()">
+              <mat-icon>payment</mat-icon>
+              Payer
+            </button>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="loading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Chargement des détails de la facture...</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-container" *ngIf="error && !loading">
+    <mat-icon class="error-icon">error_outline</mat-icon>
+    <p>{{ error }}</p>
+    <button mat-raised-button color="primary" (click)="loadInvoiceDetail()">
+      <mat-icon>refresh</mat-icon>
+      Réessayer
+    </button>
+  </div>
+
+  <!-- Invoice Details -->
+  <div class="content-section" *ngIf="invoice && !loading && !error">
+    
+    <!-- Invoice Overview -->
+    <div class="overview-section">
+      <div class="overview-grid">
+        
+        <!-- Invoice Information Card -->
+        <mat-card class="info-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>info</mat-icon>
+              Informations Générales
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Numéro de facture:</label>
+                <span class="invoice-number">{{ invoice.invoiceNumber }}</span>
+              </div>
+              <div class="info-item">
+                <label>Date d'émission:</label>
+                <span>{{ formatDate(invoice.issueDate) }}</span>
+              </div>
+              <div class="info-item">
+                <label>Date d'échéance:</label>
+                <span [class.overdue]="invoice.status === InvoiceStatus.OVERDUE">
+                  {{ formatDate(invoice.dueDate) }}
+                  <mat-icon *ngIf="invoice.status === InvoiceStatus.OVERDUE" 
+                            class="overdue-icon" 
+                            matTooltip="Facture en retard">
+                    warning
+                  </mat-icon>
+                </span>
+              </div>
+              <div class="info-item">
+                <label>Statut:</label>
+                <mat-chip 
+                  [style.background-color]="getStatusColor(invoice.status)"
+                  [style.color]="'white'"
+                  class="status-chip">
+                  {{ getStatusText(invoice.status) }}
+                </mat-chip>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Client Information Card -->
+        <mat-card class="info-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>person</mat-icon>
+              Informations Client
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Nom:</label>
+                <span>{{ invoice.clientName }}</span>
+              </div>
+              <div class="info-item">
+                <label>Email:</label>
+                <span>{{ invoice.clientEmail }}</span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Reservation Information Card -->
+        <mat-card class="info-card" *ngIf="invoice.reservation">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>event</mat-icon>
+              Réservation Associée
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Titre:</label>
+                <span>{{ invoice.reservation.title }}</span>
+              </div>
+              <div class="info-item">
+                <label>Période:</label>
+                <span>
+                  {{ formatDate(invoice.reservation.startDate) }} - 
+                  {{ formatDate(invoice.reservation.endDate) }}
+                </span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Payment Progress Section -->
+    <div class="payment-section">
+      <mat-card class="payment-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>payment</mat-icon>
+            État des Paiements
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="payment-overview">
+            <div class="payment-amounts">
+              <div class="amount-item total">
+                <label>Montant Total:</label>
+                <span class="amount">{{ formatCurrency(invoice.totalAmount) }}</span>
+              </div>
+              <div class="amount-item paid">
+                <label>Montant Payé:</label>
+                <span class="amount">{{ formatCurrency(getTotalPaidAmount()) }}</span>
+              </div>
+              <div class="amount-item remaining">
+                <label>Montant Restant:</label>
+                <span class="amount">{{ formatCurrency(getRemainingAmount()) }}</span>
+              </div>
+            </div>
+            
+            <div class="payment-progress-section">
+              <div class="progress-info">
+                <span class="progress-label">Progression du paiement</span>
+                <span class="progress-percentage">{{ getPaymentProgress() }}%</span>
+              </div>
+              <mat-progress-bar 
+                [value]="getPaymentProgress()"
+                [color]="getProgressBarColor()"
+                class="payment-progress-bar">
+              </mat-progress-bar>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Invoice Items Section -->
+    <div class="items-section">
+      <mat-card class="items-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>list</mat-icon>
+            Détail des Articles
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="table-container" *ngIf="invoice.items && invoice.items.length > 0; else noItems">
+            <table mat-table [dataSource]="invoice.items" class="items-table">
+              
+              <!-- Description Column -->
+              <ng-container matColumnDef="description">
+                <th mat-header-cell *matHeaderCellDef>Description</th>
+                <td mat-cell *matCellDef="let item">{{ item.description }}</td>
+              </ng-container>
+
+              <!-- Quantity Column -->
+              <ng-container matColumnDef="quantity">
+                <th mat-header-cell *matHeaderCellDef>Quantité</th>
+                <td mat-cell *matCellDef="let item">{{ item.quantity }}</td>
+              </ng-container>
+
+              <!-- Unit Price Column -->
+              <ng-container matColumnDef="unitPrice">
+                <th mat-header-cell *matHeaderCellDef>Prix Unitaire</th>
+                <td mat-cell *matCellDef="let item">{{ formatCurrency(item.unitPrice) }}</td>
+              </ng-container>
+
+              <!-- Total Price Column -->
+              <ng-container matColumnDef="totalPrice">
+                <th mat-header-cell *matHeaderCellDef>Total</th>
+                <td mat-cell *matCellDef="let item">
+                  <strong>{{ formatCurrency(item.totalPrice) }}</strong>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="itemColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: itemColumns;"></tr>
+            </table>
+          </div>
+
+          <ng-template #noItems>
+            <div class="no-items">
+              <mat-icon>list_alt</mat-icon>
+              <p>Aucun article dans cette facture</p>
+            </div>
+          </ng-template>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Payments History Section -->
+    <div class="payments-section" *ngIf="invoice.payments && invoice.payments.length > 0">
+      <mat-card class="payments-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>history</mat-icon>
+            Historique des Paiements
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="table-container">
+            <table mat-table [dataSource]="invoice.payments" class="payments-table">
+              
+              <!-- Payment Date Column -->
+              <ng-container matColumnDef="paymentDate">
+                <th mat-header-cell *matHeaderCellDef>Date</th>
+                <td mat-cell *matCellDef="let payment">
+                  {{ formatDateTime(payment.paymentDate) }}
+                </td>
+              </ng-container>
+
+              <!-- Amount Column -->
+              <ng-container matColumnDef="amount">
+                <th mat-header-cell *matHeaderCellDef>Montant</th>
+                <td mat-cell *matCellDef="let payment">
+                  <strong>{{ formatCurrency(payment.amount) }}</strong>
+                </td>
+              </ng-container>
+
+              <!-- Payment Method Column -->
+              <ng-container matColumnDef="paymentMethod">
+                <th mat-header-cell *matHeaderCellDef>Méthode</th>
+                <td mat-cell *matCellDef="let payment">{{ payment.paymentMethod }}</td>
+              </ng-container>
+
+              <!-- Transaction ID Column -->
+              <ng-container matColumnDef="transactionId">
+                <th mat-header-cell *matHeaderCellDef>Transaction</th>
+                <td mat-cell *matCellDef="let payment">
+                  <span class="transaction-id" *ngIf="payment.transactionId">
+                    {{ payment.transactionId }}
+                  </span>
+                  <span *ngIf="!payment.transactionId" class="no-transaction">-</span>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="paymentColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: paymentColumns;"></tr>
+            </table>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Notes Section -->
+    <div class="notes-section" *ngIf="invoice.notes">
+      <mat-card class="notes-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>note</mat-icon>
+            Notes
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p class="notes-content">{{ invoice.notes }}</p>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+  </div>
+</div>

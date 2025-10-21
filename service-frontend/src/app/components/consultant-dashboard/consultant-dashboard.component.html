@@ -1,0 +1,306 @@
+<div class="consultant-dashboard-container">
+  <div class="dashboard-header">
+    <h1>Tableau de Bord Consultant</h1>
+    <p>Gérez vos interventions et suivez vos performances</p>
+  </div>
+
+  <div class="dashboard-content" *ngIf="!loading; else loadingTemplate">
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon class="stat-icon total">work</mat-icon>
+            <div class="stat-info">
+              <h3>{{ totalAssignments }}</h3>
+              <p>Total Missions</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon class="stat-icon pending">assignment</mat-icon>
+            <div class="stat-info">
+              <h3>{{ pendingAssignments }}</h3>
+              <p>En Attente</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon class="stat-icon completed">check_circle</mat-icon>
+            <div class="stat-info">
+              <h3>{{ completedAssignments }}</h3>
+              <p>Terminées</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon class="stat-icon today">today</mat-icon>
+            <div class="stat-info">
+              <h3>{{ todayAssignments }}</h3>
+              <p>Aujourd'hui</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Evaluation Statistics -->
+    <div class="evaluation-stats-section">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>star</mat-icon>
+            Mes Évaluations
+          </mat-card-title>
+          <mat-card-subtitle>Statistiques de satisfaction client</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="evaluation-overview">
+            <div class="overall-rating">
+              <div class="rating-display">
+                <span class="rating-number">{{ evaluationStats.averageRating.toFixed(1) }}</span>
+                <div class="stars">
+                  <mat-icon 
+                    *ngFor="let star of getStarArray(5)" 
+                    [class.filled]="star <= evaluationStats.averageRating">
+                    {{ star <= evaluationStats.averageRating ? 'star' : 'star_border' }}
+                  </mat-icon>
+                </div>
+              </div>
+              <p class="rating-label">Note moyenne générale</p>
+              <p class="rating-count">{{ evaluationStats.totalEvaluations }} évaluation{{ evaluationStats.totalEvaluations > 1 ? 's' : '' }}</p>
+            </div>
+            
+            <div class="detailed-ratings">
+              <div class="rating-item">
+                <span class="rating-label">Service:</span>
+                <div class="rating-value">
+                  <span class="number">{{ evaluationStats.averageServiceQuality.toFixed(1) }}</span>
+                  <div class="mini-stars">
+                    <mat-icon 
+                      *ngFor="let star of getStarArray(5)" 
+                      [class.filled]="star <= evaluationStats.averageServiceQuality">
+                      {{ star <= evaluationStats.averageServiceQuality ? 'star' : 'star_border' }}
+                    </mat-icon>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="rating-item">
+                <span class="rating-label">Ponctualité:</span>
+                <div class="rating-value">
+                  <span class="number">{{ evaluationStats.averagePunctuality.toFixed(1) }}</span>
+                  <div class="mini-stars">
+                    <mat-icon 
+                      *ngFor="let star of getStarArray(5)" 
+                      [class.filled]="star <= evaluationStats.averagePunctuality">
+                      {{ star <= evaluationStats.averagePunctuality ? 'star' : 'star_border' }}
+                    </mat-icon>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="rating-item">
+                <span class="rating-label">Communication:</span>
+                <div class="rating-value">
+                  <span class="number">{{ evaluationStats.averageCommunication.toFixed(1) }}</span>
+                  <div class="mini-stars">
+                    <mat-icon 
+                      *ngFor="let star of getStarArray(5)" 
+                      [class.filled]="star <= evaluationStats.averageCommunication">
+                      {{ star <= evaluationStats.averageCommunication ? 'star' : 'star_border' }}
+                    </mat-icon>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Recent Evaluations -->
+          <div class="recent-evaluations" *ngIf="evaluationStats.recentEvaluations.length > 0">
+            <h4>Dernières évaluations</h4>
+            <div class="evaluation-item" *ngFor="let evaluation of evaluationStats.recentEvaluations">
+              <div class="evaluation-rating">
+                <span class="rating-number">{{ evaluation.generalRating }}</span>
+                <mat-icon class="star-icon">star</mat-icon>
+              </div>
+              <div class="evaluation-info">
+                <p class="evaluation-comment" *ngIf="evaluation.comment">"{{ evaluation.comment }}"</p>
+                <p class="evaluation-date">{{ evaluation.createdAt | date:'dd/MM/yyyy' }}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="evaluation-actions">
+            <button mat-raised-button color="primary" (click)="viewMyEvaluations()">
+              <mat-icon>visibility</mat-icon>
+              Voir toutes mes évaluations
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="actions-section">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Actions Rapides</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="action-buttons">
+            <button mat-raised-button color="primary" (click)="viewCalendar()">
+              <mat-icon>calendar_today</mat-icon>
+              Mon Calendrier
+            </button>
+            <button mat-raised-button color="accent" (click)="viewAllTasks()">
+              <mat-icon>assignment</mat-icon>
+              Mes Tâches
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Today's Schedule -->
+    <div class="today-section">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Planning d'Aujourd'hui</mat-card-title>
+          <mat-card-subtitle>{{ todayReservations.length }} intervention(s) prévue(s)</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="today-schedule" *ngIf="todayReservations.length > 0; else noTodayTasks">
+            <div class="schedule-item" *ngFor="let reservation of todayReservations">
+              <div class="schedule-time">
+                <mat-icon>schedule</mat-icon>
+                <span>{{ formatTime(reservation.startDate) }}</span>
+              </div>
+              <div class="schedule-info">
+                <h4>{{ reservation.title }}</h4>
+                <p class="client-info">
+                  <mat-icon>person</mat-icon>
+                  {{ reservation.clientName || 'Client non assigné' }}
+                </p>
+                <p class="description" *ngIf="reservation.description">
+                  <mat-icon>description</mat-icon>
+                  {{ reservation.description }}
+                </p>
+              </div>
+              <div class="schedule-actions">
+                <mat-chip [style.background-color]="getStatusColor(reservation.status)" 
+                         [style.color]="'white'">
+                  {{ getStatusText(reservation.status) }}
+                </mat-chip>
+                <div class="action-buttons-inline" *ngIf="reservation.status === 'ASSIGNED'">
+                  <button mat-mini-fab color="primary" 
+                          (click)="startAssignment(reservation.id!)" 
+                          matTooltip="Commencer">
+                    <mat-icon>play_arrow</mat-icon>
+                  </button>
+                </div>
+                <div class="action-buttons-inline" *ngIf="reservation.status === 'IN_PROGRESS'">
+                  <button mat-mini-fab color="accent" 
+                          (click)="completeAssignment(reservation.id!)" 
+                          matTooltip="Terminer">
+                    <mat-icon>check</mat-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <ng-template #noTodayTasks>
+            <div class="no-data">
+              <mat-icon>event_available</mat-icon>
+              <p>Aucune intervention prévue aujourd'hui</p>
+            </div>
+          </ng-template>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Recent Assignments -->
+    <div class="recent-section">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Missions Récentes</mat-card-title>
+          <mat-card-subtitle>Vos 5 dernières missions</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="assignment-list" *ngIf="recentAssignments.length > 0; else noAssignments">
+            <div class="assignment-item" *ngFor="let assignment of recentAssignments">
+              <div class="assignment-info">
+                <h4>{{ assignment.title }}</h4>
+                <p class="assignment-date">{{ formatDate(assignment.startDate) }}</p>
+                <p class="assignment-client" *ngIf="assignment.clientName">
+                  <mat-icon>person</mat-icon>
+                  {{ assignment.clientName }}
+                </p>
+              </div>
+              <div class="assignment-status">
+                <mat-chip [style.background-color]="getStatusColor(assignment.status)" 
+                         [style.color]="'white'">
+                  {{ getStatusText(assignment.status) }}
+                </mat-chip>
+              </div>
+            </div>
+          </div>
+          
+          <ng-template #noAssignments>
+            <div class="no-data">
+              <mat-icon>assignment</mat-icon>
+              <p>Aucune mission trouvée</p>
+            </div>
+          </ng-template>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Performance Stats -->
+    <div class="performance-section">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Performances</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="performance-stats">
+            <div class="perf-item">
+              <mat-icon>date_range</mat-icon>
+              <span>Cette semaine: {{ stats.thisWeek }} missions</span>
+            </div>
+            <div class="perf-item">
+              <mat-icon>calendar_month</mat-icon>
+              <span>Ce mois: {{ stats.thisMonth }} missions</span>
+            </div>
+            <div class="perf-item" *ngIf="stats.totalEarnings > 0">
+              <mat-icon>euro</mat-icon>
+              <span>Revenus: {{ stats.totalEarnings | currency:'EUR':'symbol':'1.0-0' }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <ng-template #loadingTemplate>
+    <div class="loading-container">
+      <mat-spinner></mat-spinner>
+      <p>Chargement de vos données...</p>
+    </div>
+  </ng-template>
+</div>
+
+

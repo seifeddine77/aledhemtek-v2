@@ -1,0 +1,181 @@
+<div class="task-selector-container">
+  
+  <!-- Header avec résumé -->
+  <div class="selection-summary" *ngIf="getSelectedTasksCount() > 0">
+    <mat-card class="summary-card">
+      <mat-card-content>
+        <div class="summary-info">
+          <div class="summary-text">
+            <span class="selected-count">{{getSelectedTasksCount()}} tâche(s) sélectionnée(s)</span>
+            <span class="total-price">Total: {{totalPrice | currency:'EUR':'symbol':'1.2-2':'fr'}} TTC</span>
+          </div>
+          <button mat-stroked-button color="warn" (click)="clearAllSelections()">
+            <mat-icon>clear_all</mat-icon>
+            Tout effacer
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Liste des tâches sélectionnées -->
+  <div class="selected-tasks" *ngIf="getSelectedTasksCount() > 0">
+    <h3>Tâches sélectionnées</h3>
+    <div class="selected-tasks-list">
+      <mat-card *ngFor="let selectedTask of selectedTasks | keyvalue" class="selected-task-card">
+        <mat-card-content>
+          <div class="selected-task-content">
+            <img [src]="getImageUrl(selectedTask.value.task.imageName)" 
+                 alt="{{selectedTask.value.task.name}}" 
+                 class="task-thumbnail">
+            
+            <div class="task-details">
+              <h4>{{selectedTask.value.task.name}}</h4>
+              <p class="task-description">{{selectedTask.value.task.description}}</p>
+              <div class="task-meta">
+                <span class="duration">
+                  <mat-icon>schedule</mat-icon>
+                  {{selectedTask.value.task.duration}} min
+                </span>
+                <span class="price">{{getTaskPriceRange(selectedTask.value.task)}}</span>
+              </div>
+            </div>
+            
+            <div class="quantity-controls">
+              <label>Quantité:</label>
+              <div class="quantity-input">
+                <button mat-icon-button 
+                        (click)="updateTaskQuantity(selectedTask.key, selectedTask.value.quantity - 1)"
+                        [disabled]="selectedTask.value.quantity <= 1">
+                  <mat-icon>remove</mat-icon>
+                </button>
+                <span class="quantity">{{selectedTask.value.quantity}}</span>
+                <button mat-icon-button 
+                        (click)="updateTaskQuantity(selectedTask.key, selectedTask.value.quantity + 1)">
+                  <mat-icon>add</mat-icon>
+                </button>
+              </div>
+              <div class="subtotal">{{selectedTask.value.totalPrice}}€</div>
+            </div>
+            
+            <button mat-icon-button 
+                    color="warn" 
+                    (click)="removeTask(selectedTask.key)"
+                    class="remove-btn">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Sélection par service -->
+  <div class="services-section">
+    <h3>Sélectionner des tâches</h3>
+    
+    <mat-accordion *ngIf="services.length > 0">
+      <mat-expansion-panel *ngFor="let service of services" 
+                           [expanded]="serviceId === service.id"
+                           [disabled]="!hasTasksForService(service.id)">
+        
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <div class="service-header">
+              <span>{{service.name}}</span>
+              <mat-chip *ngIf="hasTasksForService(service.id)" 
+                        class="task-count-chip">
+                {{getTasksByServiceId(service.id).length}} tâche(s)
+              </mat-chip>
+              <span *ngIf="!hasTasksForService(service.id)" 
+                    class="no-tasks-label">
+                Aucune tâche disponible
+              </span>
+            </div>
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+
+        <div class="tasks-grid" *ngIf="hasTasksForService(service.id)">
+          <ng-container *ngFor="let task of getTasksByServiceId(service.id)">
+            <mat-card class="task-card"
+                      [class.selected]="isTaskSelected(task.id!)"
+                      *ngIf="!isTaskSelected(task.id!)">
+              
+              <div class="task-card-header">
+                <img [src]="getImageUrl(task.imageName)" 
+                     alt="{{task.name}}" 
+                     class="task-image">
+                
+                <mat-checkbox [checked]="isTaskSelected(task.id!)"
+                             (change)="toggleTaskSelection(task)"
+                             class="task-checkbox">
+                </mat-checkbox>
+              </div>
+
+              <mat-card-content>
+                <h4 class="task-title">{{task.name}}</h4>
+                
+                <p class="task-description" *ngIf="task.description">
+                  {{task.description}}
+                </p>
+
+                <div class="task-info">
+                  <div class="duration-info">
+                    <mat-icon>schedule</mat-icon>
+                    <span>{{task.duration}} minutes</span>
+                  </div>
+                  
+                  <div class="price-info">
+                    <mat-icon>euro</mat-icon>
+                    <span>{{getTaskPriceRange(task)}}</span>
+                  </div>
+                </div>
+
+                <div class="materials-info" *ngIf="task.materials && task.materials.length > 0">
+                  <mat-icon>build</mat-icon>
+                  <span>{{task.materials.length}} matériau(x) inclus</span>
+                </div>
+              </mat-card-content>
+
+              <mat-card-actions>
+                <button mat-button 
+                        color="primary"
+                        (click)="toggleTaskSelection(task)"
+                        [class.selected]="isTaskSelected(task.id!)">
+                  <mat-icon>{{isTaskSelected(task.id!) ? 'remove' : 'add'}}</mat-icon>
+                  {{isTaskSelected(task.id!) ? 'Retirer' : 'Ajouter'}}
+                </button>
+              </mat-card-actions>
+            </mat-card>
+          </ng-container>
+        </div>
+
+      </mat-expansion-panel>
+    </mat-accordion>
+
+    <!-- Message si aucun service -->
+    <div class="no-services" *ngIf="services.length === 0">
+      <mat-icon>info</mat-icon>
+      <p>Aucun service disponible pour le moment.</p>
+    </div>
+  </div>
+
+  <!-- Résumé final -->
+  <div class="final-summary" *ngIf="getSelectedTasksCount() > 0">
+    <mat-card class="summary-final-card">
+      <mat-card-content>
+        <div class="summary-final">
+          <div class="summary-details">
+            <h4>Résumé de votre sélection</h4>
+            <p>{{getSelectedTasksCount()}} tâche(s) sélectionnée(s)</p>
+          </div>
+          <div class="total-final">
+            <span class="total-label">Total estimé:</span>
+            <span class="total-amount">{{totalPrice}}€</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+</div>

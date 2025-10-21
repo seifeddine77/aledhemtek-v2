@@ -1,0 +1,181 @@
+<div class="create-reservation-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Nouvelle Réservation</mat-card-title>
+      <mat-card-subtitle>Créer une nouvelle demande de service</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="reservationForm" (ngSubmit)="onSubmit()">
+        
+        <!-- Title -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Titre de la réservation</mat-label>
+          <input matInput formControlName="title" placeholder="Ex: Réparation plomberie">
+          <mat-error *ngIf="reservationForm.get('title')?.invalid && reservationForm.get('title')?.touched">
+            {{ getErrorMessage('title') }}
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Description -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Description (optionnel)</mat-label>
+          <textarea matInput 
+                    formControlName="description" 
+                    rows="3"
+                    placeholder="Décrivez votre demande en détail..."></textarea>
+        </mat-form-field>
+
+        <!-- Date and Time Section -->
+        <div class="date-time-section">
+          <h3>Planification</h3>
+          
+          <div class="date-time-row">
+            <!-- Start Date -->
+            <mat-form-field appearance="outline" class="date-field">
+              <mat-label>Date de début</mat-label>
+              <input matInput 
+                     [matDatepicker]="startPicker" 
+                     formControlName="startDate"
+                     [min]="minDate">
+              <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
+              <mat-datepicker #startPicker></mat-datepicker>
+              <mat-error *ngIf="reservationForm.get('startDate')?.invalid && reservationForm.get('startDate')?.touched">
+                Date de début requise
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Start Time -->
+            <mat-form-field appearance="outline" class="time-field">
+              <mat-label>Heure de début</mat-label>
+              <input matInput 
+                     type="time" 
+                     formControlName="startTime">
+              <mat-error *ngIf="reservationForm.get('startTime')?.invalid && reservationForm.get('startTime')?.touched">
+                Heure de début requise
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="date-time-row">
+            <!-- End Date -->
+            <mat-form-field appearance="outline" class="date-field">
+              <mat-label>Date de fin</mat-label>
+              <input matInput 
+                     [matDatepicker]="endPicker" 
+                     formControlName="endDate"
+                     [min]="minDate">
+              <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
+              <mat-datepicker #endPicker></mat-datepicker>
+              <mat-error *ngIf="reservationForm.get('endDate')?.invalid && reservationForm.get('endDate')?.touched">
+                Date de fin requise
+              </mat-error>
+            </mat-form-field>
+
+            <!-- End Time -->
+            <mat-form-field appearance="outline" class="time-field">
+              <mat-label>Heure de fin</mat-label>
+              <input matInput 
+                     type="time" 
+                     formControlName="endTime">
+              <mat-error *ngIf="reservationForm.get('endTime')?.invalid && reservationForm.get('endTime')?.touched">
+                Heure de fin requise
+              </mat-error>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Géolocalisation Section -->
+        <div class="geolocation-section">
+          <h3>
+            <mat-icon>location_on</mat-icon>
+            Localisation (optionnel)
+          </h3>
+          
+          <div class="geolocation-content">
+            <div class="geolocation-info" *ngIf="!geolocationSupported">
+              <mat-icon color="warn">warning</mat-icon>
+              <span>La géolocalisation n'est pas supportée par votre navigateur</span>
+            </div>
+            
+            <div class="geolocation-controls" *ngIf="geolocationSupported">
+              <button mat-raised-button 
+                      color="accent" 
+                      type="button"
+                      (click)="getCurrentLocation()"
+                      [disabled]="geolocationLoading"
+                      class="location-btn">
+                <mat-icon>my_location</mat-icon>
+                <span *ngIf="!geolocationLoading">Obtenir ma position</span>
+                <span *ngIf="geolocationLoading">Localisation...</span>
+              </button>
+              
+              <button mat-button 
+                      type="button"
+                      (click)="clearLocation()"
+                      [disabled]="!currentPosition"
+                      class="clear-btn">
+                <mat-icon>clear</mat-icon>
+                Effacer
+              </button>
+            </div>
+            
+            <!-- Affichage de la position actuelle -->
+            <div class="current-position" *ngIf="currentPosition">
+              <mat-card class="position-card">
+                <mat-card-content>
+                  <div class="position-info">
+                    <mat-icon color="primary">place</mat-icon>
+                    <div class="position-details">
+                      <div class="coordinates">
+                        <strong>Coordonnées:</strong> {{ formatCoordinates() }}
+                      </div>
+                      <div class="address" *ngIf="currentPosition.address">
+                        <strong>Adresse:</strong> {{ currentPosition.address }}
+                      </div>
+                      <div class="accuracy">
+                        <strong>Précision:</strong> ±{{ currentPosition.accuracy }}m
+                      </div>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+            
+            <!-- Message d'aide -->
+            <div class="geolocation-help" *ngIf="geolocationSupported && !currentPosition">
+              <mat-icon>info_outline</mat-icon>
+              <span>La géolocalisation permet au consultant de mieux comprendre votre demande et d'estimer les frais de déplacement.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Information Box -->
+        <div class="info-box">
+          <mat-icon>info</mat-icon>
+          <div class="info-content">
+            <strong>Information:</strong>
+            <p>Votre demande sera examinée par notre équipe et un consultant qualifié vous sera assigné dans les plus brefs délais.</p>
+          </div>
+        </div>
+
+      </form>
+    </mat-card-content>
+
+    <mat-card-actions align="end">
+      <button mat-button 
+              type="button" 
+              (click)="onCancel()"
+              [disabled]="loading">
+        Annuler
+      </button>
+      <button mat-raised-button 
+              color="primary" 
+              (click)="onSubmit()"
+              [disabled]="loading || reservationForm.invalid">
+        <span *ngIf="loading">Création...</span>
+        <span *ngIf="!loading">Créer la réservation</span>
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>

@@ -1,0 +1,271 @@
+/* Styles pour le dialog de détails de réservation */
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.dialog-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: #1976d2;
+}
+
+.dialog-content {
+  padding: 0 !important;
+  max-height: 70vh;
+  overflow: hidden;
+}
+
+.tab-content {
+  padding: 24px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.info-section h3,
+.tasks-section h3,
+.location-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  font-weight: 500;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.value {
+  font-size: 1rem;
+  color: #333;
+}
+
+.value.price {
+  font-weight: 600;
+  color: #4caf50;
+  font-size: 1.1rem;
+}
+
+.phone-number {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #2196f3 !important;
+  font-weight: 500;
+}
+
+.phone-number mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #2196f3;
+}
+
+.description {
+  margin-top: 16px;
+}
+
+.description h4 {
+  margin: 0 0 8px 0;
+  color: #666;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.description p {
+  margin: 0;
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  line-height: 1.5;
+}
+
+.tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.task-card {
+  border-left: 4px solid #2196f3;
+}
+
+.task-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.task-number {
+  background: #2196f3;
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.task-header h4 {
+  margin: 0;
+  flex: 1;
+  color: #333;
+}
+
+.duration-chip {
+  background: #e3f2fd !important;
+  color: #1976d2 !important;
+}
+
+.no-tasks,
+.no-location {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px;
+  color: #999;
+  text-align: center;
+}
+
+.no-tasks mat-icon,
+.no-location mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+}
+
+.location-info {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.coordinates-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.coord-item,
+.address-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.coord-item mat-icon,
+.address-item mat-icon {
+  color: #4caf50;
+}
+
+.map-container {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.map-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  color: #666;
+  text-align: center;
+  border: 2px dashed #ddd;
+}
+
+.map-placeholder mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  color: #999;
+}
+
+.location-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.dialog-actions {
+  padding: 16px 24px;
+  border-top: 1px solid #e0e0e0;
+  justify-content: space-between;
+}
+
+/* Styles globaux pour le dialog */
+:host ::ng-deep .reservation-details-dialog .mat-mdc-dialog-container {
+  padding: 0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+:host ::ng-deep .reservation-details-dialog .mat-mdc-dialog-surface {
+  border-radius: 12px;
+}
+
+/* Animation d'ouverture */
+.reservation-details-dialog {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .dialog-content {
+    max-height: 80vh;
+  }
+  
+  :host ::ng-deep .reservation-details-dialog .mat-mdc-dialog-container {
+    margin: 16px;
+    max-height: calc(100vh - 32px);
+  }
+}

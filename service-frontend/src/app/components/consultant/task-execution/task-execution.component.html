@@ -1,0 +1,357 @@
+<div class="task-execution-container">
+
+  <!-- Header avec statistiques -->
+  <div class="header-section">
+    <div class="title-section">
+      <h2>
+        <mat-icon>assignment_ind</mat-icon>
+        Mes Tâches Assignées
+      </h2>
+      <p class="subtitle">Gestion et exécution de vos interventions</p>
+    </div>
+
+    <div class="stats-grid">
+      <mat-card class="stat-card pending">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon>schedule</mat-icon>
+            <div class="stat-info">
+              <span class="stat-number">{{stats.pending}}</span>
+              <span class="stat-label">En attente</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card in-progress">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon>play_circle</mat-icon>
+            <div class="stat-info">
+              <span class="stat-number">{{stats.inProgress}}</span>
+              <span class="stat-label">En cours</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card completed">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon>check_circle</mat-icon>
+            <div class="stat-info">
+              <span class="stat-number">{{stats.completed}}</span>
+              <span class="stat-label">Terminées</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card total-time">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon>timer</mat-icon>
+            <div class="stat-info">
+              <span class="stat-number">{{formatDuration(stats.totalTimeSpent)}}</span>
+              <span class="stat-label">Temps total</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Actions principales -->
+  <div class="actions-section">
+    <button mat-raised-button 
+            color="primary" 
+            (click)="refreshData()"
+            [disabled]="loading">
+      <mat-icon>refresh</mat-icon>
+      Actualiser
+    </button>
+  </div>
+
+  <!-- Onglets des tâches -->
+  <mat-tab-group class="tasks-tabs" animationDuration="300ms">
+    
+    <!-- Tâches en attente -->
+    <mat-tab [label]="'En attente (' + stats.pending + ')'">
+      <div class="tab-content">
+        <div class="tasks-grid" *ngIf="pendingTasks.length > 0; else noTasks">
+          <mat-card *ngFor="let taskExecution of pendingTasks" 
+                    class="task-card pending-task">
+            <mat-card-header>
+              <div class="task-header">
+                <div class="task-title">
+                  <h3>{{taskExecution.task.name}}</h3>
+                  <mat-chip [color]="getStatusColor(taskExecution.status)">
+                    <mat-icon>{{getStatusIcon(taskExecution.status)}}</mat-icon>
+                    En attente
+                  </mat-chip>
+                </div>
+                <div class="priority-indicator" 
+                     [style.background-color]="getPriorityColor(getTaskPriority(taskExecution.reservation))">
+                </div>
+              </div>
+            </mat-card-header>
+
+            <mat-card-content>
+              <div class="task-details">
+                <div class="detail-item">
+                  <mat-icon>business</mat-icon>
+                  <span>Réservation: {{taskExecution.reservation.title}}</span>
+                </div>
+                
+                <div class="detail-item">
+                  <mat-icon>person</mat-icon>
+                  <span>Client: {{taskExecution.reservation.clientName || 'Non spécifié'}}</span>
+                </div>
+                
+                <div class="detail-item">
+                  <mat-icon>schedule</mat-icon>
+                  <span>Durée estimée: {{formatDuration(taskExecution.task.duration)}}</span>
+                </div>
+                
+                <div class="detail-item">
+                  <mat-icon>event</mat-icon>
+                  <span>Prévu le: {{taskExecution.reservation.startDate | date:'fullDate':'fr'}} 
+                        à {{taskExecution.reservation.startDate | date:'shortTime':'fr'}}</span>
+                </div>
+
+                <div class="task-description" *ngIf="taskExecution.task.description">
+                  <p>{{taskExecution.task.description}}</p>
+                </div>
+              </div>
+            </mat-card-content>
+
+            <mat-card-actions>
+              <button mat-raised-button 
+                      color="primary" 
+                      (click)="startTask(taskExecution)"
+                      [disabled]="loading">
+                <mat-icon>play_arrow</mat-icon>
+                Commencer
+              </button>
+              
+              <button mat-button>
+                <mat-icon>info</mat-icon>
+                Détails
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        </div>
+
+        <ng-template #noTasks>
+          <div class="no-tasks">
+            <mat-icon>assignment_turned_in</mat-icon>
+            <h3>Aucune tâche en attente</h3>
+            <p>Toutes vos tâches sont en cours ou terminées.</p>
+          </div>
+        </ng-template>
+      </div>
+    </mat-tab>
+
+    <!-- Tâches en cours -->
+    <mat-tab [label]="'En cours (' + stats.inProgress + ')'">
+      <div class="tab-content">
+        <div class="tasks-grid" *ngIf="inProgressTasks.length > 0; else noInProgressTasks">
+          <mat-card *ngFor="let taskExecution of inProgressTasks" 
+                    class="task-card in-progress-task">
+            <mat-card-header>
+              <div class="task-header">
+                <div class="task-title">
+                  <h3>{{taskExecution.task.name}}</h3>
+                  <mat-chip [color]="getStatusColor(taskExecution.status)">
+                    <mat-icon>{{getStatusIcon(taskExecution.status)}}</mat-icon>
+                    En cours
+                  </mat-chip>
+                </div>
+                <div class="time-indicator">
+                  <mat-icon>timer</mat-icon>
+                  <span>Démarrée {{taskExecution.startedAt | date:'shortTime':'fr'}}</span>
+                </div>
+              </div>
+            </mat-card-header>
+
+            <mat-card-content>
+              <div class="progress-section">
+                <mat-progress-bar mode="indeterminate" color="primary"></mat-progress-bar>
+                <span class="progress-text">Intervention en cours...</span>
+              </div>
+
+              <div class="task-details">
+                <div class="detail-item">
+                  <mat-icon>business</mat-icon>
+                  <span>{{taskExecution.reservation.title}}</span>
+                </div>
+                
+                <div class="detail-item">
+                  <mat-icon>person</mat-icon>
+                  <span>{{taskExecution.reservation.clientName || 'Non spécifié'}}</span>
+                </div>
+                
+                <div class="detail-item">
+                  <mat-icon>schedule</mat-icon>
+                  <span>{{formatDuration(taskExecution.task.duration)}}</span>
+                </div>
+              </div>
+            </mat-card-content>
+
+            <mat-card-actions>
+              <button mat-raised-button 
+                      color="accent" 
+                      (click)="completeTask(taskExecution)"
+                      [disabled]="loading">
+                <mat-icon>check</mat-icon>
+                Terminer
+              </button>
+              
+              <button mat-button>
+                <mat-icon>pause</mat-icon>
+                Pause
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        </div>
+
+        <ng-template #noInProgressTasks>
+          <div class="no-tasks">
+            <mat-icon>play_circle_outline</mat-icon>
+            <h3>Aucune tâche en cours</h3>
+            <p>Commencez une tâche en attente pour la voir ici.</p>
+          </div>
+        </ng-template>
+      </div>
+    </mat-tab>
+
+    <!-- Tâches terminées -->
+    <mat-tab [label]="'Terminées (' + stats.completed + ')'">
+      <div class="tab-content">
+        <div class="tasks-grid" *ngIf="completedTasks.length > 0; else noCompletedTasks">
+          <mat-card *ngFor="let taskExecution of completedTasks" 
+                    class="task-card completed-task">
+            <mat-card-header>
+              <div class="task-header">
+                <div class="task-title">
+                  <h3>{{taskExecution.task.name}}</h3>
+                  <mat-chip [color]="getStatusColor(taskExecution.status)">
+                    <mat-icon>{{getStatusIcon(taskExecution.status)}}</mat-icon>
+                    Terminée
+                  </mat-chip>
+                </div>
+                <div class="completion-time">
+                  <mat-icon>check_circle</mat-icon>
+                  <span>{{taskExecution.completedAt | date:'shortDate':'fr'}}</span>
+                </div>
+              </div>
+            </mat-card-header>
+
+            <mat-card-content>
+              <div class="task-details">
+                <div class="detail-item">
+                  <mat-icon>business</mat-icon>
+                  <span>{{taskExecution.reservation.title}}</span>
+                </div>
+                
+                <div class="detail-item">
+                  <mat-icon>timer</mat-icon>
+                  <span>Temps passé: {{formatDuration(taskExecution.timeSpent || taskExecution.task.duration)}}</span>
+                </div>
+
+                <div class="task-notes" *ngIf="taskExecution.notes">
+                  <h4>Notes d'intervention:</h4>
+                  <p>{{taskExecution.notes}}</p>
+                </div>
+              </div>
+            </mat-card-content>
+
+            <mat-card-actions>
+              <button mat-button>
+                <mat-icon>visibility</mat-icon>
+                Voir détails
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        </div>
+
+        <ng-template #noCompletedTasks>
+          <div class="no-tasks">
+            <mat-icon>assignment_turned_in</mat-icon>
+            <h3>Aucune tâche terminée</h3>
+            <p>Les tâches que vous terminez apparaîtront ici.</p>
+          </div>
+        </ng-template>
+      </div>
+    </mat-tab>
+
+  </mat-tab-group>
+
+  <!-- Modal de completion de tâche -->
+  <div class="completion-overlay" *ngIf="selectedTask" (click)="cancelTaskUpdate()">
+    <div class="completion-container" (click)="$event.stopPropagation()">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>check_circle</mat-icon>
+            Terminer la tâche
+          </mat-card-title>
+          <mat-card-subtitle>{{selectedTask.task.name}}</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <form [formGroup]="taskUpdateForm" class="completion-form">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Temps passé (minutes)</mat-label>
+              <input matInput 
+                     type="number" 
+                     formControlName="timeSpent"
+                     [placeholder]="selectedTask.task.duration.toString()">
+              <mat-hint>Temps estimé: {{formatDuration(selectedTask.task.duration)}}</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Notes d'intervention</mat-label>
+              <textarea matInput 
+                        formControlName="notes" 
+                        rows="4"
+                        placeholder="Décrivez le travail effectué, les problèmes rencontrés, etc."></textarea>
+            </mat-form-field>
+
+            <div class="task-summary">
+              <h4>Résumé de l'intervention</h4>
+              <div class="summary-item">
+                <strong>Tâche:</strong> {{selectedTask.task.name}}
+              </div>
+              <div class="summary-item">
+                <strong>Client:</strong> {{selectedTask.reservation.clientName}}
+              </div>
+              <div class="summary-item">
+                <strong>Durée prévue:</strong> {{formatDuration(selectedTask.task.duration)}}
+              </div>
+            </div>
+          </form>
+        </mat-card-content>
+
+        <mat-card-actions>
+          <button mat-button (click)="cancelTaskUpdate()">
+            Annuler
+          </button>
+          <button mat-raised-button 
+                  color="primary" 
+                  (click)="saveTaskCompletion()"
+                  [disabled]="loading">
+            <mat-icon>save</mat-icon>
+            Confirmer la fin
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Indicateur de chargement -->
+  <div class="loading-overlay" *ngIf="loading">
+    <mat-spinner></mat-spinner>
+  </div>
+
+</div>

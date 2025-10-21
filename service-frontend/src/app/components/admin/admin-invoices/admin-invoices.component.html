@@ -1,0 +1,381 @@
+<div class="admin-invoices-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <mat-card class="header-card">
+      <mat-card-header>
+        <div class="header-content">
+          <div class="title-section">
+            <mat-icon class="header-icon">receipt_long</mat-icon>
+            <div>
+              <h1>Gestion des Factures</h1>
+              <p class="subtitle">Administration des factures clients</p>
+            </div>
+          </div>
+          <div class="header-actions">
+            <button mat-raised-button color="primary" (click)="refresh()" [disabled]="loading">
+              <mat-icon>refresh</mat-icon>
+              Actualiser
+            </button>
+          </div>
+        </div>
+      </mat-card-header>
+    </mat-card>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-section" *ngIf="stats">
+    <div class="stats-grid">
+      <mat-card class="stat-card total">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon>receipt</mat-icon>
+            <div class="stat-info">
+              <h3>{{ stats.totalInvoices }}</h3>
+              <p>Total Factures</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card pending">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon>schedule</mat-icon>
+            <div class="stat-info">
+              <h3>{{ stats.pendingCount }}</h3>
+              <p>En Attente</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card paid">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon>check_circle</mat-icon>
+            <div class="stat-info">
+              <h3>{{ stats.paidCount }}</h3>
+              <p>Payées</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card amount">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon>euro</mat-icon>
+            <div class="stat-info">
+              <h3>{{ formatCurrency(stats.totalAmount) }}</h3>
+              <p>Montant Total</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-row">
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Statut</mat-label>
+          <mat-select [(ngModel)]="statusFilter" (selectionChange)="applyFilters()">
+            <mat-option *ngFor="let option of statusOptions" [value]="option.value">
+              {{ option.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field search-field">
+          <mat-label>Rechercher</mat-label>
+          <input matInput [(ngModel)]="searchFilter" (keyup.enter)="applyFilters()" 
+                 placeholder="Client, numéro de facture...">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <div class="filter-actions">
+          <button mat-raised-button color="primary" (click)="applyFilters()" [disabled]="loading">
+            <mat-icon>search</mat-icon>
+            Filtrer
+          </button>
+          <button mat-button (click)="clearFilters()" [disabled]="loading">
+            <mat-icon>clear</mat-icon>
+            Effacer
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Main Content -->
+  <mat-card class="table-card">
+    <mat-card-content>
+      <!-- Loading State -->
+      <div *ngIf="loading" class="loading-container">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Chargement des factures...</p>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="error && !loading" class="error-container">
+        <mat-icon class="error-icon">error</mat-icon>
+        <h3>Erreur de chargement</h3>
+        <p>{{ error }}</p>
+        <button mat-raised-button color="primary" (click)="refresh()">
+          <mat-icon>refresh</mat-icon>
+          Réessayer
+        </button>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!loading && !error && invoices.length === 0" class="empty-container">
+        <mat-icon class="empty-icon">receipt_long</mat-icon>
+        <h3>Aucune facture trouvée</h3>
+        <p>Aucune facture ne correspond aux critères de recherche.</p>
+        <button mat-raised-button color="primary" (click)="clearFilters()">
+          <mat-icon>clear</mat-icon>
+          Effacer les filtres
+        </button>
+      </div>
+
+      <!-- Data Table -->
+      <div *ngIf="!loading && !error && invoices.length > 0" class="table-container">
+        <table mat-table [dataSource]="dataSource" matSort class="invoices-table">
+          
+          <!-- Invoice Number Column -->
+          <ng-container matColumnDef="invoiceNumber">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>N° Facture</th>
+            <td mat-cell *matCellDef="let invoice">
+              <div class="invoice-number">
+                <strong>{{ invoice.invoiceNumber }}</strong>
+                <mat-icon *ngIf="invoice.autoGenerated" class="auto-icon" 
+                         matTooltip="Facture générée automatiquement">
+                  auto_mode
+                </mat-icon>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Client Name Column -->
+          <ng-container matColumnDef="clientName">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Client</th>
+            <td mat-cell *matCellDef="let invoice">
+              <div class="client-info">
+                <div class="client-name">{{ invoice.clientName }}</div>
+                <div class="client-email" *ngIf="invoice.clientEmail">{{ invoice.clientEmail }}</div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Issue Date Column -->
+          <ng-container matColumnDef="issueDate">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Date d'émission</th>
+            <td mat-cell *matCellDef="let invoice">{{ formatDate(invoice.issueDate) }}</td>
+          </ng-container>
+
+          <!-- Due Date Column -->
+          <ng-container matColumnDef="dueDate">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Date d'échéance</th>
+            <td mat-cell *matCellDef="let invoice">{{ formatDate(invoice.dueDate) }}</td>
+          </ng-container>
+
+          <!-- Total Amount Column -->
+          <ng-container matColumnDef="totalAmount">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Montant</th>
+            <td mat-cell *matCellDef="let invoice">
+              <div class="amount-info">
+                <div class="total-amount">{{ formatCurrency(invoice.totalAmount) }}</div>
+                <div class="remaining-amount" *ngIf="invoice.remainingAmount > 0">
+                  Reste: {{ formatCurrency(invoice.remainingAmount) }}
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Status Column -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Statut</th>
+            <td mat-cell *matCellDef="let invoice">
+              <mat-chip [color]="getStatusColor(invoice.status)" selected>
+                {{ getStatusText(invoice.status) }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Email Sent Column -->
+          <ng-container matColumnDef="emailSent">
+            <th mat-header-cell *matHeaderCellDef>Email</th>
+            <td mat-cell *matCellDef="let invoice">
+              <mat-icon *ngIf="invoice.emailSent" class="email-sent" matTooltip="Email envoyé">
+                mark_email_read
+              </mat-icon>
+              <mat-icon *ngIf="!invoice.emailSent" class="email-not-sent" matTooltip="Email non envoyé">
+                mark_email_unread
+              </mat-icon>
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let invoice">
+              <div class="actions-container">
+                <!-- View Details -->
+                <button mat-icon-button (click)="viewInvoice(invoice)" 
+                        matTooltip="Voir les détails">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+
+                <!-- Download PDF -->
+                <button mat-icon-button (click)="downloadPDF(invoice)" 
+                        matTooltip="Télécharger PDF">
+                  <mat-icon>download</mat-icon>
+                </button>
+
+                <!-- Send Email -->
+                <button mat-icon-button (click)="sendByEmail(invoice)" 
+                        [disabled]="!canSendEmail(invoice)"
+                        matTooltip="Envoyer par email">
+                  <mat-icon>email</mat-icon>
+                </button>
+
+                <!-- Mark as Sent -->
+                <button mat-icon-button (click)="updateStatus(invoice, InvoiceStatus.SENT)" 
+                        [disabled]="!canMarkAsSent(invoice)"
+                        matTooltip="Marquer comme envoyée">
+                  <mat-icon>send</mat-icon>
+                </button>
+
+                <!-- Mark as Paid -->
+                <button mat-icon-button (click)="updateStatus(invoice, InvoiceStatus.PAID)" 
+                        [disabled]="!canMarkAsPaid(invoice)"
+                        matTooltip="Marquer comme payée">
+                  <mat-icon>check_circle</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
+              class="invoice-row" (click)="viewInvoice(row)"></tr>
+        </table>
+
+        <!-- Pagination -->
+        <mat-paginator 
+          [length]="totalElements"
+          [pageSize]="pageSize"
+          [pageSizeOptions]="[5, 10, 25, 50]"
+          (page)="onPageChange($event)"
+          showFirstLastButtons>
+        </mat-paginator>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Pending Payments Section -->
+  <mat-card class="payments-section">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>payment</mat-icon>
+        Paiements en Attente de Validation
+      </mat-card-title>
+      <mat-card-subtitle>
+        Validez ou rejetez les paiements hors ligne déclarés par les clients
+      </mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="pending-payments-info">
+        <mat-icon>info</mat-icon>
+        <p>
+          Les paiements en espèces et par chèque déclarés par les clients apparaissent ici.
+          Vous pouvez les valider après vérification ou les rejeter si nécessaire.
+        </p>
+      </div>
+      
+      <!-- Pending Payments List -->
+      <div class="pending-payments-list" *ngIf="!loadingPayments">
+        <div *ngIf="pendingPayments.length === 0" class="no-payments">
+          <mat-icon>check_circle</mat-icon>
+          <p>Aucun paiement en attente de validation</p>
+        </div>
+        
+        <div *ngIf="pendingPayments.length > 0" class="payments-table">
+          <h3>Paiements en attente ({{ pendingPayments.length }})</h3>
+          
+          <mat-card *ngFor="let payment of pendingPayments" class="payment-card">
+            <mat-card-content>
+              <div class="payment-info">
+                <div class="payment-header">
+                  <h4>{{ payment.paymentReference }}</h4>
+                  <mat-chip [color]="getPaymentMethodColor(payment.paymentMethod)" selected>
+                    {{ getPaymentMethodName(payment.paymentMethod) }}
+                  </mat-chip>
+                </div>
+                
+                <div class="payment-details">
+                  <div class="detail-item">
+                    <strong>Facture:</strong> {{ payment.invoiceNumber }}
+                  </div>
+                  <div class="detail-item">
+                    <strong>Client:</strong> {{ payment.clientName }}
+                  </div>
+                  <div class="detail-item">
+                    <strong>Montant:</strong> {{ formatCurrency(payment.amount) }}
+                  </div>
+                  <div class="detail-item">
+                    <strong>Date:</strong> {{ formatDate(payment.paymentDate) }}
+                  </div>
+                  <div class="detail-item" *ngIf="payment.notes">
+                    <strong>Notes:</strong> {{ payment.notes }}
+                  </div>
+                </div>
+                
+                <div class="payment-actions">
+                  <button mat-raised-button color="primary" (click)="validatePayment(payment, true)">
+                    <mat-icon>check</mat-icon>
+                    Valider
+                  </button>
+                  <button mat-raised-button color="warn" (click)="validatePayment(payment, false)">
+                    <mat-icon>close</mat-icon>
+                    Rejeter
+                  </button>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+      
+      <div *ngIf="loadingPayments" class="loading-payments">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Chargement des paiements...</p>
+      </div>
+      
+      <div class="payment-actions" *ngIf="pendingPayments.length > 0">
+        <h3>Actions rapides :</h3>
+        <div class="quick-actions">
+          <button mat-raised-button color="primary" (click)="validateAllCashPayments()">
+            <mat-icon>check_circle</mat-icon>
+            Valider tous les paiements espèces
+          </button>
+          <button mat-raised-button (click)="loadPendingPayments()">
+            <mat-icon>refresh</mat-icon>
+            Actualiser
+          </button>
+        </div>
+      </div>
+
+      <div class="payment-instructions">
+        <h4>Instructions :</h4>
+        <ul>
+          <li><strong>Espèces :</strong> Vérifiez que le montant exact a été reçu</li>
+          <li><strong>Chèque :</strong> Vérifiez l'encaissement avant validation</li>
+          <li><strong>Virement :</strong> Confirmez la réception sur le compte bancaire</li>
+        </ul>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

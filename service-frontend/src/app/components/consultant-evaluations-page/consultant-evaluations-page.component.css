@@ -1,0 +1,515 @@
+.consultant-evaluations-page {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* Header */
+.page-header {
+  text-align: center;
+  margin-bottom: 32px;
+  padding: 24px;
+  background: linear-gradient(135deg, #1976d2, #42a5f5);
+  color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.page-header h1 mat-icon {
+  font-size: 2.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  color: #ffd700;
+}
+
+.subtitle {
+  margin: 8px 0 0 0;
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+/* Loading */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px;
+  gap: 16px;
+}
+
+.loading-container p {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+/* Content */
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* Statistics Section */
+.stats-section h2 {
+  margin-bottom: 24px;
+  color: #333;
+  font-size: 1.8rem;
+  font-weight: 500;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card mat-card-header {
+  padding-bottom: 8px;
+}
+
+.stat-card mat-card-title {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: #333;
+}
+
+/* Main Rating Card */
+.main-rating {
+  background: linear-gradient(135deg, #fff, #f8f9fa);
+  border: 2px solid #e3f2fd;
+}
+
+.rating-display {
+  text-align: center;
+  padding: 16px 0;
+}
+
+.rating-number {
+  font-size: 3rem;
+  font-weight: 300;
+  color: #1976d2;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.stars-container {
+  margin: 12px 0;
+}
+
+.star {
+  font-size: 2rem;
+  color: #ddd;
+  margin: 0 2px;
+  transition: color 0.2s ease;
+}
+
+.star.filled {
+  color: #ffd700;
+}
+
+.rating-text {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: #666;
+  display: block;
+  margin-top: 8px;
+}
+
+.total-count {
+  margin-top: 16px;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Category Ratings */
+.category-ratings {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.category-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.category-item:last-child {
+  border-bottom: none;
+}
+
+.category-label {
+  font-weight: 500;
+  color: #333;
+  flex: 1;
+}
+
+.category-rating {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rating-value {
+  font-weight: 600;
+  color: #1976d2;
+  min-width: 32px;
+  text-align: right;
+}
+
+.mini-stars {
+  display: flex;
+  gap: 1px;
+}
+
+.mini-star {
+  font-size: 1rem;
+  color: #ddd;
+  transition: color 0.2s ease;
+}
+
+.mini-star.filled {
+  color: #ffd700;
+}
+
+/* Distribution Chart */
+.distribution-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.distribution-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.distribution-label {
+  min-width: 120px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.distribution-label.excellent { color: #4caf50; }
+.distribution-label.good { color: #ff9800; }
+.distribution-label.average { color: #2196f3; }
+.distribution-label.poor { color: #f44336; }
+
+.distribution-bar {
+  flex: 1;
+  height: 20px;
+  background-color: #f0f0f0;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.3s ease;
+}
+
+.bar-fill.excellent { background-color: #4caf50; }
+.bar-fill.good { background-color: #ff9800; }
+.bar-fill.average { background-color: #2196f3; }
+.bar-fill.poor { background-color: #f44336; }
+
+.distribution-count {
+  min-width: 24px;
+  text-align: center;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Evaluations Section */
+.evaluations-section h2 {
+  margin-bottom: 24px;
+  color: #333;
+  font-size: 1.8rem;
+  font-weight: 500;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 64px 32px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.empty-state mat-icon {
+  font-size: 4rem;
+  width: 4rem;
+  height: 4rem;
+  color: #ddd;
+  margin-bottom: 16px;
+}
+
+.empty-state h3 {
+  margin: 16px 0 8px 0;
+  color: #666;
+  font-weight: 500;
+}
+
+.empty-state p {
+  color: #999;
+  margin: 8px 0;
+  line-height: 1.5;
+}
+
+/* Evaluations Grid */
+.evaluations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 24px;
+}
+
+.evaluation-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: white;
+}
+
+.evaluation-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Evaluation Header */
+.evaluation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.client-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.client-info mat-icon {
+  color: #666;
+  font-size: 1.2rem;
+}
+
+.client-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.evaluation-date {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* Overall Rating */
+.overall-rating {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.rating-label {
+  font-weight: 500;
+  color: #333;
+}
+
+.stars-display {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stars-display .star {
+  font-size: 1.2rem;
+  color: #ddd;
+}
+
+.stars-display .star.filled {
+  color: #ffd700;
+}
+
+.stars-display .rating-number {
+  margin-left: 8px;
+  font-weight: 600;
+  color: #1976d2;
+  font-size: 1rem;
+}
+
+/* Detailed Ratings */
+.detailed-ratings {
+  margin: 16px 0;
+}
+
+.rating-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.rating-row:last-child {
+  border-bottom: none;
+}
+
+.rating-category {
+  font-size: 0.9rem;
+  color: #666;
+  flex: 1;
+}
+
+.rating-stars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.rating-stars .mini-star {
+  font-size: 0.9rem;
+}
+
+.rating-stars .rating-value {
+  margin-left: 4px;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+/* Comment Section */
+.comment-section {
+  margin-top: 16px;
+}
+
+.comment {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #1976d2;
+}
+
+.comment mat-icon {
+  color: #1976d2;
+  font-size: 1.2rem;
+  margin-top: 2px;
+}
+
+.comment p {
+  margin: 0;
+  line-height: 1.5;
+  color: #333;
+  font-style: italic;
+}
+
+/* Reservation Info */
+.reservation-info {
+  margin-top: 16px;
+}
+
+.reservation-details {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.reservation-details mat-icon {
+  font-size: 1rem;
+  color: #1976d2;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .consultant-evaluations-page {
+    padding: 16px;
+  }
+  
+  .page-header h1 {
+    font-size: 2rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .evaluations-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .evaluation-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .overall-rating {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .rating-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header {
+    padding: 16px;
+  }
+  
+  .page-header h1 {
+    font-size: 1.8rem;
+  }
+  
+  .rating-number {
+    font-size: 2.5rem !important;
+  }
+  
+  .star {
+    font-size: 1.5rem !important;
+  }
+}

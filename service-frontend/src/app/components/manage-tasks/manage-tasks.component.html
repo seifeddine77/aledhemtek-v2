@@ -1,0 +1,55 @@
+<div class="container">
+  <h1>Gestion des Tâches</h1>
+
+  <div class="form-card">
+    <h2>Créer une Nouvelle Tâche</h2>
+    <form [formGroup]="taskForm" (ngSubmit)="postTask()" class="task-form">
+
+      <div class="form-row">
+        <label for="serviceId">Service Associé</label>
+        <select id="serviceId" formControlName="serviceId">
+          <option [ngValue]="null" disabled>Choisissez un service</option>
+          <option *ngFor="let service of services" [value]="service.id">
+            {{ service.name }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label for="name">Nom de la Tâche</label>
+        <input id="name" formControlName="name" placeholder="Ex: Réparation de fuite">
+      </div>
+
+      <div class="form-row">
+        <label for="price">Prix</label>
+        <input id="price" type="number" formControlName="price" placeholder="Ex: 50">
+      </div>
+
+      <div class="form-row">
+        <label for="description">Description</label>
+        <textarea id="description" formControlName="description" placeholder="Décrivez la tâche..."></textarea>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="submit-btn" [disabled]="!taskForm.valid">Enregistrer la Tâche</button>
+      </div>
+
+    </form>
+  </div>
+
+  <div class="list-card">
+    <h2>Liste des Tâches</h2>
+    <div class="task-list">
+      <div *ngFor="let task of tasks" class="task-item">
+        <h3>{{ task.name }}</h3>
+        <p><strong>Service:</strong> {{ task.serviceName }}</p>
+        <p><strong>Prix:</strong> {{ task.price | currency:'EUR' }}</p>
+        <p>{{ task.description }}</p>
+      </div>
+      <div *ngIf="tasks.length === 0" class="no-tasks">
+        <p>Aucune tâche n'a encore été créée.</p>
+      </div>
+    </div>
+  </div>
+
+</div>

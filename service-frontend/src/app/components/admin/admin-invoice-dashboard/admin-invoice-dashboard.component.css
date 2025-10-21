@@ -1,0 +1,424 @@
+.dashboard-container {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Header Section */
+.header-section {
+  margin-bottom: 30px;
+}
+
+.header-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.title-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+}
+
+.title-section h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 500;
+}
+
+.subtitle {
+  margin: 4px 0 0 0;
+  opacity: 0.9;
+  font-size: 14px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.header-actions button {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.header-actions button:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.manage-btn {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  color: #667eea !important;
+}
+
+/* Loading and Error States */
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.loading-container p,
+.error-container p {
+  margin: 16px 0;
+  color: #666;
+}
+
+.error-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  color: #f44336;
+  margin-bottom: 16px;
+}
+
+/* Dashboard Content */
+.dashboard-content {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.dashboard-content h2 {
+  color: #333;
+  font-size: 20px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 8px;
+}
+
+/* KPI Section */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.kpi-card {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.kpi-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.kpi-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.kpi-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kpi-icon mat-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  color: white;
+}
+
+.kpi-info h3 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  color: #666;
+  font-weight: 500;
+}
+
+.kpi-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.kpi-detail {
+  font-size: 14px;
+  color: #888;
+}
+
+.recovery-rate .kpi-icon {
+  background: linear-gradient(135deg, #4caf50, #45a049);
+}
+
+.average-amount .kpi-icon {
+  background: linear-gradient(135deg, #2196f3, #1976d2);
+}
+
+/* Status Section */
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.status-card {
+  transition: transform 0.2s ease-in-out;
+}
+
+.status-card:hover {
+  transform: translateY(-2px);
+}
+
+.status-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.status-icon mat-icon {
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+}
+
+.status-info h3 {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.status-count {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+}
+
+.status-card.draft {
+  border-left: 4px solid #ff9800;
+}
+
+.status-card.draft .status-icon mat-icon {
+  color: #ff9800;
+}
+
+.status-card.sent {
+  border-left: 4px solid #2196f3;
+}
+
+.status-card.sent .status-icon mat-icon {
+  color: #2196f3;
+}
+
+.status-card.paid {
+  border-left: 4px solid #4caf50;
+}
+
+.status-card.paid .status-icon mat-icon {
+  color: #4caf50;
+}
+
+.status-card.overdue {
+  border-left: 4px solid #f44336;
+}
+
+.status-card.overdue .status-icon mat-icon {
+  color: #f44336;
+}
+
+.status-card.cancelled {
+  border-left: 4px solid #9e9e9e;
+}
+
+.status-card.cancelled .status-icon mat-icon {
+  color: #9e9e9e;
+}
+
+/* Financial Section */
+.financial-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.financial-card {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.financial-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.financial-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.financial-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.financial-icon mat-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  color: white;
+}
+
+.financial-info h3 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  color: #666;
+  font-weight: 500;
+}
+
+.financial-amount {
+  font-size: 28px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.financial-detail {
+  font-size: 14px;
+  color: #888;
+}
+
+.financial-card.total .financial-icon {
+  background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+}
+
+.financial-card.paid-amount .financial-icon {
+  background: linear-gradient(135deg, #4caf50, #388e3c);
+}
+
+.financial-card.pending-amount .financial-icon {
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+}
+
+/* Actions Section */
+.actions-grid {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  min-width: 200px;
+  height: 48px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 10px;
+  }
+
+  .header-content {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .title-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .kpi-grid,
+  .financial-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .status-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .actions-grid {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .action-btn {
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-icon {
+    font-size: 36px;
+    width: 36px;
+    height: 36px;
+  }
+
+  .title-section h1 {
+    font-size: 24px;
+  }
+
+  .status-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .kpi-content,
+  .financial-content {
+    gap: 12px;
+  }
+
+  .kpi-icon,
+  .financial-icon {
+    width: 50px;
+    height: 50px;
+  }
+
+  .kpi-icon mat-icon,
+  .financial-icon mat-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
+
+  .kpi-value,
+  .financial-amount {
+    font-size: 24px;
+  }
+}
+
+/* Custom Snackbar Styles */
+::ng-deep .error-snackbar {
+  background-color: #f44336 !important;
+  color: white !important;
+}

@@ -1,0 +1,263 @@
+<div class="client-reservations-container">
+  <div class="header">
+    <h2>Mes Réservations</h2>
+    <button mat-raised-button color="primary" (click)="createNewReservation()">
+      <mat-icon>add</mat-icon>
+      Nouvelle Réservation
+    </button>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-grid">
+    <mat-card class="stat-card pending">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon>{{ getStatusIcon(ReservationStatus.PENDING) }}</mat-icon>
+          <div class="stat-info">
+            <div class="stat-number">{{ getStatusCount(ReservationStatus.PENDING) }}</div>
+            <div class="stat-label">En attente</div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card assigned">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon>{{ getStatusIcon(ReservationStatus.ASSIGNED) }}</mat-icon>
+          <div class="stat-info">
+            <div class="stat-number">{{ getStatusCount(ReservationStatus.ASSIGNED) }}</div>
+            <div class="stat-label">Assignées</div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card in-progress">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon>{{ getStatusIcon(ReservationStatus.IN_PROGRESS) }}</mat-icon>
+          <div class="stat-info">
+            <div class="stat-number">{{ getStatusCount(ReservationStatus.IN_PROGRESS) }}</div>
+            <div class="stat-label">En cours</div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card completed">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon>{{ getStatusIcon(ReservationStatus.COMPLETED) }}</mat-icon>
+          <div class="stat-info">
+            <div class="stat-number">{{ getStatusCount(ReservationStatus.COMPLETED) }}</div>
+            <div class="stat-label">Terminées</div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Reservations Content -->
+  <mat-card class="reservations-content">
+    <mat-card-content>
+      <mat-tab-group>
+        
+        <!-- All Reservations Tab -->
+        <mat-tab label="Toutes">
+          <div class="tab-content">
+            <div *ngIf="loading" class="loading-container">
+              <mat-spinner></mat-spinner>
+            </div>
+            
+            <div *ngIf="!loading && reservations.length === 0" class="empty-state">
+              <mat-icon>event_note</mat-icon>
+              <h3>Aucune réservation</h3>
+              <p>Vous n'avez pas encore de réservations.</p>
+              <button mat-raised-button color="primary" (click)="createNewReservation()">
+                Créer une réservation
+              </button>
+            </div>
+
+            <div *ngIf="!loading && reservations.length > 0" class="reservations-list">
+              <div class="reservation-card" *ngFor="let reservation of reservations">
+                <div class="reservation-header">
+                  <h3>{{ reservation.title }}</h3>
+                  <mat-chip [style.background-color]="getStatusColor(reservation.status)" 
+                           [style.color]="'white'">
+                    {{ getStatusText(reservation.status) }}
+                  </mat-chip>
+                </div>
+                
+                <div class="reservation-details">
+                  <div class="detail-item">
+                    <mat-icon>person</mat-icon>
+                    <span>
+                      <strong>Consultant:</strong> 
+                      {{ reservation.consultantName || 'Non assigné' }}
+                    </span>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <mat-icon>schedule</mat-icon>
+                    <span>
+                      <strong>Début:</strong> 
+                      {{ formatDate(reservation.startDate) }}
+                    </span>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <mat-icon>schedule</mat-icon>
+                    <span>
+                      <strong>Fin:</strong> 
+                      {{ formatDate(reservation.endDate) }}
+                    </span>
+                  </div>
+                  
+                  <div class="detail-item" *ngIf="reservation.description">
+                    <mat-icon>description</mat-icon>
+                    <span>
+                      <strong>Description:</strong> 
+                      {{ reservation.description }}
+                    </span>
+                  </div>
+                </div>
+                
+                <div class="reservation-actions">
+                  <button mat-stroked-button (click)="viewReservationDetails(reservation.id!)">
+                    <mat-icon>visibility</mat-icon>
+                    Détails
+                  </button>
+                  
+                  <button mat-stroked-button 
+                          color="accent" 
+                          *ngIf="canEvaluate(reservation)"
+                          (click)="openEvaluationDialog(reservation)">
+                    <mat-icon>star</mat-icon>
+                    Évaluer
+                  </button>
+                  
+                  <button mat-stroked-button 
+                          color="warn" 
+                          *ngIf="canCancelReservation(reservation)"
+                          (click)="cancelReservation(reservation.id!)">
+                    <mat-icon>cancel</mat-icon>
+                    Annuler
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- Pending Tab -->
+        <mat-tab label="En attente" [disabled]="getStatusCount(ReservationStatus.PENDING) === 0">
+          <div class="tab-content">
+            <div class="reservations-list">
+              <div class="reservation-card" *ngFor="let reservation of getReservationsByStatus(ReservationStatus.PENDING)">
+                <div class="reservation-header">
+                  <h3>{{ reservation.title }}</h3>
+                  <mat-chip [style.background-color]="getStatusColor(reservation.status)" 
+                           [style.color]="'white'">
+                    {{ getStatusText(reservation.status) }}
+                  </mat-chip>
+                </div>
+                
+                <div class="reservation-details">
+                  <div class="detail-item">
+                    <mat-icon>schedule</mat-icon>
+                    <span>{{ formatDate(reservation.startDate) }} - {{ formatDate(reservation.endDate) }}</span>
+                  </div>
+                </div>
+                
+                <div class="reservation-actions">
+                  <button mat-stroked-button (click)="viewReservationDetails(reservation.id!)">
+                    Détails
+                  </button>
+                  <button mat-stroked-button color="warn" (click)="cancelReservation(reservation.id!)">
+                    Annuler
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- In Progress Tab -->
+        <mat-tab label="En cours" [disabled]="getStatusCount(ReservationStatus.IN_PROGRESS) === 0">
+          <div class="tab-content">
+            <div class="reservations-list">
+              <div class="reservation-card" *ngFor="let reservation of getReservationsByStatus(ReservationStatus.IN_PROGRESS)">
+                <div class="reservation-header">
+                  <h3>{{ reservation.title }}</h3>
+                  <mat-chip [style.background-color]="getStatusColor(reservation.status)" 
+                           [style.color]="'white'">
+                    {{ getStatusText(reservation.status) }}
+                  </mat-chip>
+                </div>
+                
+                <div class="reservation-details">
+                  <div class="detail-item">
+                    <mat-icon>person</mat-icon>
+                    <span>{{ reservation.consultantName }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <mat-icon>schedule</mat-icon>
+                    <span>{{ formatDate(reservation.startDate) }} - {{ formatDate(reservation.endDate) }}</span>
+                  </div>
+                </div>
+                
+                <div class="reservation-actions">
+                  <button mat-stroked-button (click)="viewReservationDetails(reservation.id!)">
+                    Détails
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- Completed Tab -->
+        <mat-tab label="Terminées" [disabled]="getStatusCount(ReservationStatus.COMPLETED) === 0">
+          <div class="tab-content">
+            <div class="reservations-list">
+              <div class="reservation-card" *ngFor="let reservation of getReservationsByStatus(ReservationStatus.COMPLETED)">
+                <div class="reservation-header">
+                  <h3>{{ reservation.title }}</h3>
+                  <mat-chip [style.background-color]="getStatusColor(reservation.status)" 
+                           [style.color]="'white'">
+                    {{ getStatusText(reservation.status) }}
+                  </mat-chip>
+                </div>
+                
+                <div class="reservation-details">
+                  <div class="detail-item">
+                    <mat-icon>person</mat-icon>
+                    <span>{{ reservation.consultantName }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <mat-icon>schedule</mat-icon>
+                    <span>{{ formatDate(reservation.startDate) }} - {{ formatDate(reservation.endDate) }}</span>
+                  </div>
+                </div>
+                
+                <div class="reservation-actions">
+                  <button mat-stroked-button (click)="viewReservationDetails(reservation.id!)">
+                    Détails
+                  </button>
+                  <button mat-raised-button color="accent" 
+                          (click)="openEvaluationDialog(reservation)"
+                          [disabled]="!canEvaluate(reservation)">
+                    <mat-icon>star</mat-icon>
+                    Évaluer
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+
+      </mat-tab-group>
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -1,0 +1,195 @@
+<div class="invoice-create-container">
+  <div class="header">
+    <h1>Créer une Facture</h1>
+    <button mat-button (click)="onCancel()" class="cancel-btn">
+      <mat-icon>arrow_back</mat-icon>
+      Retour
+    </button>
+  </div>
+
+  <form [formGroup]="invoiceForm" (ngSubmit)="onSubmit()" class="invoice-form">
+    <!-- Client and Reservation Information -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>Informations Client</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Client</mat-label>
+            <mat-select formControlName="clientId" required>
+              <mat-option *ngFor="let client of clients" [value]="client.id">
+                {{client.name}} ({{client.email}})
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="invoiceForm.get('clientId')?.hasError('required')">
+              Le client est requis
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Réservation (optionnel)</mat-label>
+            <mat-select formControlName="reservationId">
+              <mat-option value="">Aucune réservation</mat-option>
+              <mat-option *ngFor="let reservation of reservations" [value]="reservation.id">
+                {{reservation.title}} - {{reservation.description}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Date d'échéance</mat-label>
+            <input matInput [matDatepicker]="dueDatePicker" formControlName="dueDate" required>
+            <mat-datepicker-toggle matSuffix [for]="dueDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #dueDatePicker></mat-datepicker>
+            <mat-error *ngIf="invoiceForm.get('dueDate')?.hasError('required')">
+              La date d'échéance est requise
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Notes (optionnel)</mat-label>
+            <textarea matInput formControlName="notes" rows="3" placeholder="Notes additionnelles..."></textarea>
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Invoice Items -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>Lignes de Facture</mat-card-title>
+        <div class="spacer"></div>
+        <button mat-icon-button type="button" (click)="addInvoiceItem()" color="primary">
+          <mat-icon>add</mat-icon>
+        </button>
+      </mat-card-header>
+      <mat-card-content>
+        <div formArrayName="invoiceItems">
+          <div *ngFor="let item of invoiceItems.controls; let i = index" [formGroupName]="i" class="invoice-item">
+            <div class="item-header">
+              <h4>Ligne {{i + 1}}</h4>
+              <button mat-icon-button type="button" (click)="removeInvoiceItem(i)" 
+                      [disabled]="invoiceItems.length === 1" color="warn">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+
+            <div class="item-form">
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Tâche (optionnel)</mat-label>
+                  <mat-select formControlName="taskId" (selectionChange)="onTaskSelected(i, $event.value)">
+                    <mat-option value="">Sélectionner une tâche</mat-option>
+                    <mat-option *ngFor="let task of tasks" [value]="task.id">
+                      {{task.name}}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Désignation</mat-label>
+                  <input matInput formControlName="designation" required>
+                  <mat-error *ngIf="item.get('designation')?.hasError('required')">
+                    La désignation est requise
+                  </mat-error>
+                </mat-form-field>
+              </div>
+
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Description</mat-label>
+                  <textarea matInput formControlName="description" rows="2"></textarea>
+                </mat-form-field>
+              </div>
+
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="third-width">
+                  <mat-label>Quantité</mat-label>
+                  <input matInput type="number" formControlName="quantity" min="1" required>
+                  <mat-error *ngIf="item.get('quantity')?.hasError('required')">
+                    La quantité est requise
+                  </mat-error>
+                  <mat-error *ngIf="item.get('quantity')?.hasError('min')">
+                    La quantité doit être positive
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="third-width">
+                  <mat-label>Prix unitaire (€)</mat-label>
+                  <input matInput type="number" formControlName="unitPrice" min="0" step="0.01" required>
+                  <mat-error *ngIf="item.get('unitPrice')?.hasError('required')">
+                    Le prix unitaire est requis
+                  </mat-error>
+                  <mat-error *ngIf="item.get('unitPrice')?.hasError('min')">
+                    Le prix doit être positif
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="third-width">
+                  <mat-label>TVA (%)</mat-label>
+                  <input matInput type="number" formControlName="taxRate" min="0" max="100" step="0.1">
+                </mat-form-field>
+              </div>
+
+              <div class="item-total">
+                <strong>Total ligne: {{calculateItemTotal(i) | currency:'EUR':'symbol':'1.2-2'}}</strong>
+              </div>
+            </div>
+
+            <mat-divider *ngIf="i < invoiceItems.length - 1"></mat-divider>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Invoice Summary -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>Récapitulatif</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="summary">
+          <div class="summary-row">
+            <span>Sous-total HT:</span>
+            <span>{{calculateSubtotal() | currency:'EUR':'symbol':'1.2-2'}}</span>
+          </div>
+          <div class="summary-row">
+            <span>TVA:</span>
+            <span>{{calculateTotalTax() | currency:'EUR':'symbol':'1.2-2'}}</span>
+          </div>
+          <mat-divider></mat-divider>
+          <div class="summary-row total">
+            <span><strong>Total TTC:</strong></span>
+            <span><strong>{{calculateTotal() | currency:'EUR':'symbol':'1.2-2'}}</strong></span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button mat-button type="button" (click)="onCancel()" [disabled]="loading">
+        Annuler
+      </button>
+      <button mat-raised-button color="primary" type="submit" [disabled]="loading || !invoiceForm.valid">
+        <mat-icon *ngIf="loading">hourglass_empty</mat-icon>
+        <mat-icon *ngIf="!loading">save</mat-icon>
+        {{loading ? 'Création...' : 'Créer la Facture'}}
+      </button>
+    </div>
+  </form>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="loading-overlay">
+    <mat-spinner></mat-spinner>
+  </div>
+</div>

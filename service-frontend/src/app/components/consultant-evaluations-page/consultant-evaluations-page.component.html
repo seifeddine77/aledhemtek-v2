@@ -1,0 +1,257 @@
+<div class="consultant-evaluations-page">
+  <!-- Header -->
+  <div class="page-header">
+    <h1>
+      <mat-icon>star</mat-icon>
+      Mes Évaluations Reçues
+    </h1>
+    <p class="subtitle">Consultez les avis et commentaires de vos clients</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Chargement des évaluations...</p>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!loading" class="content">
+    <!-- Statistics Overview -->
+    <div class="stats-section">
+      <h2>Résumé de vos Évaluations</h2>
+      
+      <div class="stats-grid">
+        <!-- Overall Rating Card -->
+        <mat-card class="stat-card main-rating">
+          <mat-card-header>
+            <mat-card-title>Note Globale</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="rating-display">
+              <span class="rating-number">{{ stats.averageRating | number:'1.1-1' }}</span>
+              <div class="stars-container">
+                <span *ngFor="let star of getStarArray(stats.averageRating)" 
+                      class="star" 
+                      [class.filled]="star <= stats.averageRating">
+                  ★
+                </span>
+              </div>
+              <span class="rating-text">{{ getRatingText(stats.averageRating) }}</span>
+            </div>
+            <div class="total-count">
+              Sur {{ stats.totalEvaluations }} évaluation{{ stats.totalEvaluations > 1 ? 's' : '' }}
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Detailed Ratings -->
+        <mat-card class="stat-card">
+          <mat-card-header>
+            <mat-card-title>Détail par Catégorie</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="category-ratings">
+              <div class="category-item">
+                <span class="category-label">Qualité Générale</span>
+                <div class="category-rating">
+                  <span class="rating-value">{{ stats.averageGeneralRating | number:'1.1-1' }}</span>
+                  <div class="mini-stars">
+                    <span *ngFor="let star of getStarArray(stats.averageGeneralRating)" 
+                          class="mini-star" 
+                          [class.filled]="star <= stats.averageGeneralRating">★</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="category-item">
+                <span class="category-label">Qualité du Service</span>
+                <div class="category-rating">
+                  <span class="rating-value">{{ stats.averageServiceQuality | number:'1.1-1' }}</span>
+                  <div class="mini-stars">
+                    <span *ngFor="let star of getStarArray(stats.averageServiceQuality)" 
+                          class="mini-star" 
+                          [class.filled]="star <= stats.averageServiceQuality">★</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="category-item">
+                <span class="category-label">Ponctualité</span>
+                <div class="category-rating">
+                  <span class="rating-value">{{ stats.averagePunctuality | number:'1.1-1' }}</span>
+                  <div class="mini-stars">
+                    <span *ngFor="let star of getStarArray(stats.averagePunctuality)" 
+                          class="mini-star" 
+                          [class.filled]="star <= stats.averagePunctuality">★</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="category-item">
+                <span class="category-label">Communication</span>
+                <div class="category-rating">
+                  <span class="rating-value">{{ stats.averageCommunication | number:'1.1-1' }}</span>
+                  <div class="mini-stars">
+                    <span *ngFor="let star of getStarArray(stats.averageCommunication)" 
+                          class="mini-star" 
+                          [class.filled]="star <= stats.averageCommunication">★</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Rating Distribution -->
+        <mat-card class="stat-card">
+          <mat-card-header>
+            <mat-card-title>Répartition des Notes</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="distribution-chart">
+              <div class="distribution-item">
+                <span class="distribution-label excellent">Excellent (4.5-5)</span>
+                <div class="distribution-bar">
+                  <div class="bar-fill excellent" [style.width.%]="getPercentage(stats.excellentCount)"></div>
+                </div>
+                <span class="distribution-count">{{ stats.excellentCount }}</span>
+              </div>
+              
+              <div class="distribution-item">
+                <span class="distribution-label good">Très bien (3.5-4.4)</span>
+                <div class="distribution-bar">
+                  <div class="bar-fill good" [style.width.%]="getPercentage(stats.goodCount)"></div>
+                </div>
+                <span class="distribution-count">{{ stats.goodCount }}</span>
+              </div>
+              
+              <div class="distribution-item">
+                <span class="distribution-label average">Bien (2.5-3.4)</span>
+                <div class="distribution-bar">
+                  <div class="bar-fill average" [style.width.%]="getPercentage(stats.averageCount)"></div>
+                </div>
+                <span class="distribution-count">{{ stats.averageCount }}</span>
+              </div>
+              
+              <div class="distribution-item">
+                <span class="distribution-label poor">À améliorer (1-2.4)</span>
+                <div class="distribution-bar">
+                  <div class="bar-fill poor" [style.width.%]="getPercentage(stats.poorCount)"></div>
+                </div>
+                <span class="distribution-count">{{ stats.poorCount }}</span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <!-- Evaluations List -->
+    <div class="evaluations-section">
+      <h2>Toutes les Évaluations ({{ evaluations.length }})</h2>
+      
+      <!-- Empty State -->
+      <div *ngIf="evaluations.length === 0" class="empty-state">
+        <mat-icon>star_border</mat-icon>
+        <h3>Aucune évaluation reçue</h3>
+        <p>Vous n'avez pas encore reçu d'évaluations de vos clients.</p>
+        <p>Les évaluations apparaîtront ici après vos premières interventions.</p>
+      </div>
+
+      <!-- Evaluations Grid -->
+      <div *ngIf="evaluations.length > 0" class="evaluations-grid">
+        <mat-card *ngFor="let evaluation of evaluations" class="evaluation-card">
+          <mat-card-header>
+            <div class="evaluation-header">
+              <div class="client-info">
+                <mat-icon>person</mat-icon>
+                <span class="client-name">{{ getReservation(evaluation.reservationId)?.clientName || 'Client' }}</span>
+              </div>
+              <div class="evaluation-date">
+                {{ formatDate(evaluation.createdAt || '') }}
+              </div>
+            </div>
+          </mat-card-header>
+
+          <mat-card-content>
+            <!-- Overall Rating -->
+            <div class="overall-rating">
+              <span class="rating-label">Note globale :</span>
+              <div class="stars-display">
+                <span *ngFor="let star of getStarArray(getEvaluationAverage(evaluation))" 
+                      class="star" 
+                      [class.filled]="star <= getEvaluationAverage(evaluation)">
+                  ★
+                </span>
+                <span class="rating-number">({{ getEvaluationAverage(evaluation) | number:'1.1-1' }})</span>
+              </div>
+            </div>
+
+            <!-- Detailed Ratings -->
+            <div class="detailed-ratings">
+              <div class="rating-row">
+                <span class="rating-category">Qualité générale :</span>
+                <div class="rating-stars">
+                  <span *ngFor="let star of getStarArray(evaluation.generalRating)" 
+                        class="mini-star" 
+                        [class.filled]="star <= evaluation.generalRating">★</span>
+                  <span class="rating-value">({{ evaluation.generalRating }})</span>
+                </div>
+              </div>
+              
+              <div class="rating-row">
+                <span class="rating-category">Qualité du service :</span>
+                <div class="rating-stars">
+                  <span *ngFor="let star of getStarArray(evaluation.serviceQualityRating)" 
+                        class="mini-star" 
+                        [class.filled]="star <= evaluation.serviceQualityRating">★</span>
+                  <span class="rating-value">({{ evaluation.serviceQualityRating }})</span>
+                </div>
+              </div>
+              
+              <div class="rating-row">
+                <span class="rating-category">Ponctualité :</span>
+                <div class="rating-stars">
+                  <span *ngFor="let star of getStarArray(evaluation.punctualityRating)" 
+                        class="mini-star" 
+                        [class.filled]="star <= evaluation.punctualityRating">★</span>
+                  <span class="rating-value">({{ evaluation.punctualityRating }})</span>
+                </div>
+              </div>
+              
+              <div class="rating-row">
+                <span class="rating-category">Communication :</span>
+                <div class="rating-stars">
+                  <span *ngFor="let star of getStarArray(evaluation.communicationRating)" 
+                        class="mini-star" 
+                        [class.filled]="star <= evaluation.communicationRating">★</span>
+                  <span class="rating-value">({{ evaluation.communicationRating }})</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Comment -->
+            <div *ngIf="evaluation.comment" class="comment-section">
+              <mat-divider></mat-divider>
+              <div class="comment">
+                <mat-icon>format_quote</mat-icon>
+                <p>{{ evaluation.comment }}</p>
+              </div>
+            </div>
+
+            <!-- Reservation Info -->
+            <div class="reservation-info">
+              <mat-divider></mat-divider>
+              <div class="reservation-details">
+                <mat-icon>event</mat-icon>
+                <span>Intervention du {{ formatDate(getReservation(evaluation.reservationId)?.startDate || '') }}</span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+</div>

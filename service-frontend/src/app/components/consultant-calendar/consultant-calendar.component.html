@@ -1,0 +1,97 @@
+<div class="calendar-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Mon Calendrier</mat-card-title>
+      <div class="calendar-navigation">
+        <button mat-icon-button (click)="previousWeek()">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <span class="week-info">
+          {{ currentWeek[0] | date:'dd/MM' }} - {{ currentWeek[6] | date:'dd/MM/yyyy' }}
+        </span>
+        <button mat-icon-button (click)="nextWeek()">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="calendar-grid" *ngIf="!loading">
+        <div class="day-column" *ngFor="let day of currentWeek">
+          <div class="day-header" [class.today]="isToday(day)">
+            <div class="day-name">{{ getDayName(day) }}</div>
+            <div class="day-number">{{ getDayNumber(day) }}</div>
+          </div>
+          
+          <div class="day-content">
+            <div class="reservation-item" 
+                 *ngFor="let reservation of getReservationsForDate(day)"
+                 [style.border-left-color]="getStatusColor(reservation.status)">
+              
+              <div class="reservation-header">
+                <span class="reservation-time">
+                  {{ formatTime(reservation.startDate) }} - {{ formatTime(reservation.endDate) }}
+                </span>
+                <mat-chip [style.background-color]="getStatusColor(reservation.status)" 
+                         [style.color]="'white'" 
+                         class="status-chip">
+                  {{ reservation.status }}
+                </mat-chip>
+              </div>
+              
+              <div class="reservation-title">{{ reservation.title }}</div>
+              <div class="reservation-client">Client: {{ reservation.clientName }}</div>
+              
+              <!-- Informations supplémentaires -->
+              <div class="reservation-info">
+                <div class="info-item" *ngIf="reservation.tasks && reservation.tasks.length > 0">
+                  <mat-icon>task_alt</mat-icon>
+                  <span>{{ reservation.tasks.length }} tâche(s)</span>
+                </div>
+                <div class="info-item" *ngIf="hasLocation(reservation)">
+                  <mat-icon>location_on</mat-icon>
+                  <span>Localisation disponible</span>
+                </div>
+              </div>
+              
+              <!-- Bouton voir détails -->
+              <div class="reservation-details">
+                <button mat-button 
+                        color="primary" 
+                        (click)="viewReservationDetails(reservation); $event.stopPropagation()"
+                        class="details-btn">
+                  <mat-icon>info</mat-icon>
+                  Voir détails
+                </button>
+              </div>
+              
+              <div class="reservation-actions" *ngIf="reservation.status === ReservationStatus.ASSIGNED">
+                <button mat-stroked-button 
+                        color="primary" 
+                        (click)="updateReservationStatus(reservation.id!, ReservationStatus.IN_PROGRESS)">
+                  Commencer
+                </button>
+              </div>
+              
+              <div class="reservation-actions" *ngIf="reservation.status === ReservationStatus.IN_PROGRESS">
+                <button mat-stroked-button 
+                        color="accent" 
+                        (click)="updateReservationStatus(reservation.id!, ReservationStatus.COMPLETED)">
+                  Terminer
+                </button>
+              </div>
+            </div>
+            
+            <div class="no-reservations" *ngIf="getReservationsForDate(day).length === 0">
+              Aucune réservation
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="loading-container" *ngIf="loading">
+        <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

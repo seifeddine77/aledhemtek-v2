@@ -1,0 +1,33 @@
+.admin-container {
+  display: flex;
+  height: 100vh;
+}
+
+.admin-content {
+  flex-grow: 1;
+  padding: 2rem 3rem 2rem 3rem;
+  overflow-y: auto;
+  background-color: #f4f7fa;
+  /* no side margin needed when using flex layout */
+  transition: all 0.3s ease;
+}
+
+/* Adjust main content horizontal offset based on sidebar state */
+app-admin-sidebar + .admin-content {
+  margin-left: 280px; /* sidebar width */
+}
+
+app-admin-sidebar.closed + .admin-content {
+  margin-left: 70px; /* collapsed sidebar width */
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  app-admin-sidebar + .admin-content,
+  app-admin-sidebar.closed + .admin-content {
+    margin-left: 0;
+    padding: 1rem;
+  }
+}
+
+

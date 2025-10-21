@@ -1,0 +1,311 @@
+<div class="payment-container">
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Chargement des informations de paiement...</p>
+  </div>
+
+  <!-- Payment Content -->
+  <div *ngIf="!loading && invoice" class="payment-content">
+    
+    <!-- Header -->
+    <div class="payment-header">
+      <button mat-icon-button (click)="goBack()" class="back-button">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      
+      <div class="header-info">
+        <h1>
+          <mat-icon>payment</mat-icon>
+          Paiement de la facture
+        </h1>
+        <p>{{ invoice.invoiceNumber }}</p>
+      </div>
+    </div>
+
+    <!-- Invoice Summary -->
+    <mat-card class="invoice-summary">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>receipt</mat-icon>
+          Résumé de la facture
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="summary-grid">
+          <div class="summary-item">
+            <span class="label">Numéro :</span>
+            <span class="value">{{ invoice.invoiceNumber }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Date d'échéance :</span>
+            <span class="value">{{ formatDate(invoice.dueDate) }}</span>
+          </div>
+          <div class="summary-item total">
+            <span class="label">Montant à payer :</span>
+            <span class="value">{{ formatCurrency(invoice.totalAmount) }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Payment Methods -->
+    <mat-card class="payment-methods">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>credit_card</mat-icon>
+          Choisir une méthode de paiement
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <form [formGroup]="paymentForm">
+          <mat-radio-group formControlName="paymentMethod" 
+                          (change)="onPaymentMethodChange()"
+                          class="payment-options">
+            
+            <div *ngFor="let method of paymentMethods" 
+                 class="payment-option"
+                 [class.disabled]="!method.enabled">
+              <mat-radio-button [value]="method.id" [disabled]="!method.enabled">
+                <div class="method-content">
+                  <div class="method-header">
+                    <mat-icon>{{ method.icon }}</mat-icon>
+                    <span class="method-name">{{ method.name }}</span>
+                  </div>
+                  <p class="method-description">{{ method.description }}</p>
+                </div>
+              </mat-radio-button>
+            </div>
+          </mat-radio-group>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Stripe Card Form -->
+    <mat-card *ngIf="selectedPaymentMethod === 'stripe'" class="card-form">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>credit_card</mat-icon>
+          Informations de carte bancaire
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <form [formGroup]="cardForm" class="card-form-grid">
+          
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Nom du porteur</mat-label>
+            <input matInput formControlName="cardholderName" placeholder="Jean Dupont">
+            <mat-error *ngIf="cardForm.get('cardholderName')?.hasError('required')">
+              Nom du porteur requis
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Numéro de carte</mat-label>
+            <input matInput formControlName="cardNumber" 
+                   placeholder="1234 5678 9012 3456"
+                   maxlength="16">
+            <mat-icon matSuffix>credit_card</mat-icon>
+            <mat-error>{{ getCardNumberError() }}</mat-error>
+          </mat-form-field>
+
+          <div class="expiry-cvv-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Mois</mat-label>
+              <mat-select formControlName="expiryMonth">
+                <mat-option *ngFor="let month of [1,2,3,4,5,6,7,8,9,10,11,12]" [value]="month">
+                  {{ month.toString().padStart(2, '0') }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Année</mat-label>
+              <mat-select formControlName="expiryYear">
+                <mat-option *ngFor="let year of [2024,2025,2026,2027,2028,2029,2030,2031,2032,2033,2034]" [value]="year">
+                  {{ year }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>CVV</mat-label>
+              <input matInput formControlName="cvv" 
+                     placeholder="123"
+                     maxlength="4"
+                     type="password">
+              <mat-error>{{ getCvvError() }}</mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="expiry-error" *ngIf="getExpiryError()">
+            <mat-error>{{ getExpiryError() }}</mat-error>
+          </div>
+
+        </form>
+
+        <div class="security-info">
+          <mat-icon>security</mat-icon>
+          <p>Vos informations de paiement sont sécurisées et chiffrées via Stripe.</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- PayPal Info -->
+    <mat-card *ngIf="selectedPaymentMethod === 'paypal'" class="paypal-info">
+      <mat-card-content>
+        <div class="paypal-content">
+          <mat-icon>account_balance_wallet</mat-icon>
+          <div>
+            <h3>Paiement PayPal</h3>
+            <p>Vous serez redirigé vers PayPal pour finaliser votre paiement de manière sécurisée.</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Bank Transfer Info -->
+    <mat-card *ngIf="selectedPaymentMethod === 'bank_transfer'" class="bank-transfer-info">
+      <mat-card-content>
+        <div class="bank-content">
+          <mat-icon>account_balance</mat-icon>
+          <div>
+            <h3>Virement bancaire</h3>
+            <p>Les informations de virement vous seront envoyées par email. Le paiement sera validé manuellement sous 1-2 jours ouvrés.</p>
+            <div class="bank-details">
+              <h4>Coordonnées bancaires :</h4>
+              <p><strong>IBAN :</strong> FR76 1234 5678 9012 3456 7890 123</p>
+              <p><strong>BIC :</strong> ABCDEFGH</p>
+              <p><strong>Référence :</strong> {{ invoice.invoiceNumber }}</p>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Cash Payment Info -->
+    <mat-card *ngIf="selectedPaymentMethod === 'cash'" class="cash-info">
+      <mat-card-content>
+        <div class="cash-content">
+          <mat-icon>payments</mat-icon>
+          <div>
+            <h3>Paiement en espèces</h3>
+            <p>Déclarez que vous avez effectué le paiement en espèces. L'administrateur validera votre paiement après vérification.</p>
+            <div class="cash-notice">
+              <mat-icon>info</mat-icon>
+              <p><strong>Important :</strong> Assurez-vous d'avoir remis le montant exact en espèces avant de déclarer le paiement.</p>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Check Payment Info -->
+    <mat-card *ngIf="selectedPaymentMethod === 'check'" class="check-info">
+      <mat-card-content>
+        <div class="check-content">
+          <mat-icon>receipt</mat-icon>
+          <div>
+            <h3>Paiement par chèque</h3>
+            <p>Déclarez que vous avez remis un chèque. L'administrateur validera votre paiement après encaissement.</p>
+            <div class="check-details">
+              <h4>Instructions :</h4>
+              <p>• Libeller le chèque à l'ordre de : <strong>ALEDHEMTEK</strong></p>
+              <p>• Montant : <strong>{{ formatCurrency(invoice.totalAmount) }}</strong></p>
+              <p>• Référence au dos : <strong>{{ invoice.invoiceNumber }}</strong></p>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Payment Actions -->
+    <mat-card class="payment-actions">
+      <mat-card-content>
+        <div class="actions-content">
+          
+          <div class="amount-display">
+            <h3>Total à payer : {{ formatCurrency(invoice.totalAmount) }}</h3>
+          </div>
+
+          <div class="action-buttons">
+            <button mat-button (click)="goBack()" [disabled]="processing">
+              <mat-icon>arrow_back</mat-icon>
+              Retour
+            </button>
+
+            <!-- Stripe Payment Button -->
+            <button *ngIf="selectedPaymentMethod === 'stripe'" 
+                    mat-raised-button 
+                    color="primary"
+                    (click)="payWithStripe()"
+                    [disabled]="!cardForm.valid || processing">
+              <mat-spinner *ngIf="processing" diameter="20"></mat-spinner>
+              <mat-icon *ngIf="!processing">payment</mat-icon>
+              {{ processing ? 'Traitement...' : 'Payer par carte' }}
+            </button>
+
+            <!-- PayPal Payment Button -->
+            <button *ngIf="selectedPaymentMethod === 'paypal'" 
+                    mat-raised-button 
+                    color="accent"
+                    (click)="payWithPayPal()"
+                    [disabled]="processing">
+              <mat-spinner *ngIf="processing" diameter="20"></mat-spinner>
+              <mat-icon *ngIf="!processing">account_balance_wallet</mat-icon>
+              {{ processing ? 'Redirection...' : 'Payer avec PayPal' }}
+            </button>
+
+            <!-- Bank Transfer Button -->
+            <button *ngIf="selectedPaymentMethod === 'bank_transfer'" 
+                    mat-raised-button 
+                    color="warn"
+                    (click)="requestBankTransfer()"
+                    [disabled]="processing">
+              <mat-spinner *ngIf="processing" diameter="20"></mat-spinner>
+              <mat-icon *ngIf="!processing">account_balance</mat-icon>
+              {{ processing ? 'Traitement...' : 'Demander virement' }}
+            </button>
+
+            <!-- Cash Payment Button -->
+            <button *ngIf="selectedPaymentMethod === 'cash'" 
+                    mat-raised-button 
+                    color="accent"
+                    (click)="declareCashPayment()"
+                    [disabled]="processing">
+              <mat-spinner *ngIf="processing" diameter="20"></mat-spinner>
+              <mat-icon *ngIf="!processing">payments</mat-icon>
+              {{ processing ? 'Déclaration...' : 'Déclarer paiement espèces' }}
+            </button>
+
+            <!-- Check Payment Button -->
+            <button *ngIf="selectedPaymentMethod === 'check'" 
+                    mat-raised-button 
+                    color="accent"
+                    (click)="declareCheckPayment()"
+                    [disabled]="processing">
+              <mat-spinner *ngIf="processing" diameter="20"></mat-spinner>
+              <mat-icon *ngIf="!processing">receipt</mat-icon>
+              {{ processing ? 'Déclaration...' : 'Déclarer paiement chèque' }}
+            </button>
+
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Security Notice -->
+    <mat-card class="security-notice">
+      <mat-card-content>
+        <div class="security-content">
+          <mat-icon>verified_user</mat-icon>
+          <div>
+            <h4>Paiement sécurisé</h4>
+            <p>Toutes les transactions sont sécurisées et vos données personnelles sont protégées conformément au RGPD.</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+  </div>
+</div>

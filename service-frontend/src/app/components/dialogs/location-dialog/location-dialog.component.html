@@ -1,0 +1,78 @@
+<div class="location-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>
+      <mat-icon>location_on</mat-icon>
+      Localisation de la réservation
+    </h2>
+    <button mat-icon-button mat-dialog-close>
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content class="dialog-content">
+    <!-- Informations sur la réservation -->
+    <div class="reservation-info">
+      <div class="info-item">
+        <mat-icon>assignment</mat-icon>
+        <span><strong>Titre:</strong> {{ data.reservation.title }}</span>
+      </div>
+      <div class="info-item">
+        <mat-icon>person</mat-icon>
+        <span><strong>Client:</strong> {{ data.reservation.clientName }}</span>
+      </div>
+      <div class="info-item" *ngIf="data.reservation.consultantName">
+        <mat-icon>engineering</mat-icon>
+        <span><strong>Consultant:</strong> {{ data.reservation.consultantName }}</span>
+      </div>
+      <div class="info-item" *ngIf="data.reservation.description">
+        <mat-icon>description</mat-icon>
+        <span><strong>Description:</strong> {{ data.reservation.description }}</span>
+      </div>
+    </div>
+
+    <!-- Informations de localisation -->
+    <div class="location-info" *ngIf="data.reservation.latitude && data.reservation.longitude">
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="label">Latitude:</span>
+          <span class="value">{{ data.reservation.latitude | number:'1.6-6' }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Longitude:</span>
+          <span class="value">{{ data.reservation.longitude | number:'1.6-6' }}</span>
+        </div>
+        <div class="info-item" *ngIf="data.reservation.address">
+          <span class="label">Adresse:</span>
+          <span class="value">{{ data.reservation.address }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Carte interactive -->
+    <div class="map-container">
+      <app-location-map
+        [position]="getPosition()"
+        [title]="'Localisation de la réservation'"
+        [height]="'400px'"
+        [readonly]="true"
+        [showHeader]="false"
+        [showActions]="true"
+        [showInfo]="false">
+      </app-location-map>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="dialog-actions">
+    <button mat-button (click)="copyCoordinates()" color="accent">
+      <mat-icon>content_copy</mat-icon>
+      Copier les coordonnées
+    </button>
+    <button mat-button (click)="openInMaps()" color="primary">
+      <mat-icon>open_in_new</mat-icon>
+      Ouvrir dans la carte
+    </button>
+    <button mat-button mat-dialog-close color="primary">
+      Fermer
+    </button>
+  </mat-dialog-actions>
+</div>
