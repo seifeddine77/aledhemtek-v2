@@ -42,6 +42,36 @@ npm start
 
 MIT
 
-## CI/CD
+## 🚀 CI/CD
 
-Ce projet utilise GitHub Actions pour l'intégration et le déploiement continus.
+Ce projet utilise **GitHub Actions** pour l'intégration et le déploiement continus.
+
+### Pipeline automatique:
+- ✅ Build Backend (Maven + Java 17)
+- ✅ Build Frontend (Angular 15)
+- ✅ Tests automatiques
+- ✅ Scan de sécurité
+- ✅ Création d'artifacts
+- ✅ Build Docker
+
+**Chaque push déclenche automatiquement le pipeline!**
+
+## 📦 Déploiement Docker
+
+```bash
+# Lancer avec Docker Compose
+docker-compose up -d
+
+# Accéder à l'application
+# Frontend: http://localhost
+# Backend: http://localhost:8080
+```
+
+## 🤝 Contribution
+
+Les contributions sont les bienvenues! Créez une Pull Request.
+
+## 📞 Contact
+
+- GitHub: [@seifeddine77](https://github.com/seifeddine77)
+- Repository: [aledhemtek-v2](https://github.com/seifeddine77/aledhemtek-v2)
