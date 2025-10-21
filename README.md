@@ -41,3 +41,7 @@ npm start
 ## Licence
 
 MIT
+
+## CI/CD
+
+Ce projet utilise GitHub Actions pour l'intégration et le déploiement continus.
