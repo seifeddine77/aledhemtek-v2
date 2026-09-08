@@ -139,11 +139,13 @@ public class Invoice {
      * Calculate remaining amount to pay
      */
     public Double getRemainingAmount() {
+        if (this.totalAmount == null) return 0.0;
+        if (this.payments == null) return this.totalAmount;
         Double paidAmount = payments.stream()
-                .filter(p -> p.getStatus() == Payment.PaymentStatus.VALIDATED)
+                .filter(p -> p != null && p.getStatus() == Payment.PaymentStatus.VALIDATED && p.getAmount() != null)
                 .mapToDouble(Payment::getAmount)
                 .sum();
-        return this.totalAmount - paidAmount;
+        return Math.max(0.0, this.totalAmount - paidAmount);
     }
     
     /**
