@@ -1,55 +1,132 @@
 <div class="home-container">
   <!-- Hero Section -->
-  <div class="hero-section section-animate">
+  <section class="hero-section section-animate">
+    <div class="hero-backdrop-glow"></div>
     <div class="hero-content section-inner">
-      <h1 class="hero-title">Des services à domicile <span class="hero-highlight">fiables et rapides</span></h1>
-      <p class="hero-subtitle">Trouvez un professionnel qualifié en quelques clics pour tous vos besoins du quotidien.</p>
+      <div class="hero-badge">
+        <span class="hero-badge-dot"></span>
+        <span class="hero-badge-text">Plateforme certifiée n°1 · Services d'experts à domicile</span>
+      </div>
+
+      <h1 class="hero-title">
+        L'excellence des services à domicile, <br/>
+        <span class="hero-gradient-text">en toute simplicité.</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        Trouvez instantanément les meilleurs professionnels certifiés pour tous vos travaux du quotidien. 
+        Tarifs clairs, réservation en quelques clics et intervention garantie.
+      </p>
+
       <div class="hero-actions">
-        <button mat-raised-button color="primary" (click)="handleSignup()">{{ getSignupButtonText() }}</button>
-        <a mat-stroked-button class="cta-secondary" routerLink="/register">Découvrir nos services</a>
+        <button mat-raised-button color="primary" class="hero-btn-primary" (click)="handleSignup()">
+          <span>{{ getSignupButtonText() }}</span>
+          <mat-icon>arrow_forward</mat-icon>
+        </button>
+        <button mat-stroked-button class="hero-btn-secondary" (click)="handleViewAllServices()">
+          <mat-icon>explore</mat-icon>
+          <span>Découvrir nos services</span>
+        </button>
+      </div>
+
+      <!-- Quick category pills -->
+      <div class="hero-quick-tags">
+        <span class="quick-tag-label">Services populaires :</span>
+        <div class="quick-tags-container">
+          <span class="quick-tag" (click)="handleViewAllServices()">🔧 Plomberie</span>
+          <span class="quick-tag" (click)="handleViewAllServices()">⚡ Électricité</span>
+          <span class="quick-tag" (click)="handleViewAllServices()">🧹 Ménage</span>
+          <span class="quick-tag" (click)="handleViewAllServices()">🌿 Jardinage</span>
+          <span class="quick-tag" (click)="handleViewAllServices()">🔨 Bricolage</span>
+        </div>
       </div>
     </div>
+
     <div class="hero-visual">
-      <img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=1200&q=80" alt="Artisan à domicile" class="hero-illustration" loading="lazy" onerror="this.src='https://via.placeholder.com/1200x800/4f46e5/ffffff?text=Services+à+Domicile'" />
+      <div class="hero-visual-card">
+        <img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=1200&q=80" 
+             alt="Artisan qualifié à domicile" 
+             class="hero-illustration" 
+             loading="eager" 
+             onerror="this.src='https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80'" />
+        
+        <!-- Floating badge 1: Rating -->
+        <div class="hero-floating-badge badge-top-right">
+          <div class="badge-icon-star">★</div>
+          <div class="badge-text-group">
+            <span class="badge-bold">4.9 / 5</span>
+            <span class="badge-sub">950+ avis certifiés</span>
+          </div>
+        </div>
+
+        <!-- Floating badge 2: Satisfaction -->
+        <div class="hero-floating-badge badge-bottom-left">
+          <mat-icon class="badge-icon-check">verified</mat-icon>
+          <div class="badge-text-group">
+            <span class="badge-bold">Satisfaction 100%</span>
+            <span class="badge-sub">Assurance & garantie pro</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trust Metrics Strip -->
+  <div class="trust-band section-animate">
+    <div class="trust-item">
+      <div class="trust-num">4.9 / 5</div>
+      <div class="trust-label">Note moyenne clients</div>
+    </div>
+    <div class="trust-divider"></div>
+    <div class="trust-item">
+      <div class="trust-num">+2 500</div>
+      <div class="trust-label">Missions réalisées</div>
+    </div>
+    <div class="trust-divider"></div>
+    <div class="trust-item">
+      <div class="trust-num">100%</div>
+      <div class="trust-label">Artisans certifiés</div>
+    </div>
+    <div class="trust-divider"></div>
+    <div class="trust-item">
+      <div class="trust-num">&lt; 2h</div>
+      <div class="trust-label">Délai d'affectation</div>
     </div>
   </div>
 
-  <svg class="section-separator" viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill="#f7fafd" d="M0,0 C480,80 960,-20 1440,60 L1440,0 L0,0 Z"></path></svg>
   <!-- Section Comment ça marche -->
-  <div class="how-section section-animate">
-    <h2>Comment ça marche&nbsp;?</h2>
+  <section class="how-section section-animate">
+    <div class="section-header">
+      <span class="section-subtitle">Processus simple & transparent</span>
+      <h2 class="section-title">Comment ça marche ?</h2>
+      <div class="section-divider">
+        <span></span>
+        <mat-icon>touch_app</mat-icon>
+        <span></span>
+      </div>
+      <p class="section-description">Trois étapes simples pour concrétiser vos projets en toute sérénité</p>
+    </div>
     <div class="how-steps">
       <div class="how-step">
+        <div class="how-step-num">01</div>
         <div class="how-step-icon"><mat-icon>search</mat-icon></div>
-        <div class="how-step-num">1</div>
-        <div class="how-step-title">Je trouve mon service</div>
-        <div class="how-step-desc">Parmi des dizaines de prestations à domicile, filtrées par besoin et localisation.</div>
+        <div class="how-step-title">1. Trouvez votre service</div>
+        <div class="how-step-desc">Parmi nos prestations qualifiées, avec description complète et tarification claire et transparente.</div>
       </div>
       <div class="how-step">
-        <div class="how-step-icon"><mat-icon>event_available</mat-icon></div>
-        <div class="how-step-num">2</div>
-        <div class="how-step-title">Je réserve en ligne</div>
-        <div class="how-step-desc">En quelques clics, choisissez la date, l’artisan et confirmez votre demande.</div>
+        <div class="how-step-num">02</div>
+        <div class="how-step-icon"><mat-icon>calendar_month</mat-icon></div>
+        <div class="how-step-title">2. Réservez en direct</div>
+        <div class="how-step-desc">Sélectionnez la date, l'heure et vos tâches personnalisées. Un professionnel dédié prend en charge votre demande.</div>
       </div>
       <div class="how-step">
-        <div class="how-step-icon"><mat-icon>thumb_up</mat-icon></div>
-        <div class="how-step-num">3</div>
-        <div class="how-step-title">C’est fait, en toute confiance</div>
-        <div class="how-step-desc">Un professionnel intervient, vous évaluez la prestation après service.</div>
+        <div class="how-step-num">03</div>
+        <div class="how-step-icon"><mat-icon>verified</mat-icon></div>
+        <div class="how-step-title">3. Validez en sérénité</div>
+        <div class="how-step-desc">L'artisan intervient avec rigueur. Le paiement n'est débloqué qu'après validation de votre satisfaction.</div>
       </div>
     </div>
-  </div>
-  <svg class="section-separator" viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill="#fff" d="M0,0 C480,80 960,-20 1440,60 L1440,0 L0,0 Z"></path></svg>
-  <!-- Trust Band -->
-  <div class="trust-band section-animate">
-    <div class="trust-item"><span class="icon">★</span> 4.9/5 Avis Clients</div>
-    <div class="trust-item"><span class="icon">🔒</span> Sécurité & Fiabilité</div>
-    <div class="trust-item"><span class="icon">⚡</span> Intervention Rapide</div>
-  </div>
-
-  <svg class="section-separator" viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path fill="#f8faff" d="M0,0 C480,100 960,20 1440,100 L1440,0 L0,0 Z"></path>
-  </svg>
+  </section>
 
   <!-- Services Section -->
   <section class="services-section section-animate">
@@ -391,23 +468,6 @@
       <img src="https://upload.wikimedia.org/wikipedia/commons/c/c8/Orange_logo.svg" alt="Orange" />
       <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/IBM_logo.svg" alt="IBM" />
     </div>
-  </div>
-
-  <svg class="section-separator" viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill="#f7fafd" d="M0,0 C480,80 960,-20 1440,60 L1440,0 L0,0 Z"></path></svg>
-  <!-- Footer -->
-  <!-- Duplicate footer removed -->
-  <div class="footer-content">
-    <div class="footer-logo">
-      <span class="footer-logo-text">Aledhemtek</span>
-    </div>
-    <div class="footer-links">
-      <a href="#" aria-label="Facebook" target="_blank"><mat-icon>facebook</mat-icon></a>
-      <a href="#" aria-label="Twitter" target="_blank"><mat-icon>twitter</mat-icon></a>
-      <a href="#" aria-label="Instagram" target="_blank"><mat-icon>instagram</mat-icon></a>
-    </div>
-  </div>
-  <div class="footer-copyright">
-    &copy; 2025 Aledhemtek. Tous droits réservés.
   </div>
 
   <!-- Scroll to top button -->
