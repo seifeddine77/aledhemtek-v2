@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SpringBootApplication
+@org.springframework.scheduling.annotation.EnableScheduling
+@org.springframework.scheduling.annotation.EnableAsync
 public class AledhemtekApplication implements CommandLineRunner {
 
     @Autowired

@@ -23,7 +23,7 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
     
-    @Value("${spring.mail.username}")
+    @Value("${spring.mail.username:noreply@aledhemtek.com}")
     private String fromEmail;
     
     @Value("${app.company.name:AledhemTek}")
@@ -32,11 +32,17 @@ public class EmailService {
     /**
      * Send invoice email to client
      */
-        /**
+    /**
      * Send invoice email with PDF attachment as byte array
      */
+    @org.springframework.scheduling.annotation.Async
     public boolean sendInvoiceEmail(Invoice invoice, byte[] pdfAttachment) {
         try {
+            if (invoice == null || invoice.getReservation() == null || invoice.getReservation().getClient() == null) {
+                logger.warn("Cannot send invoice email: invoice or client is null");
+                return false;
+            }
+
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
             
@@ -132,8 +138,14 @@ public class EmailService {
     /**
      * Send payment confirmation email
      */
+    @org.springframework.scheduling.annotation.Async
     public boolean sendPaymentConfirmationEmail(Invoice invoice) {
         try {
+            if (invoice == null || invoice.getReservation() == null || invoice.getReservation().getClient() == null) {
+                logger.warn("Cannot send payment confirmation email: invoice or client is null");
+                return false;
+            }
+
             SimpleMailMessage message = new SimpleMailMessage();
             
             String clientEmail = invoice.getReservation().getClient().getEmail();

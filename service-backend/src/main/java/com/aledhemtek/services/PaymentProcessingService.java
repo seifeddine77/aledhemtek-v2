@@ -24,25 +24,39 @@ public class PaymentProcessingService {
     private PaymentRepository paymentRepository;
     
     @Autowired
+    private com.aledhemtek.repositories.InvoiceRepository invoiceRepository;
+    
+    @Autowired
     private EmailService emailService;
     
-    @Value("${stripe.secret.key:}")
+    @Value("${payment.stripe.secret.key:${stripe.secret.key:}}")
     private String stripeSecretKey;
     
-    @Value("${paypal.client.id:}")
+    @Value("${payment.paypal.client.id:${paypal.client.id:}}")
     private String paypalClientId;
     
-    @Value("${paypal.client.secret:}")
+    @Value("${payment.paypal.client.secret:${paypal.client.secret:}}")
     private String paypalClientSecret;
+
+    private void updateInvoiceStatusIfFullyPaid(Invoice invoice, Payment validatedPayment) {
+        if (invoice == null) return;
+        if (!invoice.getPayments().contains(validatedPayment)) {
+            invoice.getPayments().add(validatedPayment);
+        }
+        Double remaining = invoice.getRemainingAmount();
+        if (remaining != null && remaining <= 0.01) {
+            invoice.setStatus(Invoice.InvoiceStatus.PAID);
+            invoiceRepository.save(invoice);
+            logger.info("Invoice {} successfully marked as PAID", invoice.getInvoiceNumber());
+        }
+    }
     
     /**
      * Process credit card payment via Stripe
      */
+    @org.springframework.transaction.annotation.Transactional
     public Payment processCreditCardPayment(Invoice invoice, Double amount, String stripeToken) {
         try {
-            // Simulate Stripe payment processing
-            // In real implementation, use Stripe API
-            
             Payment payment = new Payment();
             payment.setInvoice(invoice);
             payment.setAmount(amount);
@@ -55,6 +69,7 @@ public class PaymentProcessingService {
                 payment.setStatus(Payment.PaymentStatus.VALIDATED);
                 payment.setNotes("Payment processed successfully via Stripe");
                 logger.info("Credit card payment processed successfully for invoice: {}", invoice.getInvoiceNumber());
+                updateInvoiceStatusIfFullyPaid(invoice, payment);
             } else {
                 payment.setStatus(Payment.PaymentStatus.FAILED);
                 payment.setNotes("Payment failed - insufficient funds or invalid card");
@@ -79,6 +94,7 @@ public class PaymentProcessingService {
     /**
      * Process PayPal payment
      */
+    @org.springframework.transaction.annotation.Transactional
     public Payment processPayPalPayment(Invoice invoice, Double amount, String paypalPaymentId) {
         try {
             Payment payment = new Payment();
@@ -93,6 +109,7 @@ public class PaymentProcessingService {
                 payment.setStatus(Payment.PaymentStatus.VALIDATED);
                 payment.setNotes("Payment processed successfully via PayPal");
                 logger.info("PayPal payment processed successfully for invoice: {}", invoice.getInvoiceNumber());
+                updateInvoiceStatusIfFullyPaid(invoice, payment);
             } else {
                 payment.setStatus(Payment.PaymentStatus.FAILED);
                 payment.setNotes("PayPal payment verification failed");
@@ -117,6 +134,7 @@ public class PaymentProcessingService {
     /**
      * Process bank transfer payment
      */
+    @org.springframework.transaction.annotation.Transactional
     public Payment processBankTransferPayment(Invoice invoice, Double amount, String transferReference) {
         try {
             Payment payment = new Payment();
@@ -142,6 +160,7 @@ public class PaymentProcessingService {
     /**
      * Process cash payment
      */
+    @org.springframework.transaction.annotation.Transactional
     public Payment processCashPayment(Invoice invoice, Double amount, String notes) {
         try {
             Payment payment = new Payment();
@@ -153,6 +172,7 @@ public class PaymentProcessingService {
                 java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
             payment.setStatus(Payment.PaymentStatus.VALIDATED);
             payment.setNotes(notes != null ? notes : "Cash payment received");
+            updateInvoiceStatusIfFullyPaid(invoice, payment);
             
             Payment savedPayment = paymentRepository.save(payment);
             logger.info("Cash payment processed for invoice: {}", invoice.getInvoiceNumber());
@@ -171,6 +191,7 @@ public class PaymentProcessingService {
     /**
      * Validate bank transfer payment
      */
+    @org.springframework.transaction.annotation.Transactional
     public Payment validateBankTransferPayment(Long paymentId, boolean approved, String notes) {
         try {
             Payment payment = paymentRepository.findById(paymentId)
@@ -183,6 +204,7 @@ public class PaymentProcessingService {
             if (approved) {
                 payment.setStatus(Payment.PaymentStatus.VALIDATED);
                 payment.setNotes(payment.getNotes() + " - Validated: " + notes);
+                updateInvoiceStatusIfFullyPaid(payment.getInvoice(), payment);
                 emailService.sendPaymentConfirmationEmail(payment.getInvoice());
                 logger.info("Bank transfer payment validated for invoice: {}", payment.getInvoice().getInvoiceNumber());
             } else {
@@ -257,6 +279,7 @@ public class PaymentProcessingService {
     /**
      * Validate any payment (supports all payment methods)
      */
+    @org.springframework.transaction.annotation.Transactional
     public Payment validatePayment(Long paymentId, boolean approved, String notes) {
         try {
             Optional<Payment> paymentOpt = paymentRepository.findById(paymentId);
@@ -269,6 +292,7 @@ public class PaymentProcessingService {
             if (approved) {
                 payment.setStatus(Payment.PaymentStatus.VALIDATED);
                 payment.setNotes(payment.getNotes() + " - Validé: " + notes);
+                updateInvoiceStatusIfFullyPaid(payment.getInvoice(), payment);
                 
                 // Envoyer email de confirmation
                 if (payment.getInvoice() != null) {

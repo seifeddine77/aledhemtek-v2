@@ -86,37 +86,30 @@ public class ReservationServiceImpl implements ReservationService {
         mapDtoToEntity(reservationDto, reservation);
         reservation.setUpdatedAt(LocalDateTime.now());
 
-        // Synchronize the tasks collection
-        // 1. Clear the existing collection. Thanks to orphanRemoval=true, JPA will delete tasks that are removed from this list.
-        if (reservation.getTasks() != null) {
-            reservation.getTasks().clear();
-        }
+        // Synchronize the reservation tasks collection
+        if (reservationDto.getTasks() != null) {
+            if (reservation.getReservationTasks() == null) {
+                reservation.setReservationTasks(new ArrayList<>());
+            } else {
+                reservation.getReservationTasks().clear();
+            }
 
-        // 2. Repopulate the collection from the DTO
-        if (reservationDto.getTasks() != null && !reservationDto.getTasks().isEmpty()) {
-            List<Task> taskEntities = new ArrayList<>();
-            
             for (var taskDto : reservationDto.getTasks()) {
                 if (taskDto.getId() != null) {
-                    // Utiliser une tâche existante du catalogue
                     Task catalogTask = taskRepository.findById(taskDto.getId())
                         .orElseThrow(() -> new RuntimeException("Task not found: " + taskDto.getId()));
                     
-                    // Créer une copie de la tâche pour cette réservation
-                    Task reservationTask = createTaskCopy(catalogTask, reservation);
-                    taskEntities.add(reservationTask);
-                } else {
-                    // Fallback: créer une tâche personnalisée
-                    Task customTask = new Task();
-                    customTask.setName(taskDto.getName());
-                    customTask.setDescription(taskDto.getDescription());
-                    customTask.setDuration(taskDto.getDuration());
-                    customTask.setReservation(reservation);
-                    taskEntities.add(customTask);
+                    ReservationTask reservationTask = new ReservationTask();
+                    reservationTask.setReservation(reservation);
+                    reservationTask.setTask(catalogTask);
+                    reservationTask.setQuantity(taskDto.getQuantity() != null ? taskDto.getQuantity() : 1);
+                    double unitPrice = getTaskCurrentPrice(catalogTask);
+                    reservationTask.setUnitPrice(unitPrice);
+                    reservationTask.calculateTotalPrice();
+                    
+                    reservation.getReservationTasks().add(reservationTask);
                 }
             }
-            
-            reservation.getTasks().addAll(taskEntities);
             
             // Recalculer le prix total
             updateTotalPrice(reservation);
