@@ -432,9 +432,10 @@ public class InvoiceController {
     }
     
     /**
-     * TEMPORARY: Public endpoint to get all invoices (for debugging auth issues)
+     * Protected endpoint to get all invoices (ADMIN only)
      */
     @GetMapping("/public/all")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> getPublicInvoices(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,

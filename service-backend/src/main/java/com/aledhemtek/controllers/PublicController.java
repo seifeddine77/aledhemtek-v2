@@ -1,8 +1,10 @@
 package com.aledhemtek.controllers;
 
+import com.aledhemtek.dto.CategoryDto;
 import com.aledhemtek.dto.ServiceDto;
 import com.aledhemtek.dto.TaskDto;
 import com.aledhemtek.interfaces.AdminService;
+import com.aledhemtek.interfaces.CategoryService;
 import com.aledhemtek.interfaces.TaskService;
 import com.aledhemtek.interfaces.ReservationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,10 +24,19 @@ public class PublicController {
     private AdminService adminService;
     
     @Autowired
+    private CategoryService categoryService;
+    
+    @Autowired
     private TaskService taskService;
     
     @Autowired
     private ReservationService reservationService;
+
+    @GetMapping("/categories")
+    public ResponseEntity<List<CategoryDto>> getAllCategories() {
+        List<CategoryDto> categories = categoryService.getAllCategories();
+        return ResponseEntity.ok(categories);
+    }
 
     @GetMapping("/services")
     public ResponseEntity<List<ServiceDto>> getAllServices() {
@@ -84,7 +95,5 @@ public class PublicController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Erreur lors du calcul du prix: " + e.getMessage()));
         }
-    }
-
     }
 }

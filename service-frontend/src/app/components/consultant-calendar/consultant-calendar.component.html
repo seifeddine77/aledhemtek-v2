@@ -1,97 +1,163 @@
-<div class="calendar-container">
-  <mat-card>
-    <mat-card-header>
-      <mat-card-title>Mon Calendrier</mat-card-title>
-      <div class="calendar-navigation">
-        <button mat-icon-button (click)="previousWeek()">
+<div class="calendar-page-container">
+
+  <!-- Header & Navigation Cockpit -->
+  <header class="calendar-cockpit">
+    <div class="cockpit-title-block">
+      <div class="badge-tag">
+        <mat-icon>event_note</mat-icon>
+        <span>Agenda Artisan Pro</span>
+      </div>
+      <h1 class="page-title">Mon Planning Hebdomadaire</h1>
+      <p class="page-subtitle">
+        {{ reservations.length }} mission(s) planifiée(s) pour la semaine
+      </p>
+    </div>
+
+    <!-- Navigation Controls -->
+    <div class="navigation-controls">
+      <button mat-stroked-button class="today-btn" (click)="goToToday()" matTooltip="Revenir à aujourd'hui">
+        <mat-icon>today</mat-icon>
+        Aujourd'hui
+      </button>
+
+      <div class="nav-cluster">
+        <button mat-icon-button class="nav-arrow" (click)="previousWeek()" matTooltip="Semaine précédente" aria-label="Semaine précédente">
           <mat-icon>chevron_left</mat-icon>
         </button>
-        <span class="week-info">
-          {{ currentWeek[0] | date:'dd/MM' }} - {{ currentWeek[6] | date:'dd/MM/yyyy' }}
-        </span>
-        <button mat-icon-button (click)="nextWeek()">
+
+        <div class="week-pill">
+          <mat-icon>date_range</mat-icon>
+          <span class="range-text">{{ getWeekRangeLabel() }}</span>
+        </div>
+
+        <button mat-icon-button class="nav-arrow" (click)="nextWeek()" matTooltip="Semaine suivante" aria-label="Semaine suivante">
           <mat-icon>chevron_right</mat-icon>
         </button>
       </div>
-    </mat-card-header>
+    </div>
+  </header>
 
-    <mat-card-content>
-      <div class="calendar-grid" *ngIf="!loading">
-        <div class="day-column" *ngFor="let day of currentWeek">
-          <div class="day-header" [class.today]="isToday(day)">
-            <div class="day-name">{{ getDayName(day) }}</div>
-            <div class="day-number">{{ getDayNumber(day) }}</div>
+  <!-- Legend Strip -->
+  <div class="status-legend-strip">
+    <span class="legend-label">Statuts :</span>
+    <div class="legend-items">
+      <span class="legend-chip in-progress"><span class="dot"></span> En cours</span>
+      <span class="legend-chip assigned"><span class="dot"></span> Assignée</span>
+      <span class="legend-chip pending"><span class="dot"></span> En attente</span>
+      <span class="legend-chip completed"><span class="dot"></span> Terminée</span>
+    </div>
+  </div>
+
+  <!-- Main Calendar View -->
+  <main class="calendar-board" *ngIf="!loading; else loadingTpl">
+    <div class="calendar-grid">
+      <div class="day-column" 
+           *ngFor="let day of currentWeek" 
+           [class.is-today]="isToday(day)">
+        
+        <!-- Day Column Header -->
+        <div class="day-header" [class.active-today]="isToday(day)">
+          <div class="day-name">{{ getDayName(day) }}</div>
+          <div class="day-number-bubble">
+            <span>{{ getDayNumber(day) }}</span>
           </div>
-          
-          <div class="day-content">
-            <div class="reservation-item" 
-                 *ngFor="let reservation of getReservationsForDate(day)"
-                 [style.border-left-color]="getStatusColor(reservation.status)">
-              
-              <div class="reservation-header">
-                <span class="reservation-time">
-                  {{ formatTime(reservation.startDate) }} - {{ formatTime(reservation.endDate) }}
-                </span>
-                <mat-chip [style.background-color]="getStatusColor(reservation.status)" 
-                         [style.color]="'white'" 
-                         class="status-chip">
-                  {{ reservation.status }}
-                </mat-chip>
-              </div>
-              
-              <div class="reservation-title">{{ reservation.title }}</div>
-              <div class="reservation-client">Client: {{ reservation.clientName }}</div>
-              
-              <!-- Informations supplémentaires -->
-              <div class="reservation-info">
-                <div class="info-item" *ngIf="reservation.tasks && reservation.tasks.length > 0">
-                  <mat-icon>task_alt</mat-icon>
-                  <span>{{ reservation.tasks.length }} tâche(s)</span>
-                </div>
-                <div class="info-item" *ngIf="hasLocation(reservation)">
-                  <mat-icon>location_on</mat-icon>
-                  <span>Localisation disponible</span>
-                </div>
-              </div>
-              
-              <!-- Bouton voir détails -->
-              <div class="reservation-details">
-                <button mat-button 
-                        color="primary" 
-                        (click)="viewReservationDetails(reservation); $event.stopPropagation()"
-                        class="details-btn">
-                  <mat-icon>info</mat-icon>
-                  Voir détails
-                </button>
-              </div>
-              
-              <div class="reservation-actions" *ngIf="reservation.status === ReservationStatus.ASSIGNED">
-                <button mat-stroked-button 
-                        color="primary" 
-                        (click)="updateReservationStatus(reservation.id!, ReservationStatus.IN_PROGRESS)">
-                  Commencer
-                </button>
-              </div>
-              
-              <div class="reservation-actions" *ngIf="reservation.status === ReservationStatus.IN_PROGRESS">
-                <button mat-stroked-button 
-                        color="accent" 
-                        (click)="updateReservationStatus(reservation.id!, ReservationStatus.COMPLETED)">
-                  Terminer
-                </button>
-              </div>
-            </div>
+          <span class="today-tag" *ngIf="isToday(day)">Aujourd'hui</span>
+          <div class="day-count-badge">
+            {{ getReservationsForDate(day).length }} intervention{{ getReservationsForDate(day).length > 1 ? 's' : '' }}
+          </div>
+        </div>
+
+        <!-- Day Events List -->
+        <div class="day-body">
+          <div class="mission-card" 
+               *ngFor="let reservation of getReservationsForDate(day)"
+               [ngClass]="getStatusBadgeClass(reservation.status)"
+               (click)="viewReservationDetails(reservation)">
             
-            <div class="no-reservations" *ngIf="getReservationsForDate(day).length === 0">
-              Aucune réservation
+            <!-- Time & Status Pill -->
+            <div class="mission-top-row">
+              <div class="time-chip">
+                <mat-icon>schedule</mat-icon>
+                <span>{{ formatTime(reservation.startDate) }} - {{ formatTime(reservation.endDate) }}</span>
+              </div>
+              <span class="status-pill" [ngClass]="getStatusBadgeClass(reservation.status)">
+                {{ getStatusLabel(reservation.status) }}
+              </span>
             </div>
+
+            <!-- Title -->
+            <h4 class="mission-title" [title]="reservation.title">{{ reservation.title }}</h4>
+
+            <!-- Client Info -->
+            <div class="client-row">
+              <div class="client-avatar">
+                {{ getClientInitials(reservation.clientName) }}
+              </div>
+              <div class="client-details">
+                <span class="client-label">Client</span>
+                <span class="client-name">{{ reservation.clientName || 'Client standard' }}</span>
+              </div>
+            </div>
+
+            <!-- Metadata Chips -->
+            <div class="meta-chips-row">
+              <span class="meta-chip tasks" *ngIf="reservation.tasks && reservation.tasks.length > 0">
+                <mat-icon>checklist</mat-icon>
+                {{ reservation.tasks.length }} tâche{{ reservation.tasks.length > 1 ? 's' : '' }}
+              </span>
+              <span class="meta-chip location" *ngIf="hasLocation(reservation)">
+                <mat-icon>place</mat-icon>
+                GPS Actif
+              </span>
+              <span class="meta-chip price" *ngIf="reservation.totalPrice">
+                <mat-icon>euro</mat-icon>
+                {{ reservation.totalPrice }} DT
+              </span>
+            </div>
+
+            <!-- Actions Row -->
+            <div class="mission-card-actions" (click)="$event.stopPropagation()">
+              <button mat-button class="action-btn-details" (click)="viewReservationDetails(reservation)">
+                <mat-icon>visibility</mat-icon>
+                Détails
+              </button>
+
+              <button *ngIf="reservation.status === ReservationStatus.ASSIGNED"
+                      mat-flat-button 
+                      class="action-btn-start"
+                      (click)="updateReservationStatus(reservation.id!, ReservationStatus.IN_PROGRESS)">
+                <mat-icon>play_arrow</mat-icon>
+                Démarrer
+              </button>
+
+              <button *ngIf="reservation.status === ReservationStatus.IN_PROGRESS"
+                      mat-flat-button 
+                      class="action-btn-complete"
+                      (click)="updateReservationStatus(reservation.id!, ReservationStatus.COMPLETED)">
+                <mat-icon>check_circle</mat-icon>
+                Terminer
+              </button>
+            </div>
+          </div>
+
+          <!-- Empty Day Placeholder -->
+          <div class="empty-day-state" *ngIf="getReservationsForDate(day).length === 0">
+            <div class="empty-icon-wrap">
+              <mat-icon>event_available</mat-icon>
+            </div>
+            <p class="empty-label">Journée libre</p>
           </div>
         </div>
       </div>
-      
-      <div class="loading-container" *ngIf="loading">
-        <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
-      </div>
-    </mat-card-content>
-  </mat-card>
+    </div>
+  </main>
+
+  <!-- Loading Template -->
+  <ng-template #loadingTpl>
+    <div class="loading-state-wrapper">
+      <mat-progress-spinner mode="indeterminate" diameter="48" color="primary"></mat-progress-spinner>
+      <p class="loading-text">Synchronisation du planning en cours...</p>
+    </div>
+  </ng-template>
+
 </div>

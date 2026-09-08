@@ -1,7 +1,7 @@
-<app-navbar></app-navbar>
-<div class="layout">
-  <div class="content">
+<app-navbar *ngIf="!isPortalRoute"></app-navbar>
+<div class="layout" [class.admin-layout-wrapper]="isAdminRoute" [class.portal-layout-wrapper]="isPortalRoute">
+  <div class="content" [class.admin-content-wrapper]="isAdminRoute" [class.portal-content-wrapper]="isPortalRoute">
     <router-outlet></router-outlet>
   </div>
 </div>
-<app-footer></app-footer>
+<app-footer *ngIf="!isPortalRoute"></app-footer>

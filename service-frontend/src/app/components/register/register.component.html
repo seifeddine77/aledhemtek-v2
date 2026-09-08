@@ -1,139 +1,365 @@
-<div class="register-wrapper">
-  <div class="register-container">
+<div class="register-page-root">
+  <div class="register-split-container">
 
-    <!-- Welcome Panel -->
-    <div class="register-welcome-panel">
-      <div class="welcome-badge">
-        <mat-icon>person_add</mat-icon>
-        <span>Rejoindre AledhemTek</span>
+    <!-- Left Brand Showcase Panel -->
+    <aside class="showcase-panel">
+      <div class="showcase-glow"></div>
+
+      <!-- Top Brand Tag -->
+      <a routerLink="/home" class="brand-link" matTooltip="Retour au site public">
+        <div class="brand-icon-box">
+          <mat-icon>home_repair_service</mat-icon>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">Aledhem<span class="brand-dot">Tek</span></span>
+          <span class="brand-tagline">Artisans &amp; Rénovation</span>
+        </div>
+      </a>
+
+      <!-- Center Hero Statement -->
+      <div class="showcase-hero">
+        <div class="hero-badge">
+          <mat-icon>verified</mat-icon>
+          <span>Inscription Ouverte &amp; Gratuite</span>
+        </div>
+        <h1 class="hero-title">
+          Rejoignez le réseau d'excellence <br>de <span class="highlight-text">l'artisanat moderne</span>.
+        </h1>
+        <p class="hero-desc">
+          Que vous soyez un particulier en recherche d'artisans fiables ou un professionnel souhaitant développer son activité, AledhemTek sécurise l'intégralité de vos projets.
+        </p>
+
+        <!-- Feature List -->
+        <div class="value-props-list">
+          <div class="prop-item">
+            <div class="prop-icon">
+              <mat-icon>shield</mat-icon>
+            </div>
+            <div class="prop-text">
+              <strong>Garantie Décennale &amp; RC Pro</strong>
+              <span>Toutes les interventions sont assurées et vérifiées.</span>
+            </div>
+          </div>
+
+          <div class="prop-item">
+            <div class="prop-icon">
+              <mat-icon>receipt_long</mat-icon>
+            </div>
+            <div class="prop-text">
+              <strong>Devis &amp; Factures Instantanés</strong>
+              <span>Gestion financière transparente et automatisée.</span>
+            </div>
+          </div>
+
+          <div class="prop-item">
+            <div class="prop-icon">
+              <mat-icon>support_agent</mat-icon>
+            </div>
+            <div class="prop-text">
+              <strong>Régulation &amp; Hotline Dédiée 7j/7</strong>
+              <span>Un interlocuteur expert à vos côtés à chaque étape.</span>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="welcome-content">
-        <h1>Créez votre compte en quelques instants</h1>
-        <p>Bénéficiez d'un accès direct à notre réseau d'artisans certifiés, suivez vos demandes d'intervention en temps réel et réglez vos factures en toute sécurité.</p>
+
+      <!-- Footer Cert -->
+      <div class="showcase-foot">
+        <mat-icon>lock</mat-icon>
+        <span>Vos données personnelles sont strictement confidentielles et conformes RGPD</span>
       </div>
-      <div class="welcome-features">
-        <div class="feature-item">
+    </aside>
+
+    <!-- Right Form Panel -->
+    <main class="form-panel">
+      <div class="form-wrapper">
+
+        <!-- Form Header -->
+        <header class="form-header">
+          <h2 class="form-title">Créer votre compte</h2>
+          <p class="form-subtitle">Choisissez votre type de profil et renseignez vos coordonnées.</p>
+        </header>
+
+        <!-- Profile / Role Selector Cards (Strict RBAC - NO ADMIN) -->
+        <section class="role-selection-section">
+          <label class="section-label">Je souhaite créer un compte pour :</label>
+          <div class="role-cards-grid">
+            
+            <div class="role-card" 
+                 [class.active]="selectedOccupation === 'client'"
+                 (click)="onOccupationChange('client')">
+              <div class="role-icon client-icon">
+                <mat-icon>person</mat-icon>
+              </div>
+              <div class="role-info">
+                <h3 class="role-name">Particulier / Client</h3>
+                <p class="role-desc">Commander des interventions et suivre mes devis.</p>
+              </div>
+              <mat-icon class="active-check-icon" *ngIf="selectedOccupation === 'client'">check_circle</mat-icon>
+            </div>
+
+            <div class="role-card" 
+                 [class.active]="selectedOccupation === 'consultant'"
+                 (click)="onOccupationChange('consultant')">
+              <div class="role-icon pro-icon">
+                <mat-icon>engineering</mat-icon>
+              </div>
+              <div class="role-info">
+                <h3 class="role-name">Artisan / Pro</h3>
+                <p class="role-desc">Recevoir des missions et exécuter des chantiers.</p>
+              </div>
+              <mat-icon class="active-check-icon" *ngIf="selectedOccupation === 'consultant'">check_circle</mat-icon>
+            </div>
+
+          </div>
+
+          <!-- Consultant Extra Portfolio Banner when selected -->
+          <div class="consultant-notice-box" *ngIf="selectedOccupation === 'consultant'">
+            <div class="notice-text">
+              <mat-icon [class.text-success]="hasConsultantData">{{ hasConsultantData ? 'check_circle' : 'info' }}</mat-icon>
+              <span>{{ hasConsultantData ? 'Dossier professionnel complété avec succès !' : 'Informations professionnelles et CV requis pour validation.' }}</span>
+            </div>
+            <button type="button" mat-stroked-button class="btn-dossier-pro" (click)="openConsultantDialog()">
+              <mat-icon>{{ hasConsultantData ? 'edit' : 'add' }}</mat-icon>
+              <span>{{ hasConsultantData ? 'Modifier mon dossier pro' : 'Compléter mon dossier pro' }}</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- Error Banner -->
+        <div *ngIf="errorMessage" class="error-banner animate-shake" role="alert">
+          <mat-icon>error_outline</mat-icon>
+          <div class="error-content">
+            <strong>Erreur de saisie</strong>
+            <span>{{ errorMessage }}</span>
+          </div>
+        </div>
+
+        <!-- Success Banner -->
+        <div *ngIf="successMessage" class="success-banner" role="status">
           <mat-icon>check_circle</mat-icon>
-          <span>Profil personnalisé client ou consultant</span>
+          <div class="success-content">
+            <strong>Inscription confirmée !</strong>
+            <span>{{ successMessage }}</span>
+          </div>
         </div>
-        <div class="feature-item">
-          <mat-icon>security</mat-icon>
-          <span>Données protégées et conformes</span>
-        </div>
-        <div class="feature-item">
-          <mat-icon>support_agent</mat-icon>
-          <span>Support client dédié 7j/7</span>
-        </div>
+
+        <!-- Main Form -->
+        <form (ngSubmit)="onSubmit()" #registerForm="ngForm" class="auth-form" novalidate>
+
+          <!-- Names Row -->
+          <div class="fields-row">
+            <div class="field-item">
+              <label for="reg-firstname" class="field-label">Prénom *</label>
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-icon matPrefix class="field-icon">person</mat-icon>
+                <input matInput id="reg-firstname" name="firstName" [(ngModel)]="client.firstName" required autocomplete="given-name" placeholder="Ex: Jean">
+              </mat-form-field>
+            </div>
+
+            <div class="field-item">
+              <label for="reg-lastname" class="field-label">Nom *</label>
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-icon matPrefix class="field-icon">person_outline</mat-icon>
+                <input matInput id="reg-lastname" name="lastName" [(ngModel)]="client.lastName" required autocomplete="family-name" placeholder="Ex: Dupont">
+              </mat-form-field>
+            </div>
+          </div>
+
+          <!-- Email & Phone Row -->
+          <div class="fields-row">
+            <div class="field-item">
+              <label for="reg-email" class="field-label">Adresse Email *</label>
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-icon matPrefix class="field-icon">mail_outline</mat-icon>
+                <input matInput id="reg-email" type="email" name="email" [(ngModel)]="client.email" required email autocomplete="email" placeholder="jean.dupont@exemple.com">
+              </mat-form-field>
+            </div>
+
+            <div class="field-item">
+              <label for="reg-phone" class="field-label">Téléphone</label>
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-icon matPrefix class="field-icon">phone</mat-icon>
+                <input matInput id="reg-phone" type="tel" name="phone" [(ngModel)]="client.phone" autocomplete="tel" placeholder="06 12 34 56 78">
+              </mat-form-field>
+            </div>
+          </div>
+
+          <!-- Password & Strength Meter -->
+          <div class="password-block">
+            <div class="fields-row">
+              <div class="field-item">
+                <label for="reg-password" class="field-label">Mot de passe *</label>
+                <mat-form-field appearance="outline" class="w-100">
+                  <mat-icon matPrefix class="field-icon">lock_outline</mat-icon>
+                  <input matInput 
+                         id="reg-password" 
+                         [type]="hidePassword ? 'password' : 'text'" 
+                         name="password" 
+                         [(ngModel)]="client.password" 
+                         required 
+                         autocomplete="new-password" 
+                         placeholder="Au moins 8 caractères">
+                  <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword" class="toggle-pass-btn">
+                    <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                  </button>
+                </mat-form-field>
+              </div>
+
+              <div class="field-item">
+                <label for="reg-confirm-password" class="field-label">Confirmer le mot de passe *</label>
+                <mat-form-field appearance="outline" class="w-100">
+                  <mat-icon matPrefix class="field-icon">lock_outline</mat-icon>
+                  <input matInput 
+                         id="reg-confirm-password" 
+                         [type]="hideConfirmPassword ? 'password' : 'text'" 
+                         name="confirmPassword" 
+                         [(ngModel)]="confirmPassword" 
+                         required 
+                         autocomplete="new-password" 
+                         placeholder="Retapez le mot de passe">
+                  <button mat-icon-button matSuffix type="button" (click)="hideConfirmPassword = !hideConfirmPassword" class="toggle-pass-btn">
+                    <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                  </button>
+                </mat-form-field>
+              </div>
+            </div>
+
+            <!-- Password Strength Visual Bar -->
+            <div class="password-meter-wrap" *ngIf="client.password">
+              <div class="meter-head">
+                <span class="meter-title">Force du mot de passe :</span>
+                <span class="meter-label" [style.color]="passwordStrengthColor">{{ passwordStrengthLabel }}</span>
+              </div>
+              <div class="meter-track">
+                <div class="meter-fill" [style.width.%]="passwordStrengthPercentage" [style.background-color]="passwordStrengthColor"></div>
+              </div>
+              <div class="password-rules-hints">
+                <span [class.valid]="hasMinLength">✓ 8 car.</span>
+                <span [class.valid]="hasUppercase">✓ Majuscule</span>
+                <span [class.valid]="hasLowercase">✓ Minuscule</span>
+                <span [class.valid]="hasNumber">✓ Chiffre</span>
+                <span [class.valid]="hasSpecial">✓ Spécial</span>
+                <span *ngIf="confirmPassword" [class.valid]="doPasswordsMatch" class="match-hint">
+                  {{ doPasswordsMatch ? '✓ Mots de passe identiques' : '✗ Ne correspondent pas' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- DOB & Country Row -->
+          <div class="fields-row">
+            <div class="field-item">
+              <label for="reg-dob" class="field-label">Date de naissance</label>
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-icon matPrefix class="field-icon">calendar_today</mat-icon>
+                <input matInput id="reg-dob" name="dob" [matDatepicker]="picker" [(ngModel)]="client.dob" autocomplete="bday" placeholder="JJ/MM/AAAA">
+                <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                <mat-datepicker #picker></mat-datepicker>
+              </mat-form-field>
+            </div>
+
+            <div class="field-item">
+              <label for="reg-country" class="field-label">Pays de résidence</label>
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-icon matPrefix class="field-icon">public</mat-icon>
+                <mat-select id="reg-country" name="country" [(ngModel)]="client.country">
+                  <mat-option value="France">France</mat-option>
+                  <mat-option value="Tunisie">Tunisie</mat-option>
+                  <mat-option value="Belgique">Belgique</mat-option>
+                  <mat-option value="Suisse">Suisse</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <!-- City & Postal Code Row -->
+          <div class="fields-row">
+            <div class="field-item">
+              <label for="reg-city" class="field-label">Ville</label>
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-icon matPrefix class="field-icon">location_city</mat-icon>
+                <input matInput id="reg-city" name="city" [(ngModel)]="client.city" autocomplete="address-level2" placeholder="Ex: Paris">
+              </mat-form-field>
+            </div>
+
+            <div class="field-item">
+              <label for="reg-zip" class="field-label">Code Postal</label>
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-icon matPrefix class="field-icon">pin_drop</mat-icon>
+                <input matInput id="reg-zip" name="zip" [(ngModel)]="client.zip" type="text" autocomplete="postal-code" placeholder="Ex: 75001">
+              </mat-form-field>
+            </div>
+          </div>
+
+          <!-- Full Address Field -->
+          <div class="field-item full-width">
+            <label for="reg-address" class="field-label">Adresse de voirie</label>
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-icon matPrefix class="field-icon">home</mat-icon>
+              <input matInput id="reg-address" name="address" [(ngModel)]="client.address" autocomplete="street-address" placeholder="Ex: 12 Rue de la Paix">
+            </mat-form-field>
+          </div>
+
+          <!-- Avatar Upload Box -->
+          <div class="avatar-box full-width">
+            <div class="avatar-preview-wrap">
+              <img *ngIf="profile_picture_preview" [src]="profile_picture_preview" alt="Aperçu avatar" class="avatar-img">
+              <div *ngIf="!profile_picture_preview" class="avatar-empty-circle">
+                <mat-icon>account_circle</mat-icon>
+              </div>
+            </div>
+            <div class="avatar-actions">
+              <div class="avatar-title">Photo de profil (optionnelle)</div>
+              <div class="avatar-help">JPG, PNG ou WEBP. Visible sur votre profil utilisateur.</div>
+              <div class="avatar-btns">
+                <button type="button" mat-stroked-button class="btn-choose-photo" (click)="fileInput.click()">
+                  <mat-icon>photo_camera</mat-icon>
+                  <span>{{ profile_picture_preview ? 'Changer' : 'Téléverser une photo' }}</span>
+                </button>
+                <input type="file" #fileInput style="display: none" (change)="onFileSelected($event)" accept="image/*">
+                <button *ngIf="profile_picture_preview" type="button" mat-button color="warn" (click)="resetImage()" class="btn-remove-photo">
+                  <mat-icon>delete</mat-icon>
+                  Supprimer
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit Buttons -->
+          <button mat-flat-button 
+                  color="primary" 
+                  type="submit" 
+                  class="submit-btn" 
+                  [disabled]="isLoading || !registerForm.form.valid || !isPasswordValid || !doPasswordsMatch">
+            <span *ngIf="!isLoading" class="btn-text">
+              <span>Créer mon compte</span>
+              <mat-icon>arrow_forward</mat-icon>
+            </span>
+            <span *ngIf="isLoading" class="btn-loader">
+              <mat-progress-spinner diameter="20" mode="indeterminate" color="accent"></mat-progress-spinner>
+              <span>Enregistrement en cours...</span>
+            </span>
+          </button>
+
+          <!-- Login Switch -->
+          <div class="switch-prompt">
+            <span>Vous possédez déjà un compte AledhemTek ?</span>
+            <a routerLink="/login" class="login-link">Se connecter à mon espace</a>
+          </div>
+
+          <!-- Return Home -->
+          <div class="return-home">
+            <a routerLink="/home" class="home-link">
+              <mat-icon>arrow_back</mat-icon>
+              <span>Retourner à la page d'accueil</span>
+            </a>
+          </div>
+
+        </form>
+
       </div>
-    </div>
-
-    <!-- Form Panel -->
-    <div class="register-form-panel">
-      <div class="form-header">
-        <h2>Création de compte</h2>
-        <p>Complétez vos informations pour démarrer l'aventure.</p>
-      </div>
-
-      <form (ngSubmit)="onSubmit()" #profileForm="ngForm" class="form-grid">
-        <mat-form-field appearance="outline" class="field-half">
-          <mat-label>Prénom</mat-label>
-          <mat-icon matPrefix>person</mat-icon>
-          <input matInput id="firstName" name="firstName" [(ngModel)]="client.firstName" autocomplete="given-name" required />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="field-half">
-          <mat-label>Nom</mat-label>
-          <mat-icon matPrefix>person</mat-icon>
-          <input matInput id="lastName" name="lastName" [(ngModel)]="client.lastName" autocomplete="family-name" required />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="field-half">
-          <mat-label>Adresse Email</mat-label>
-          <mat-icon matPrefix>mail</mat-icon>
-          <input matInput id="email" type="email" name="email" [(ngModel)]="client.email" autocomplete="email" required />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="field-half">
-          <mat-label>Mot de passe</mat-label>
-          <mat-icon matPrefix>lock</mat-icon>
-          <input matInput id="password" [type]="hidePassword ? 'password' : 'text'" name="password" [(ngModel)]="client.password" autocomplete="new-password" required />
-          <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
-            <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-          </button>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="field-half">
-          <mat-label>Téléphone</mat-label>
-          <mat-icon matPrefix>phone</mat-icon>
-          <input matInput id="phone" type="tel" name="phone" [(ngModel)]="client.phone" autocomplete="tel" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="field-half">
-          <mat-label>Date de naissance</mat-label>
-          <mat-icon matPrefix>calendar_today</mat-icon>
-          <input matInput id="dob" name="dob" [matDatepicker]="picker" [(ngModel)]="client.dob" autocomplete="bday" required />
-          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-          <mat-datepicker #picker></mat-datepicker>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="field-half">
-          <mat-label>Pays</mat-label>
-          <mat-icon matPrefix>public</mat-icon>
-          <mat-select id="country" name="country" [(ngModel)]="client.country" autocomplete="country">
-            <mat-option value="Tunisie">Tunisie</mat-option>
-            <mat-option value="France">France</mat-option>
-            <mat-option value="Italy">Italie</mat-option>
-            <mat-option value="USA">USA</mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="field-half">
-          <mat-label>Code Postal</mat-label>
-          <mat-icon matPrefix>location_on</mat-icon>
-          <input matInput id="zip" name="zip" [(ngModel)]="client.zip" type="number" autocomplete="postal-code" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Adresse complète</mat-label>
-          <mat-icon matPrefix>home</mat-icon>
-          <textarea matInput id="address" name="address" [(ngModel)]="client.address" autocomplete="street-address" rows="2"></textarea>
-        </mat-form-field>
-
-        <!-- Photo de profil -->
-        <div class="upload-box full-width">
-          <button type="button" class="btn-upload" (click)="fileInput.click()">
-            <mat-icon style="vertical-align: middle; font-size: 18px; width: 18px; height: 18px; margin-right: 4px;">photo_camera</mat-icon>
-            Choisir une photo
-          </button>
-          <input type="file" id="profilePicture" #fileInput style="display: none" (change)="onFileSelected($event)" accept="image/*" />
-          <span *ngIf="selectedFileName" class="file-name">{{ selectedFileName }}</span>
-          <img *ngIf="profile_picture_preview" [src]="profile_picture_preview" alt="Preview" class="preview-avatar" />
-          <button *ngIf="profile_picture_preview" mat-button color="warn" type="button" (click)="resetImage()">Supprimer</button>
-        </div>
-
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Type de profil</mat-label>
-          <mat-icon matPrefix>work</mat-icon>
-          <mat-select id="occupation" name="occupation" [(ngModel)]="selectedOccupation" (selectionChange)="onOccupationChange($event.value)">
-            <mat-option value="client">Client (Je cherche des prestations)</mat-option>
-            <mat-option value="consultant">Consultant / Artisan (Je propose mes services)</mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <div class="btn-group">
-          <button mat-raised-button color="primary" class="btn-submit" type="submit" [disabled]="!profileForm.form.valid">
-            Créer mon compte
-          </button>
-          <button mat-stroked-button type="reset" (click)="resetForm()">Réinitialiser</button>
-        </div>
-
-        <div class="login-redirect">
-          <span>Vous avez déjà un compte ? </span>
-          <a routerLink="/login">Connectez-vous</a>
-        </div>
-      </form>
-    </div>
+    </main>
 
   </div>
 </div>
-

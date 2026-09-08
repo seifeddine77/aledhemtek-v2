@@ -1,107 +1,200 @@
-<h1>Paramétrage de tâche</h1>
-<form class="task-form" #taskForm="ngForm">
-  <div class="grid-container">
-    <div class="grid-item">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Nom</mat-label>
-        <input matInput [(ngModel)]="task.name" name="name" required />
-      </mat-form-field>
-    </div>
-
-    <div class="grid-item">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Service</mat-label>
-        <mat-select [(ngModel)]="task.serviceId" name="serviceId">
-          <mat-option *ngFor="let s of services" [value]="s.id">{{ s.name }}</mat-option>
-        </mat-select>
-      </mat-form-field>
-    </div>
-
-    <div class="grid-item">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Durée approximative (min)</mat-label>
-        <input matInput type="number" [(ngModel)]="task.duration" name="duration" />
-      </mat-form-field>
-    </div>
-
-    <div class="grid-item">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Tarif</mat-label>
-        <input matInput [value]="displayRate()" disabled />
-        <button mat-icon-button matSuffix (click)="openRateDialog()" type="button" matTooltip="Ajouter un tarif">
-          <mat-icon>edit</mat-icon>
-        </button>
-      </mat-form-field>
-    </div>
-
-        <div class="grid-item">
-      <button type="button" mat-stroked-button (click)="fileInput.click()">Choisir une image</button>
-      <input hidden (change)="onFileSelected($event)" #fileInput type="file" accept="image/*">
-      <div *ngIf="imagePreview" class="image-preview">
-        <img [src]="imagePreview" alt="Aperçu de l'image">
+<div class="form-container-modern">
+  <div class="form-card-modern">
+    <div class="form-header-modern">
+      <div class="header-icon-badge">
+        <mat-icon>build_circle</mat-icon>
+      </div>
+      <div>
+        <h2>Paramétrage de la tâche</h2>
+        <p>Définissez les caractéristiques du service, sa tarification et ses fournitures associées</p>
       </div>
     </div>
 
-    <div class="grid-item description-area">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Description</mat-label>
-        <textarea matInput rows="3" [(ngModel)]="task.description" name="description"></textarea>
-      </mat-form-field>
-    </div>
+    <form class="form-body-modern" #taskForm="ngForm">
+      <!-- Section 1 : Informations principales -->
+      <div class="form-section-modern">
+        <div class="section-title">
+          <mat-icon>info</mat-icon>
+          <span>Informations générales</span>
+        </div>
+        
+        <div class="form-grid-2">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Nom de la tâche</mat-label>
+            <mat-icon matPrefix>assignment</mat-icon>
+            <input matInput [(ngModel)]="task.name" name="name" placeholder="Ex: Réparation de fuite d'eau" required />
+            <mat-error *ngIf="!task.name">Le nom de la tâche est obligatoire</mat-error>
+          </mat-form-field>
 
-    <div class="grid-item full-width section" style="grid-column: 1 / -1;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h2>Matériaux</h2>
-        <button mat-stroked-button color="primary" type="button" (click)="openMaterialDialog()">Ajouter un matériau</button>
-      </div>
-      <table mat-table [dataSource]="materials" class="mat-elevation-z1 small-table">
-        <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef>Nom</th>
-          <td mat-cell *matCellDef="let m">{{ m.name }}</td>
-        </ng-container>
-        <ng-container matColumnDef="quantity">
-          <th mat-header-cell *matHeaderCellDef>Quantité</th>
-          <td mat-cell *matCellDef="let m">{{ m.quantity }}</td>
-        </ng-container>
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef></th>
-          <td mat-cell *matCellDef="let i = index">
-            <button mat-icon-button color="warn" (click)="removeMaterial(i)" type="button">
-              <mat-icon>delete</mat-icon>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Service de rattachement</mat-label>
+            <mat-icon matPrefix>category</mat-icon>
+            <mat-select [(ngModel)]="task.serviceId" name="serviceId" required>
+              <mat-option *ngFor="let s of services" [value]="s.id">{{ s.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Durée approximative (minutes)</mat-label>
+            <mat-icon matPrefix>schedule</mat-icon>
+            <input matInput type="number" [(ngModel)]="task.duration" name="duration" min="1" placeholder="Ex: 60" />
+            <span matSuffix class="field-unit">min</span>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Tarification active</mat-label>
+            <mat-icon matPrefix>payments</mat-icon>
+            <input matInput [value]="displayRate() || 'Aucun tarif défini'" disabled />
+            <button mat-icon-button matSuffix (click)="openRateDialog()" type="button" matTooltip="Gérer / Ajouter un tarif" color="primary">
+              <mat-icon>add_circle_outline</mat-icon>
             </button>
-          </td>
-        </ng-container>
+          </mat-form-field>
+        </div>
 
-        <tr mat-header-row *matHeaderRowDef="materialColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: materialColumns;"></tr>
-      </table>
-    </div>
+        <mat-form-field appearance="outline" class="w-100 mt-2">
+          <mat-label>Description détaillée</mat-label>
+          <mat-icon matPrefix>description</mat-icon>
+          <textarea matInput rows="3" [(ngModel)]="task.description" name="description" placeholder="Détaillez les spécificités ou prérequis de cette intervention..."></textarea>
+        </mat-form-field>
+      </div>
 
-    <div class="grid-item full-width section" style="grid-column: 1 / -1;">
-      <table mat-table [dataSource]="rates" class="mat-elevation-z1 small-table">
-        <ng-container matColumnDef="price">
-          <th mat-header-cell *matHeaderCellDef>Prix</th>
-          <td mat-cell *matCellDef="let r">{{ r.price | number : '1.0-2' }} €</td>
-        </ng-container>
+      <!-- Section 2 : Illustration de la tâche -->
+      <div class="form-section-modern">
+        <div class="section-title">
+          <mat-icon>image</mat-icon>
+          <span>Illustration visuelle</span>
+        </div>
 
-        <ng-container matColumnDef="start">
-          <th mat-header-cell *matHeaderCellDef>Début</th>
-          <td mat-cell *matCellDef="let r">{{ r.startDate | date }}</td>
-        </ng-container>
+        <div class="file-upload-modern" (click)="fileInput.click()">
+          <input hidden (change)="onFileSelected($event)" #fileInput type="file" accept="image/*">
+          <div *ngIf="!imagePreview" class="upload-placeholder">
+            <mat-icon class="upload-icon">cloud_upload</mat-icon>
+            <div class="upload-text">
+              <span class="upload-prompt">Cliquez pour importer une illustration</span>
+              <span class="upload-hint">PNG, JPG jusqu'à 5 Mo</span>
+            </div>
+          </div>
+          <div *ngIf="imagePreview" class="file-upload-preview">
+            <img [src]="imagePreview" alt="Aperçu de la tâche" />
+            <button type="button" class="btn-change-image" (click)="$event.stopPropagation(); fileInput.click()">
+              <mat-icon>photo_camera</mat-icon>
+              Changer l'image
+            </button>
+          </div>
+        </div>
+      </div>
 
-        <ng-container matColumnDef="end">
-          <th mat-header-cell *matHeaderCellDef>Fin</th>
-          <td mat-cell *matCellDef="let r">{{ r.endDate | date }}</td>
-        </ng-container>
+      <!-- Section 3 : Historique et grille tarifaire -->
+      <div class="form-section-modern">
+        <div class="section-header-row">
+          <div class="section-title">
+            <mat-icon>price_check</mat-icon>
+            <span>Grille des tarifs ({{ rates.length }})</span>
+          </div>
+          <button mat-stroked-button color="primary" type="button" (click)="openRateDialog()">
+            <mat-icon>add</mat-icon>
+            Ajouter un tarif
+          </button>
+        </div>
 
-        <tr mat-header-row *matHeaderRowDef="rateColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: rateColumns;"></tr>
-      </table>
-    </div>
+        <div *ngIf="rates.length > 0" class="table-responsive-wrapper">
+          <table mat-table [dataSource]="rates" class="modern-data-table">
+            <ng-container matColumnDef="price">
+              <th mat-header-cell *matHeaderCellDef>Prix unitaire HT</th>
+              <td mat-cell *matCellDef="let r">
+                <span class="badge-price">{{ r.price | number : '1.2-2' }} €</span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="start">
+              <th mat-header-cell *matHeaderCellDef>Date de début</th>
+              <td mat-cell *matCellDef="let r">
+                <span class="date-badge" *ngIf="r.startDate">{{ r.startDate | date : 'dd/MM/yyyy' }}</span>
+                <span class="text-muted" *ngIf="!r.startDate">Immédiat</span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="end">
+              <th mat-header-cell *matHeaderCellDef>Date d'expiration</th>
+              <td mat-cell *matCellDef="let r">
+                <span class="date-badge" *ngIf="r.endDate">{{ r.endDate | date : 'dd/MM/yyyy' }}</span>
+                <span class="text-muted" *ngIf="!r.endDate">Indéterminée</span>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="rateColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: rateColumns;"></tr>
+          </table>
+        </div>
+
+        <div *ngIf="rates.length === 0" class="empty-section-notice">
+          <mat-icon>currency_exchange</mat-icon>
+          <span>Aucun tarif spécifique n'est encore enregistré. Cliquez sur le bouton ci-dessus pour en ajouter un.</span>
+        </div>
+      </div>
+
+      <!-- Section 4 : Matériaux et consommables -->
+      <div class="form-section-modern">
+        <div class="section-header-row">
+          <div class="section-title">
+            <mat-icon>inventory_2</mat-icon>
+            <span>Matériaux requis ({{ materials.length }})</span>
+          </div>
+          <button mat-stroked-button color="primary" type="button" (click)="openMaterialDialog()">
+            <mat-icon>add</mat-icon>
+            Ajouter un matériau
+          </button>
+        </div>
+
+        <div *ngIf="materials.length > 0" class="table-responsive-wrapper">
+          <table mat-table [dataSource]="materials" class="modern-data-table">
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>Désignation</th>
+              <td mat-cell *matCellDef="let m" class="font-medium">
+                <div class="material-name-col">
+                  <mat-icon class="material-icon">handyman</mat-icon>
+                  <span>{{ m.name }}</span>
+                </div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="quantity">
+              <th mat-header-cell *matHeaderCellDef>Quantité requise</th>
+              <td mat-cell *matCellDef="let m">
+                <span class="badge-qty">Qté : {{ m.quantity }}</span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef class="text-right">Actions</th>
+              <td mat-cell *matCellDef="let i = index" class="text-right">
+                <button mat-icon-button color="warn" (click)="removeMaterial(i)" type="button" matTooltip="Supprimer ce matériau">
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="materialColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: materialColumns;"></tr>
+          </table>
+        </div>
+
+        <div *ngIf="materials.length === 0" class="empty-section-notice">
+          <mat-icon>handyman</mat-icon>
+          <span>Aucun matériau n'est pour l'instant requis pour accomplir cette tâche.</span>
+        </div>
+      </div>
+
+      <!-- Boutons d'action -->
+      <div class="form-actions-modern mt-4">
+        <button mat-button type="button" routerLink="/admin/tasks-management" class="btn-cancel">
+          Annuler
+        </button>
+        <button mat-raised-button color="primary" type="button" (click)="save()" [disabled]="!taskForm.form.valid || !selectedFile" class="btn-submit">
+          <mat-icon>save</mat-icon>
+          Enregistrer la tâche
+        </button>
+      </div>
+    </form>
   </div>
-
-  <div class="actions">
-    <button mat-raised-button color="primary" (click)="save()" [disabled]="!taskForm.form.valid">Enregistrer</button>
-    <button mat-button routerLink="/admin/services">Annuler</button>
-  </div>
-</form>
+</div>

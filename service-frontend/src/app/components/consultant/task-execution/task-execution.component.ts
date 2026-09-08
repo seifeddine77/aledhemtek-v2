@@ -23,6 +23,7 @@ import { TaskService } from '../../../services/task.service';
 import { AuthService } from '../../../services/auth.service';
 import { Reservation, ReservationStatus } from '../../../models/reservation.model';
 import { Task } from '../../../models/task.model';
+import { cleanText } from '../../../pipes/clean-text.pipe';
 
 interface TaskExecution {
   id?: number;
@@ -74,6 +75,7 @@ export class TaskExecutionComponent implements OnInit {
   
   // State
   loading = false;
+  actionLoading = false;
   selectedTask: TaskExecution | null = null;
   currentUserId: number | null = null;
   
@@ -120,26 +122,33 @@ export class TaskExecutionComponent implements OnInit {
 
   private loadAssignedReservations(): void {
     if (!this.currentUserId) {
+      this.currentUserId = this.authService.getCurrentUserId();
+    }
+
+    if (!this.currentUserId) {
+      this.loading = false;
       this.showError('Utilisateur non identifié');
       return;
     }
 
     this.loading = true;
     
-    this.reservationService.getAllReservations().subscribe({
+    this.reservationService.getReservationsByConsultant(this.currentUserId).subscribe({
       next: (reservations: Reservation[]) => {
-        this.assignedReservations = reservations.filter((r: Reservation) => 
+        this.assignedReservations = (reservations || []).filter((r: Reservation) => 
           r.status === ReservationStatus.ASSIGNED || 
-          r.status === ReservationStatus.IN_PROGRESS
+          r.status === ReservationStatus.IN_PROGRESS ||
+          r.status === ReservationStatus.COMPLETED
         );
         this.processTasks();
         this.calculateStatistics();
+        this.loading = false;
       },
       error: (error: any) => {
         console.error('Erreur lors du chargement des réservations:', error);
-        this.showError('Erreur lors du chargement des réservations');
-      },
-      complete: () => {
+        this.assignedReservations = [];
+        this.processTasks();
+        this.calculateStatistics();
         this.loading = false;
       }
     });
@@ -151,8 +160,12 @@ export class TaskExecutionComponent implements OnInit {
     this.completedTasks = [];
 
     this.assignedReservations.forEach(reservation => {
+      reservation.title = cleanText(reservation.title || '');
+      reservation.description = cleanText(reservation.description || '');
       if (reservation.tasks) {
         reservation.tasks.forEach(task => {
+          task.name = cleanText(task.name || '');
+          task.description = cleanText(task.description || '');
           const taskExecution: TaskExecution = {
             taskId: task.id!,
             reservationId: reservation.id!,
@@ -208,10 +221,8 @@ export class TaskExecutionComponent implements OnInit {
 
   // Actions sur les tâches
   startTask(taskExecution: TaskExecution): void {
-    this.loading = true;
-    
-    // Mettre à jour le statut de la réservation si nécessaire
     if (taskExecution.reservation.status === ReservationStatus.ASSIGNED) {
+      this.actionLoading = true;
       this.reservationService.updateReservationStatus(
         taskExecution.reservationId, 
         ReservationStatus.IN_PROGRESS
@@ -220,16 +231,19 @@ export class TaskExecutionComponent implements OnInit {
           taskExecution.status = 'IN_PROGRESS';
           taskExecution.startedAt = new Date();
           this.moveTaskToInProgress(taskExecution);
-          this.showSuccess('Tâche démarrée avec succès');
+          this.actionLoading = false;
+          this.showSuccess('Intervention démarrée avec succès');
         },
         error: (error) => {
           console.error('Erreur lors du démarrage de la tâche:', error);
+          this.actionLoading = false;
           this.showError('Erreur lors du démarrage de la tâche');
-        },
-        complete: () => {
-          this.loading = false;
         }
       });
+    } else {
+      taskExecution.status = 'IN_PROGRESS';
+      taskExecution.startedAt = new Date();
+      this.moveTaskToInProgress(taskExecution);
     }
   }
 
@@ -246,10 +260,8 @@ export class TaskExecutionComponent implements OnInit {
     if (!this.selectedTask) return;
 
     const formData = this.taskUpdateForm.value;
-    this.loading = true;
+    this.actionLoading = true;
 
-    // Simuler la sauvegarde de la completion de tâche
-    // Dans un vrai projet, cela ferait appel à un service backend
     setTimeout(() => {
       this.selectedTask!.status = 'COMPLETED';
       this.selectedTask!.completedAt = new Date();
@@ -261,10 +273,10 @@ export class TaskExecutionComponent implements OnInit {
       
       this.selectedTask = null;
       this.taskUpdateForm.reset();
-      this.loading = false;
+      this.actionLoading = false;
       
-      this.showSuccess('Tâche terminée avec succès');
-    }, 1000);
+      this.showSuccess('Intervention clôturée avec succès');
+    }, 600);
   }
 
   private moveTaskToInProgress(taskExecution: TaskExecution): void {
@@ -355,6 +367,25 @@ export class TaskExecutionComponent implements OnInit {
       case 'low': return '#4caf50';
       default: return '#666';
     }
+  }
+
+  getClientInitials(name?: string): string {
+    if (!name) return 'CL';
+    return name
+      .trim()
+      .split(' ')
+      .filter(p => p.length > 0)
+      .map(p => p[0])
+      .join('')
+      .substring(0, 2)
+      .toUpperCase();
+  }
+
+  addTimeSpent(extraMinutes: number): void {
+    const current = Number(this.taskUpdateForm.get('timeSpent')?.value) || 0;
+    this.taskUpdateForm.patchValue({
+      timeSpent: Math.max(0, current + extraMinutes)
+    });
   }
 
   private showSuccess(message: string): void {

@@ -9,8 +9,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Task } from '../../../models/task.model';
 import { Reservation, ReservationStatus } from '../../../models/reservation.model';
+import { CleanTextPipe } from '../../../pipes/clean-text.pipe';
 
 @Component({
   selector: 'app-reservation-tasks-dialog',
@@ -25,7 +27,9 @@ import { Reservation, ReservationStatus } from '../../../models/reservation.mode
     MatIconModule,
     MatDividerModule,
     MatCardModule,
-    MatChipsModule
+    MatChipsModule,
+    MatTooltipModule,
+    CleanTextPipe
   ],
   templateUrl: './reservation-tasks-dialog.component.html',
   styleUrls: ['./reservation-tasks-dialog.component.css']
@@ -36,7 +40,7 @@ export class ReservationTasksDialogComponent {
   totalDuration: number = 0;
   totalPrice: number = 0;
 
-  displayedColumns: string[] = ['name', 'description', 'duration', 'price'];
+  displayedColumns: string[] = ['name', 'description', 'duration'];
 
   constructor(
     public dialogRef: MatDialogRef<ReservationTasksDialogComponent>,
@@ -49,16 +53,16 @@ export class ReservationTasksDialogComponent {
 
   private calculateTotals(): void {
     this.totalDuration = this.tasks.reduce((sum, task) => sum + (task.duration || 0), 0);
-    // Note: Si vous avez un prix par tâche, ajoutez-le ici
     this.totalPrice = this.reservation.totalPrice || 0;
   }
 
   formatDuration(minutes: number): string {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
+    const rounded = Math.round(minutes || 0);
+    const hours = Math.floor(rounded / 60);
+    const mins = rounded % 60;
     
     if (hours > 0) {
-      return `${hours}h ${mins}min`;
+      return mins > 0 ? `${hours}h ${mins}min` : `${hours}h`;
     }
     return `${mins}min`;
   }

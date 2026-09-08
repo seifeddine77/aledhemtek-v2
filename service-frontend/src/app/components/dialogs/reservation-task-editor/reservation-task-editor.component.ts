@@ -13,12 +13,14 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Task } from '../../../models/task.model';
 import { Reservation } from '../../../models/reservation.model';
 import { TaskService } from '../../../services/task.service';
 import { ReservationService } from '../../../services/reservation.service';
+import { CleanTextPipe } from '../../../pipes/clean-text.pipe';
 
-interface TaskWithQuantity extends Task {
+export interface TaskWithQuantity extends Task {
   quantity: number;
   isSelected: boolean;
 }
@@ -39,7 +41,9 @@ interface TaskWithQuantity extends Task {
     MatCardModule,
     MatChipsModule,
     MatSelectModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    MatTooltipModule,
+    CleanTextPipe
   ],
   templateUrl: './reservation-task-editor.component.html',
   styleUrls: ['./reservation-task-editor.component.css']
@@ -47,10 +51,13 @@ interface TaskWithQuantity extends Task {
 export class ReservationTaskEditorComponent implements OnInit {
   reservation: Reservation;
   availableTasks: TaskWithQuantity[] = [];
+  filteredAvailableTasks: TaskWithQuantity[] = [];
   selectedTasks: TaskWithQuantity[] = [];
   loading = false;
+  saving = false;
+  searchTerm: string = '';
 
-  displayedColumns: string[] = ['select', 'name', 'description', 'duration', 'quantity', 'actions'];
+  displayedColumns: string[] = ['name', 'description', 'duration', 'quantity', 'actions'];
 
   constructor(
     public dialogRef: MatDialogRef<ReservationTaskEditorComponent>,
@@ -77,6 +84,7 @@ export class ReservationTaskEditorComponent implements OnInit {
           isSelected: false
         }));
         this.initializeSelectedTasks();
+        this.filterAvailableTasks();
         this.loading = false;
       },
       error: (error) => {
@@ -90,7 +98,7 @@ export class ReservationTaskEditorComponent implements OnInit {
     if (this.reservation.tasks && this.reservation.tasks.length > 0) {
       this.selectedTasks = this.reservation.tasks.map(task => ({
         ...task,
-        quantity: (task as any).quantity || 1, // Cast temporaire pour éviter l'erreur TypeScript
+        quantity: (task as any).quantity || 1,
         isSelected: true
       }));
 
@@ -103,46 +111,47 @@ export class ReservationTaskEditorComponent implements OnInit {
         }
       });
     }
+    this.filterAvailableTasks();
+  }
+
+  filterAvailableTasks(): void {
+    const term = this.searchTerm.toLowerCase().trim();
+    this.filteredAvailableTasks = this.availableTasks.filter(task => {
+      const matchesSearch = !term ||
+        (task.name && task.name.toLowerCase().includes(term)) ||
+        (task.description && task.description.toLowerCase().includes(term));
+      return matchesSearch;
+    });
+  }
+
+  onSearchChange(): void {
+    this.filterAvailableTasks();
+  }
+
+  isTaskSelected(task: TaskWithQuantity): boolean {
+    return this.selectedTasks.some(st => st.id === task.id);
   }
 
   toggleTaskSelection(task: TaskWithQuantity): void {
-    task.isSelected = !task.isSelected;
-    
-    if (task.isSelected) {
-      // Ajouter à la liste des tâches sélectionnées
-      const taskCopy = { ...task };
-      this.selectedTasks.push(taskCopy);
+    const index = this.selectedTasks.findIndex(st => st.id === task.id);
+    if (index !== -1) {
+      this.selectedTasks.splice(index, 1);
+      task.isSelected = false;
     } else {
-      // Supprimer de la liste des tâches sélectionnées
-      this.selectedTasks = this.selectedTasks.filter(st => st.id !== task.id);
+      const taskCopy = { ...task, isSelected: true, quantity: task.quantity || 1 };
+      this.selectedTasks.push(taskCopy);
+      task.isSelected = true;
     }
   }
 
-  onQuantityChange(task: TaskWithQuantity, event: Event): void {
-    const target = event.target as HTMLInputElement;
-    const quantity = parseInt(target.value, 10);
-    this.updateQuantity(task, quantity);
-  }
-
-  updateQuantity(task: TaskWithQuantity, quantity: number): void {
-    if (quantity < 1) {
-      quantity = 1;
-    }
-    
-    task.quantity = quantity;
-    
-    // Mettre à jour aussi dans la liste des tâches sélectionnées
-    const selectedTask = this.selectedTasks.find(st => st.id === task.id);
-    if (selectedTask) {
-      selectedTask.quantity = quantity;
+  addTask(task: TaskWithQuantity): void {
+    if (!this.isTaskSelected(task)) {
+      this.toggleTaskSelection(task);
     }
   }
 
   removeTask(task: TaskWithQuantity): void {
-    // Supprimer de la liste des tâches sélectionnées
     this.selectedTasks = this.selectedTasks.filter(st => st.id !== task.id);
-    
-    // Démarquer dans la liste disponible
     const availableTask = this.availableTasks.find(at => at.id === task.id);
     if (availableTask) {
       availableTask.isSelected = false;
@@ -150,64 +159,86 @@ export class ReservationTaskEditorComponent implements OnInit {
     }
   }
 
+  incrementQty(task: TaskWithQuantity): void {
+    task.quantity = (task.quantity || 1) + 1;
+    const selected = this.selectedTasks.find(st => st.id === task.id);
+    if (selected) selected.quantity = task.quantity;
+  }
+
+  decrementQty(task: TaskWithQuantity): void {
+    if ((task.quantity || 1) > 1) {
+      task.quantity = (task.quantity || 1) - 1;
+      const selected = this.selectedTasks.find(st => st.id === task.id);
+      if (selected) selected.quantity = task.quantity;
+    }
+  }
+
+  onQuantityChange(task: TaskWithQuantity, event: Event): void {
+    const target = event.target as HTMLInputElement;
+    const qty = parseInt(target.value, 10);
+    const val = isNaN(qty) || qty < 1 ? 1 : qty;
+    task.quantity = val;
+    const selected = this.selectedTasks.find(st => st.id === task.id);
+    if (selected) selected.quantity = val;
+  }
+
+  getTotalEstimatedDuration(): number {
+    return this.selectedTasks.reduce((sum, task) => sum + ((task.duration || 0) * (task.quantity || 1)), 0);
+  }
+
+  formatDuration(minutes: number): string {
+    const rounded = Math.round(minutes || 0);
+    const hours = Math.floor(rounded / 60);
+    const mins = rounded % 60;
+    if (hours > 0) {
+      return mins > 0 ? `${hours}h ${mins}min` : `${hours}h`;
+    }
+    return `${mins}min`;
+  }
+
   onSave(): void {
-    this.loading = true;
-    
-    // Préparer les données pour l'API
+    this.saving = true;
     const taskIds = this.selectedTasks.map(task => task.id!);
     const taskQuantities: { [key: string]: number } = {};
-    
+
     this.selectedTasks.forEach(task => {
       taskQuantities[task.id!.toString()] = task.quantity;
     });
 
-    // D'abord, supprimer toutes les tâches existantes
     const existingTaskIds = this.reservation.tasks?.map(t => t.id!) || [];
     const tasksToRemove = existingTaskIds.filter(id => !taskIds.includes(id));
-    
-    // Supprimer les tâches qui ne sont plus sélectionnées
-    const removePromises = tasksToRemove.map(taskId => 
+
+    const removePromises = tasksToRemove.map(taskId =>
       this.reservationService.removeTaskFromReservation(this.reservation.id!, taskId).toPromise()
     );
 
     Promise.all(removePromises).then(() => {
-      // Ajouter les nouvelles tâches
       if (taskIds.length > 0) {
         this.reservationService.addTasksToReservation(this.reservation.id!, taskIds, taskQuantities).subscribe({
           next: (updatedReservation) => {
-            this.loading = false;
-            this.snackBar.open('Tâches mises à jour avec succès', 'Fermer', { duration: 3000 });
+            this.saving = false;
+            this.snackBar.open('Prestations de la mission enregistrées avec succès', 'Fermer', { duration: 3000 });
             this.dialogRef.close(updatedReservation);
           },
           error: (error) => {
             console.error('Error updating tasks:', error);
-            this.loading = false;
+            this.saving = false;
             this.snackBar.open('Erreur lors de la mise à jour des tâches', 'Fermer', { duration: 3000 });
           }
         });
       } else {
-        this.loading = false;
-        this.snackBar.open('Tâches mises à jour avec succès', 'Fermer', { duration: 3000 });
+        this.saving = false;
+        this.snackBar.open('Prestations de la mission enregistrées avec succès', 'Fermer', { duration: 3000 });
         this.dialogRef.close();
       }
     }).catch(error => {
       console.error('Error removing tasks:', error);
-      this.loading = false;
+      this.saving = false;
       this.snackBar.open('Erreur lors de la suppression des tâches', 'Fermer', { duration: 3000 });
     });
   }
 
   onCancel(): void {
     this.dialogRef.close();
-  }
-
-  formatDuration(minutes: number): string {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    
-    if (hours > 0) {
-      return `${hours}h ${mins}min`;
-    }
-    return `${mins}min`;
   }
 }

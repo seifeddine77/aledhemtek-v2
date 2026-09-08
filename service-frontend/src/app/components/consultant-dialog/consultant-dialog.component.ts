@@ -6,7 +6,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import {MatIcon} from '@angular/material/icon';
+import { MatIcon } from '@angular/material/icon';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { cleanText } from '../../pipes/clean-text.pipe';
 
 @Component({
   selector: 'app-consultant-dialog',
@@ -18,7 +20,8 @@ import {MatIcon} from '@angular/material/icon';
     MatInputModule,
     MatButtonModule,
     MatCardModule,
-    MatIcon
+    MatIcon,
+    MatSnackBarModule
   ],
   templateUrl: './consultant-dialog.component.html',
   styleUrls: ['./consultant-dialog.component.css']
@@ -33,7 +36,10 @@ export class ConsultantDialogComponent {
   resumeFile: File | null = null;
   resumeFileName: string = '';
 
-  constructor(private dialogRef: MatDialogRef<ConsultantDialogComponent>) {}
+  constructor(
+    private dialogRef: MatDialogRef<ConsultantDialogComponent>,
+    private snackBar: MatSnackBar
+  ) {}
 
   onFileSelected(event: any): void {
     const file = event.target.files[0];
@@ -52,6 +58,11 @@ export class ConsultantDialogComponent {
 
   onSave(): void {
     console.log('[DEBUG] Submit clicked');
+
+    // Clean inputs to avoid encoding glitches
+    this.consultantData.companyName = cleanText(this.consultantData.companyName || '').trim();
+    this.consultantData.jobTitle = cleanText(this.consultantData.jobTitle || '').trim();
+
     console.log('[DEBUG] Consultant Data:', this.consultantData);
     console.log('[DEBUG] Resume File:', this.resumeFile);
 
@@ -66,7 +77,11 @@ export class ConsultantDialogComponent {
       !this.consultantData.experienceYears ||
       !this.resumeFile
     ) {
-      alert('Please complete all fields and upload a resume.');
+      this.snackBar.open(
+        'Veuillez renseigner tous les champs obligatoires et joindre votre CV ou justificatif.',
+        'Fermer',
+        { duration: 4500, panelClass: ['modern-snackbar'] }
+      );
       return;
     }
 
@@ -76,6 +91,6 @@ export class ConsultantDialogComponent {
     };
 
     console.log('[DEBUG] Consultant data submitted to parent:', result);
-    this.dialogRef.close(result); // ✅ Pass the result to parent
+    this.dialogRef.close(result); // Pass the result to parent
   }
 }

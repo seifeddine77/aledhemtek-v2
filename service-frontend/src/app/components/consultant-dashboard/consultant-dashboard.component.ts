@@ -12,6 +12,7 @@ import { AuthService } from '../../services/auth.service';
 import { EvaluationService } from '../../services/evaluation.service';
 import { Reservation, ReservationStatus } from '../../models/reservation.model';
 import { Evaluation } from '../../models/evaluation.model';
+import { cleanText } from '../../pipes/clean-text.pipe';
 
 @Component({
   selector: 'app-consultant-dashboard',
@@ -31,6 +32,8 @@ import { Evaluation } from '../../models/evaluation.model';
 export class ConsultantDashboardComponent implements OnInit {
   loading = false;
   consultantId: number = 0;
+  artisanName = 'Artisan';
+  todayFormatted = '';
   
   // Statistics
   totalAssignments = 0;
@@ -70,8 +73,33 @@ export class ConsultantDashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.consultantId = this.authService.getCurrentUserId();
+    this.extractArtisanName();
+    this.todayFormatted = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
     this.loadDashboardData();
     this.loadEvaluationStats();
+  }
+
+  extractArtisanName(): void {
+    try {
+      const token = localStorage.getItem('jwt');
+      if (token) {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const email = payload.sub || '';
+        if (email) {
+          const raw = email.split('@')[0];
+          this.artisanName = raw.charAt(0).toUpperCase() + raw.slice(1);
+        }
+      }
+    } catch (e) {
+      this.artisanName = 'Artisan Pro';
+    }
+  }
+
+  getUrgentMission(): Reservation | undefined {
+    return this.todayReservations.find(r => r.status === ReservationStatus.IN_PROGRESS) ||
+           this.todayReservations.find(r => r.status === ReservationStatus.ASSIGNED) ||
+           this.recentAssignments.find(r => r.status === ReservationStatus.IN_PROGRESS) ||
+           this.recentAssignments.find(r => r.status === ReservationStatus.ASSIGNED);
   }
 
   loadDashboardData(): void {
@@ -79,14 +107,19 @@ export class ConsultantDashboardComponent implements OnInit {
     
     this.reservationService.getReservationsByConsultant(this.consultantId).subscribe({
       next: (reservations) => {
-        this.calculateStatistics(reservations);
-        this.recentAssignments = reservations
+        const cleaned = (reservations || []).map(r => ({
+          ...r,
+          title: cleanText(r.title || ''),
+          description: cleanText(r.description || '')
+        }));
+        this.calculateStatistics(cleaned);
+        this.recentAssignments = cleaned
           .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime())
           .slice(0, 5);
         
         // Today's reservations
         const today = new Date();
-        this.todayReservations = reservations.filter(r => {
+        this.todayReservations = cleaned.filter(r => {
           const reservationDate = new Date(r.startDate);
           return reservationDate.toDateString() === today.toDateString();
         });

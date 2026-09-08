@@ -1,78 +1,124 @@
-<h2 mat-dialog-title>Gérer les tâches de la réservation</h2>
-
-<mat-dialog-content class="mat-typography">
-  <!-- Form for adding/editing tasks -->
-  <form [formGroup]="taskForm" (ngSubmit)="addTask()" class="task-form">
-    <mat-form-field appearance="outline">
-      <mat-label>Nom de la tâche</mat-label>
-      <input matInput formControlName="name" placeholder="Ex: Remplacement du filtre à huile">
-    </mat-form-field>
-
-    <mat-form-field appearance="outline">
-      <mat-label>Description</mat-label>
-      <textarea matInput formControlName="description" placeholder="Ex: Utiliser un filtre de type X"></textarea>
-    </mat-form-field>
-
-    <mat-form-field appearance="outline">
-      <mat-label>Durée (minutes)</mat-label>
-      <input matInput type="number" formControlName="duration">
-    </mat-form-field>
-
-    <div class="form-actions">
-      <button mat-raised-button color="primary" type="submit" [disabled]="taskForm.invalid">
-        {{ isEditing ? 'Mettre à jour la tâche' : 'Ajouter la tâche' }}
-      </button>
-      <button mat-button type="button" (click)="resetForm()" *ngIf="isEditing">Annuler l'édition</button>
+<div class="dialog-modern-container">
+  <div class="dialog-modern-header">
+    <div class="dialog-header-badge">
+      <mat-icon>task_alt</mat-icon>
     </div>
-  </form>
-
-  <mat-divider></mat-divider>
-
-  <!-- List of current tasks -->
-  <h3 class="tasks-list-title">Tâches actuelles ({{tasks.length}})</h3>
-  <div class="tasks-container">
-    <table mat-table [dataSource]="tasks" class="mat-elevation-z2 tasks-table">
-
-      <!-- Name Column -->
-      <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef> Nom </th>
-        <td mat-cell *matCellDef="let task"> {{task.name}} </td>
-      </ng-container>
-
-      <!-- Description Column -->
-      <ng-container matColumnDef="description">
-        <th mat-header-cell *matHeaderCellDef> Description </th>
-        <td mat-cell *matCellDef="let task"> {{task.description}} </td>
-      </ng-container>
-
-      <!-- Duration Column -->
-      <ng-container matColumnDef="duration">
-        <th mat-header-cell *matHeaderCellDef> Durée (min) </th>
-        <td mat-cell *matCellDef="let task"> {{task.duration}} </td>
-      </ng-container>
-
-      <!-- Actions Column -->
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef> Actions </th>
-        <td mat-cell *matCellDef="let element; let i = index;">
-          <button mat-icon-button color="primary" (click)="editTask(i)">
-            <mat-icon>edit</mat-icon>
-          </button>
-          <button mat-icon-button color="warn" (click)="deleteTask(i)">
-            <mat-icon>delete</mat-icon>
-          </button>
-        </td>
-      </ng-container>
-
-      <tr mat-header-row *matHeaderRowDef="['name', 'description', 'duration', 'actions']"></tr>
-      <tr mat-row *matRowDef="let row; columns: ['name', 'description', 'duration', 'actions'];"></tr>
-    </table>
-    <p *ngIf="tasks.length === 0" class="no-tasks-message">Aucune tâche pour le moment. Utilisez le formulaire ci-dessus pour en ajouter.</p>
+    <div class="dialog-header-text">
+      <h2>Gérer les tâches de la réservation</h2>
+      <p>Ajoutez ou personnalisez les tâches à exécuter pour cette intervention</p>
+    </div>
   </div>
 
-</mat-dialog-content>
+  <div class="dialog-modern-body">
+    <!-- Formulaire d'ajout / édition -->
+    <div class="task-form-card">
+      <div class="card-header-label">
+        <mat-icon>{{ isEditing ? 'edit' : 'add_circle_outline' }}</mat-icon>
+        <span>{{ isEditing ? 'Modifier la tâche sélectionnée' : 'Ajouter une nouvelle tâche' }}</span>
+      </div>
 
-<mat-dialog-actions align="end">
-  <button mat-button (click)="onCancel()">Annuler</button>
-  <button mat-raised-button color="primary" (click)="onSave()">Sauvegarder les modifications</button>
-</mat-dialog-actions>
+      <form [formGroup]="taskForm" (ngSubmit)="addTask()" class="task-form-grid">
+        <div class="form-row-2">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Nom de la tâche</mat-label>
+            <mat-icon matPrefix>assignment</mat-icon>
+            <input matInput formControlName="name" placeholder="Ex: Remplacement du filtre à huile" required>
+            <mat-error *ngIf="taskForm.get('name')?.hasError('required')">Le nom est requis</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Durée estimée</mat-label>
+            <mat-icon matPrefix>schedule</mat-icon>
+            <input matInput type="number" formControlName="duration" min="1" placeholder="30">
+            <span matSuffix class="field-unit">min</span>
+            <mat-error *ngIf="taskForm.get('duration')?.hasError('required')">Durée requise</mat-error>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Description ou consignes spécifiques</mat-label>
+          <mat-icon matPrefix>description</mat-icon>
+          <textarea matInput formControlName="description" rows="2" placeholder="Précisez les instructions particulières..."></textarea>
+        </mat-form-field>
+
+        <div class="form-actions-inline">
+          <button mat-button type="button" (click)="resetForm()" *ngIf="isEditing" class="btn-cancel-edit">
+            Annuler l'édition
+          </button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="taskForm.invalid" class="btn-submit-task">
+            <mat-icon>{{ isEditing ? 'check' : 'add' }}</mat-icon>
+            {{ isEditing ? 'Mettre à jour' : 'Ajouter la tâche' }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Liste des tâches actuelles -->
+    <div class="tasks-table-section">
+      <div class="section-title-row">
+        <h3>Tâches prévues ({{ tasks.length }})</h3>
+      </div>
+
+      <div class="table-wrap" *ngIf="tasks.length > 0">
+        <table mat-table [dataSource]="tasks" class="modern-tasks-table">
+          <!-- Name Column -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Tâche</th>
+            <td mat-cell *matCellDef="let task" class="font-medium">
+              <div class="task-title-cell">
+                <mat-icon class="cell-icon">check_circle_outline</mat-icon>
+                <span>{{ task.name }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Description Column -->
+          <ng-container matColumnDef="description">
+            <th mat-header-cell *matHeaderCellDef>Description</th>
+            <td mat-cell *matCellDef="let task" class="text-secondary">
+              {{ task.description || '—' }}
+            </td>
+          </ng-container>
+
+          <!-- Duration Column -->
+          <ng-container matColumnDef="duration">
+            <th mat-header-cell *matHeaderCellDef class="th-center">Durée</th>
+            <td mat-cell *matCellDef="let task" class="td-center">
+              <span class="badge-duration">{{ task.duration }} min</span>
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef class="th-actions">Actions</th>
+            <td mat-cell *matCellDef="let element; let i = index;" class="td-actions">
+              <button mat-icon-button color="primary" (click)="editTask(i)" matTooltip="Modifier cette tâche">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="deleteTask(i)" matTooltip="Supprimer cette tâche">
+                <mat-icon>delete_outline</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="['name', 'description', 'duration', 'actions']"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['name', 'description', 'duration', 'actions'];" [class.editing-row]="isEditing && tasks[editingIndex!] === row"></tr>
+        </table>
+      </div>
+
+      <div *ngIf="tasks.length === 0" class="empty-tasks-notice">
+        <mat-icon>playlist_add</mat-icon>
+        <p>Aucune tâche pour le moment.</p>
+        <span>Utilisez le formulaire ci-dessus pour planifier les opérations nécessaires.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="dialog-modern-actions">
+    <button mat-button (click)="onCancel()" class="btn-cancel">Annuler</button>
+    <button mat-raised-button color="primary" (click)="onSave()" class="btn-primary">
+      <mat-icon>save</mat-icon>
+      Sauvegarder les modifications
+    </button>
+  </div>
+</div>

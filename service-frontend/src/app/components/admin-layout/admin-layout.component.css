@@ -1,37 +1,166 @@
-.admin-container {
+.admin-shell {
   display: flex;
-  min-height: calc(100vh - var(--header-height, 68px));
-  background-color: var(--color-bg, #f8fafc);
+  height: 100vh;
+  background-color: #f8fafc;
+  overflow: hidden;
+  position: relative;
 }
 
-.admin-content {
-  flex-grow: 1;
-  padding: 2rem 2.5rem;
-  overflow-y: auto;
-  background-color: var(--color-bg, #f8fafc);
-  transition: margin-left var(--transition-normal, 250ms ease);
-}
-
-/* Adjust main content horizontal offset based on sidebar state */
-app-admin-sidebar + .admin-content {
+.admin-main-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
   margin-left: var(--sidebar-width, 260px);
+  transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: #f8fafc;
 }
 
-app-admin-sidebar.closed + .admin-content {
-  margin-left: var(--sidebar-width-collapsed, 72px);
+/* Adjust margin when sidebar is closed */
+app-admin-sidebar.closed + .admin-main-wrapper {
+  margin-left: var(--sidebar-width-collapsed, 74px);
 }
 
-/* Mobile responsive */
+/* 56px Top Command Bar */
+.admin-command-bar {
+  height: 56px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  z-index: 10;
+}
+
+.command-bar-left {
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumb-trail {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.825rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.breadcrumb-root {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.breadcrumb-sep {
+  font-size: 15px;
+  width: 15px;
+  height: 15px;
+  color: #cbd5e1;
+}
+
+.breadcrumb-current {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.command-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.system-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #f0fdf4;
+  border: 1px solid rgba(22, 163, 74, 0.2);
+  color: #15803d;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.3rem 0.75rem;
+  border-radius: 20px;
+}
+
+.status-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3);
+  animation: pulse-green 2s infinite ease-in-out;
+}
+
+@keyframes pulse-green {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+.btn-command-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #64748b;
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.35rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  transition: all 0.18s ease;
+}
+
+.btn-command-link:hover {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+.btn-command-link mat-icon {
+  font-size: 15px;
+  width: 15px;
+  height: 15px;
+}
+
+/* Main Content Scroll */
+.admin-content-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0;
+  background-color: #f8fafc;
+}
+
+.admin-content-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.admin-content-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
 @media (max-width: 768px) {
-  .admin-container {
-    flex-direction: column;
-  }
-
-  app-admin-sidebar + .admin-content,
-  app-admin-sidebar.closed + .admin-content {
+  .admin-main-wrapper,
+  app-admin-sidebar.closed + .admin-main-wrapper {
     margin-left: 0;
-    padding: 1.25rem 1rem;
+  }
+  .admin-command-bar {
+    padding: 0 1rem;
+    height: auto;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+  .command-bar-right {
+    width: 100%;
+    justify-content: space-between;
   }
 }
-
-

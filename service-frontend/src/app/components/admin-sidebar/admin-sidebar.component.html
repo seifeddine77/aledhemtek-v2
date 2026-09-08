@@ -1,79 +1,122 @@
-<div class="sidebar" [class.closed]="isClosed">
-  <div class="sidebar-header">
-    <button class="toggle-btn" (click)="isClosed = !isClosed">☰</button>
-    <div class="header-actions" *ngIf="!isClosed">
-      <app-notification-panel></app-notification-panel>
+<aside class="sidebar-container" [class.closed]="isClosed">
+  <!-- Sidebar Header -->
+  <div class="sidebar-brand-header">
+    <div class="brand-badge-box" *ngIf="!isClosed">
+      <div class="brand-logo-icon">
+        <mat-icon>shield</mat-icon>
+      </div>
+      <div class="brand-text">
+        <span class="brand-title">AledhemTek</span>
+        <span class="brand-tag">Back-Office Pro</span>
+      </div>
     </div>
+
+    <button 
+      type="button" 
+      class="btn-toggle-sidebar" 
+      (click)="toggleSidebar()" 
+      [matTooltip]="isClosed ? 'Déplier le menu' : 'Réduire le menu'" 
+      matTooltipPosition="right">
+      <mat-icon>{{ isClosed ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+    </button>
   </div>
-  <ul>
-    <li class="nav-item">
-      <a routerLink="/admin/dashboard" class="nav-link" routerLinkActive="active">
-        <i class="nav-icon fas fa-tachometer-alt"></i>
-        <p>Dashboard</p>
-      </a>
-    </li>
-    <li class="nav-item">
-      <a routerLink="/admin/reservations" class="nav-link" routerLinkActive="active">
-        <i class="nav-icon fas fa-calendar-alt"></i>
-        <p>Gérer les Réservations</p>
-      </a>
-    </li>
-    <li class="nav-item">
-      <a routerLink="/admin/employees" class="nav-link" routerLinkActive="active">
-        <i class="nav-icon fas fa-users"></i>
-        <p>Gérer les Employés</p>
-      </a>
-    </li>
-    <li class="nav-item">
-      <a routerLink="/admin/tasks-management" class="nav-link" routerLinkActive="active">
-        <i class="nav-icon fas fa-tasks"></i>
-        <p>Gestion des Tâches</p>
-      </a>
-    </li>
-    <li class="nav-item">
-      <a routerLink="/admin/services" class="nav-link" routerLinkActive="active">
-        <i class="nav-icon fas fa-concierge-bell"></i>
-        <p>Gestion des Services</p>
-      </a>
-    </li>
-    <li class="nav-item">
-      <a routerLink="/admin/services-tasks" class="nav-link" routerLinkActive="active">
-        <i class="nav-icon fas fa-list-alt"></i>
-        <p>Services & Tâches</p>
-      </a>
-    </li>
-    
-    <li class="nav-item">
-      <a routerLink="/admin/evaluations" class="nav-link" routerLinkActive="active">
-        <i class="nav-icon fas fa-star"></i>
-        <p>Gestion des Évaluations</p>
-      </a>
-    </li>
-    <li class="nav-item">
-      <a routerLink="/admin/evaluation-stats" class="nav-link" routerLinkActive="active">
-        <i class="nav-icon fas fa-chart-bar"></i>
-        <p>Statistiques Évaluations</p>
-      </a>
-    </li>
-    
-    <li class="nav-item">
-      <a routerLink="/admin/invoices" class="nav-link" routerLinkActive="active">
-        <i class="nav-icon fas fa-file-invoice"></i>
-        <p>Gestion des Factures</p>
-      </a>
-    </li>
-    <li class="nav-item">
-      <a routerLink="/admin/invoices/dashboard" class="nav-link" routerLinkActive="active">
-        <i class="nav-icon fas fa-chart-line"></i>
-        <p>Dashboard Financier</p>
-      </a>
-    </li>
-    
-    <li class="nav-item">
-      <a routerLink="/admin/assign-service" class="nav-link" routerLinkActive="active">
-        <i class="nav-icon fas fa-wrench"></i>
-        <p>Assigner des Services</p>
-      </a>
-    </li>
-  </ul>
-</div>
+
+  <!-- Navigation Sections -->
+  <nav class="sidebar-nav">
+    <ul class="nav-list">
+
+      <!-- Aperçu -->
+      <li class="nav-group-title" *ngIf="!isClosed">Aperçu</li>
+      <li class="nav-item">
+        <a routerLink="/admin/dashboard" routerLinkActive="active" class="nav-link" [matTooltip]="isClosed ? 'Tableau de Bord' : ''">
+          <mat-icon class="nav-icon">space_dashboard</mat-icon>
+          <span class="nav-label" *ngIf="!isClosed">Tableau de Bord</span>
+        </a>
+      </li>
+
+      <!-- Opérations & Chantiers -->
+      <li class="nav-group-title" *ngIf="!isClosed">Opérations &amp; Chantiers</li>
+      <li class="nav-item">
+        <a routerLink="/admin/reservations" routerLinkActive="active" class="nav-link" [matTooltip]="isClosed ? 'Supervision Réservations' : ''">
+          <mat-icon class="nav-icon">calendar_month</mat-icon>
+          <span class="nav-label" *ngIf="!isClosed">Gérer Réservations</span>
+          <span class="alert-pill-pulse" *ngIf="!isClosed && unassignedCount > 0" matTooltip="Interventions en attente d'artisan">
+            {{ unassignedCount }}
+          </span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a routerLink="/admin/employees" routerLinkActive="active" class="nav-link" [matTooltip]="isClosed ? 'Artisans & Consultants' : ''">
+          <mat-icon class="nav-icon">engineering</mat-icon>
+          <span class="nav-label" *ngIf="!isClosed">Artisans &amp; Réseau</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a routerLink="/admin/tasks-management" routerLinkActive="active" class="nav-link" [matTooltip]="isClosed ? 'Gestion des Tâches' : ''">
+          <mat-icon class="nav-icon">assignment_turned_in</mat-icon>
+          <span class="nav-label" *ngIf="!isClosed">Pilotage des Tâches</span>
+        </a>
+      </li>
+
+      <!-- Catalogue & Prestations -->
+      <li class="nav-group-title" *ngIf="!isClosed">Catalogue &amp; Métiers</li>
+      <li class="nav-item">
+        <a routerLink="/admin/services" routerLinkActive="active" class="nav-link" [matTooltip]="isClosed ? 'Référentiel des Tâches' : ''">
+          <mat-icon class="nav-icon">category</mat-icon>
+          <span class="nav-label" *ngIf="!isClosed">Référentiel Tâches</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a routerLink="/admin/services-tasks" routerLinkActive="active" class="nav-link" [matTooltip]="isClosed ? 'Services & Tâches' : ''">
+          <mat-icon class="nav-icon">format_list_bulleted</mat-icon>
+          <span class="nav-label" *ngIf="!isClosed">Services &amp; Tâches</span>
+        </a>
+      </li>
+
+      <!-- Finances & Séquestre -->
+      <li class="nav-group-title" *ngIf="!isClosed">Finances &amp; Séquestre</li>
+      <li class="nav-item">
+        <a routerLink="/admin/invoices" routerLinkActive="active" class="nav-link" [matTooltip]="isClosed ? 'Gestion des Factures' : ''">
+          <mat-icon class="nav-icon">receipt_long</mat-icon>
+          <span class="nav-label" *ngIf="!isClosed">Grand Livre Factures</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a routerLink="/admin/invoices/dashboard" routerLinkActive="active" class="nav-link" [matTooltip]="isClosed ? 'Dashboard Financier' : ''">
+          <mat-icon class="nav-icon">analytics</mat-icon>
+          <span class="nav-label" *ngIf="!isClosed">Cockpit Financier</span>
+        </a>
+      </li>
+
+      <!-- Satisfaction & Qualité -->
+      <li class="nav-group-title" *ngIf="!isClosed">Satisfaction &amp; Qualité</li>
+      <li class="nav-item">
+        <a routerLink="/admin/evaluation-stats" routerLinkActive="active" class="nav-link" [matTooltip]="isClosed ? 'Statistiques Évaluations' : ''">
+          <mat-icon class="nav-icon">insights</mat-icon>
+          <span class="nav-label" *ngIf="!isClosed">Observatoire Qualité</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a routerLink="/admin/evaluations" routerLinkActive="active" class="nav-link" [matTooltip]="isClosed ? 'Gestion des Évaluations' : ''">
+          <mat-icon class="nav-icon">star_rate</mat-icon>
+          <span class="nav-label" *ngIf="!isClosed">Modération des Avis</span>
+        </a>
+      </li>
+
+    </ul>
+  </nav>
+
+  <!-- Sidebar Footer Profile -->
+  <div class="sidebar-user-footer" *ngIf="!isClosed">
+    <div class="user-avatar-circle">
+      <mat-icon>admin_panel_settings</mat-icon>
+    </div>
+    <div class="user-meta-info">
+      <span class="user-name">Administrateur</span>
+      <span class="user-role">Super Admin</span>
+    </div>
+    <button type="button" class="btn-logout-sidebar" (click)="logout()" matTooltip="Se déconnecter">
+      <mat-icon>logout</mat-icon>
+    </button>
+  </div>
+</aside>

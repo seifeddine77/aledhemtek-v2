@@ -5,6 +5,50 @@
   border-top: 1px solid #1e293b;
 }
 
+/* Reassurance Strip */
+.footer-trust-strip {
+  background-color: #1e293b;
+  border-bottom: 1px solid #334155;
+  padding: 1.5rem 0;
+}
+
+.trust-features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+}
+
+.trust-feature-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.trust-feature-card mat-icon {
+  color: #60a5fa;
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.trust-feature-card div {
+  display: flex;
+  flex-direction: column;
+}
+
+.trust-feature-card strong {
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.trust-feature-card span {
+  color: #94a3b8;
+  font-size: 0.775rem;
+  line-height: 1.35;
+}
+
 .footer-top {
   padding: 3.5rem 0 2.5rem;
 }

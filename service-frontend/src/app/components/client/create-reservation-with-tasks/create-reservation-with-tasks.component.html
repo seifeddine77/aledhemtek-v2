@@ -1,12 +1,37 @@
-<div class="create-reservation-container">
+<div class="create-reservation-wrapper">
   
-  <!-- Header -->
-  <div class="header-section">
-    <h2>Créer une nouvelle réservation</h2>
-    <p class="subtitle">Sélectionnez vos services et planifiez votre intervention</p>
+  <!-- Breadcrumb Trail -->
+  <div class="breadcrumb-strip">
+    <a routerLink="/client/dashboard" class="crumb-link">Espace Client</a>
+    <mat-icon class="crumb-sep">chevron_right</mat-icon>
+    <a routerLink="/client/reservations" class="crumb-link">Réservations</a>
+    <mat-icon class="crumb-sep">chevron_right</mat-icon>
+    <span class="crumb-current">Nouvelle Demande d'Intervention</span>
   </div>
 
-  <!-- Stepper -->
+  <!-- Header Section -->
+  <div class="header-section">
+    <div class="header-badges-strip">
+      <span class="artisan-certified-badge">
+        <mat-icon>verified</mat-icon>
+        Artisans Agréés &amp; Contrôlés
+      </span>
+      <span class="badge-emergency">
+        <span class="dot-pulse-emergency"></span>
+        Dépannage Rapide Disponible
+      </span>
+      <span class="artisan-certified-badge">
+        <mat-icon>shield</mat-icon>
+        Garantie Décennale &amp; RC Pro
+      </span>
+    </div>
+    <h1 class="page-title">Demande d'Intervention à Domicile</h1>
+    <p class="subtitle">Sélectionnez vos prestations, planifiez la date et bénéficiez d'un artisan certifié au meilleur tarif</p>
+  </div>
+
+  <div class="booking-portal-layout">
+    <div class="booking-main-col">
+      <!-- Stepper -->
   <mat-stepper #stepper orientation="horizontal" 
                [linear]="true" 
                (selectionChange)="onStepChange($event)"
@@ -300,6 +325,17 @@
                   <small>Prix calculé en temps réel selon les tarifs actuels</small>
                 </div>
               </div>
+
+              <!-- Bloc Garantie Séquestre & Sérénité -->
+              <div class="escrow-guarantee-box my-3">
+                <div class="escrow-icon-wrap">
+                  <mat-icon>verified_user</mat-icon>
+                </div>
+                <div class="escrow-text">
+                  <h4>Garantie AledhemTek &amp; Séquestre Protégé</h4>
+                  <p>Vos fonds sont conservés en toute sécurité sous séquestre bancaire. Aucun montant n'est versé à l'artisan avant que vous n'ayez vérifié et validé la conformité complète des travaux terminés.</p>
+                </div>
+              </div>
             </div>
 
             <mat-divider></mat-divider>
@@ -352,16 +388,88 @@
 
   </mat-stepper>
 
-  <!-- Actions globales -->
-  <div class="global-actions" *ngIf="!loading">
-    <button mat-stroked-button (click)="resetForm()">
-      <mat-icon>refresh</mat-icon>
-      Recommencer
-    </button>
-    <button mat-button routerLink="/client/dashboard">
-      <mat-icon>cancel</mat-icon>
-      Annuler
-    </button>
-  </div>
+      <!-- Actions globales -->
+      <div class="global-actions" *ngIf="!loading">
+        <button mat-stroked-button (click)="resetForm()">
+          <mat-icon>refresh</mat-icon>
+          Recommencer
+        </button>
+        <button mat-button routerLink="/client/dashboard">
+          <mat-icon>cancel</mat-icon>
+          Annuler
+        </button>
+      </div>
+    </div>
 
+    <!-- Right Sidebar : Live Interactive Sticky Quote -->
+    <aside class="booking-sidebar-col">
+      <div class="sticky-quote-card">
+        <div class="quote-card-header">
+          <div class="quote-header-title">
+            <mat-icon>receipt_long</mat-icon>
+            <span>Devis en direct</span>
+          </div>
+          <span class="live-pulse-chip">Temps Réel</span>
+        </div>
+
+        <div class="quote-price-hero">
+          <span class="price-hero-label">Montant Estimé TTC</span>
+          <div class="price-hero-value">
+            <span class="currency-symbol">€</span>
+            <span class="number-val">{{ totalPrice }}</span>
+            <span class="decimals">,00</span>
+          </div>
+          <span class="price-hero-note">Déplacement &amp; main d'œuvre inclus</span>
+        </div>
+
+        <div class="quote-breakdown-list">
+          <div class="breakdown-item">
+            <span class="breakdown-label">
+              <mat-icon>schedule</mat-icon> Durée estimée
+            </span>
+            <span class="breakdown-value font-bold">{{ totalDuration }} min (~{{ (totalDuration / 60) | number:'1.1-1' }}h)</span>
+          </div>
+
+          <div class="breakdown-item">
+            <span class="breakdown-label">
+              <mat-icon>handyman</mat-icon> Actes techniques
+            </span>
+            <span class="breakdown-value font-bold">{{ selectedTasks.length }} prestation(s)</span>
+          </div>
+        </div>
+
+        <!-- Selected Tasks Mini Recap -->
+        <div class="selected-tasks-mini" *ngIf="selectedTasks.length > 0">
+          <span class="mini-title">Prestations choisies :</span>
+          <div class="mini-task-pill" *ngFor="let item of selectedTasks">
+            <span class="mini-task-name">{{ item.task.name }}</span>
+            <span class="mini-task-qty">x{{ item.quantity }}</span>
+          </div>
+        </div>
+
+        <!-- Guarantees Strip -->
+        <div class="quote-guarantees">
+          <div class="guarantee-row">
+            <mat-icon class="text-success">shield</mat-icon>
+            <span>Garantie Décennale &amp; RC Pro</span>
+          </div>
+          <div class="guarantee-row">
+            <mat-icon class="text-primary">lock</mat-icon>
+            <span>Prix ferme garanti sans surcoût</span>
+          </div>
+          <div class="guarantee-row">
+            <mat-icon class="text-warning">support_agent</mat-icon>
+            <span>Assistance téléphonique 7j/7</span>
+          </div>
+        </div>
+
+        <div class="quote-contact-box">
+          <span class="contact-prompt">Une question sur vos travaux ?</span>
+          <a href="tel:0189000000" class="contact-phone">
+            <mat-icon>phone</mat-icon> 01 89 00 00 00
+          </a>
+        </div>
+      </div>
+    </aside>
+  </div>
 </div>

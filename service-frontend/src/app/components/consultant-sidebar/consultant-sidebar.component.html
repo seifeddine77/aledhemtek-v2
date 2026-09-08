@@ -1,31 +1,114 @@
-<div class="sidebar-container">
-  <div class="sidebar-header">
-    <span class="header-tag"><i class="fas fa-hard-hat"></i> Espace Consultant</span>
+<aside class="sidebar-pro-shell">
+  <!-- Brand Header -->
+  <div class="sidebar-brand">
+    <div class="brand-logo-wrap">
+      <mat-icon>build_circle</mat-icon>
+    </div>
+    <div class="brand-meta">
+      <span class="brand-title">Aledhem<span class="accent-text">Tek</span></span>
+      <span class="brand-badge">Artisan Pro OS</span>
+    </div>
   </div>
-  <ul class="nav-list">
-    <li>
-      <a routerLink="/consultant/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-        <i class="fas fa-chart-pie"></i>
-        <span>Tableau de bord</span>
+
+  <!-- Artisan Profile Mini-Card -->
+  <div class="artisan-profile-card">
+    <div class="profile-main-row">
+      <div class="artisan-avatar">{{ artisanInitials }}</div>
+      <div class="artisan-details">
+        <span class="artisan-display-name">{{ artisanName }}</span>
+        <div class="artisan-cert-badge">
+          <mat-icon class="star-icon">star</mat-icon>
+          <span>4.9 • Agréé &amp; Assuré</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Status Selector -->
+    <div class="status-selector-row">
+      <span class="status-label">Statut intervention :</span>
+      <div class="status-chips-group">
+        <button type="button" 
+                class="status-chip-btn available" 
+                [class.active]="availabilityStatus === 'AVAILABLE'"
+                (click)="setAvailability('AVAILABLE')"
+                matTooltip="Prêt à recevoir de nouvelles missions">
+          <span class="dot-beacon available"></span>
+          <span>Disponible</span>
+        </button>
+
+        <button type="button" 
+                class="status-chip-btn busy" 
+                [class.active]="availabilityStatus === 'ON_MISSION'"
+                (click)="setAvailability('ON_MISSION')"
+                matTooltip="Actuellement sur une intervention">
+          <span class="dot-beacon busy"></span>
+          <span>En Mission</span>
+        </button>
+
+        <button type="button" 
+                class="status-chip-btn offline" 
+                [class.active]="availabilityStatus === 'OFFLINE'"
+                (click)="setAvailability('OFFLINE')"
+                matTooltip="En pause ou hors service">
+          <span class="dot-beacon offline"></span>
+          <span>Pause</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pro Navigation List -->
+  <nav class="pro-nav-section" aria-label="Menu Artisan">
+    <span class="nav-section-label">Opérations &amp; Missions</span>
+    <ul class="nav-menu-list">
+      <li class="nav-item">
+        <a routerLink="/consultant/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-anchor">
+          <mat-icon class="nav-icon">space_dashboard</mat-icon>
+          <span class="nav-text">Tableau de bord</span>
+          <span class="nav-pill-dot"></span>
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a routerLink="/consultant/calendar" routerLinkActive="active" class="nav-anchor">
+          <mat-icon class="nav-icon">calendar_month</mat-icon>
+          <span class="nav-text">Mon Calendrier</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a routerLink="/consultant/tasks" routerLinkActive="active" class="nav-anchor">
+          <mat-icon class="nav-icon">handyman</mat-icon>
+          <span class="nav-text">Mes Interventions</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a routerLink="/consultant/evaluations" routerLinkActive="active" class="nav-anchor">
+          <mat-icon class="nav-icon">hotel_class</mat-icon>
+          <span class="nav-text">Mes Évaluations</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Sidebar Footer : Dispatch Support Card -->
+  <div class="sidebar-footer-box">
+    <div class="support-dispatch-card">
+      <div class="support-header">
+        <mat-icon class="support-icon">headset_mic</mat-icon>
+        <span class="support-title">Dispatch AledhemTek</span>
+      </div>
+      <p class="support-desc">Ligne prioritaire artisans &amp; régulation technique</p>
+      <a href="tel:0189000000" class="btn-dispatch-call">
+        <mat-icon>phone_in_talk</mat-icon>
+        <span>01 89 00 00 00</span>
       </a>
-    </li>
-    <li>
-      <a routerLink="/consultant/calendar" routerLinkActive="active">
-        <i class="fas fa-calendar-alt"></i>
-        <span>Mon Calendrier</span>
-      </a>
-    </li>
-    <li>
-      <a routerLink="/consultant/tasks" routerLinkActive="active">
-        <i class="fas fa-tasks"></i>
-        <span>Mes Interventions</span>
-      </a>
-    </li>
-    <li>
-      <a routerLink="/consultant/evaluations" routerLinkActive="active">
-        <i class="fas fa-star"></i>
-        <span>Mes Évaluations</span>
-      </a>
-    </li>
-  </ul>
-</div>
+    </div>
+
+    <button type="button" (click)="logout()" class="btn-sidebar-logout">
+      <mat-icon>logout</mat-icon>
+      <span>Déconnexion</span>
+    </button>
+  </div>
+</aside>

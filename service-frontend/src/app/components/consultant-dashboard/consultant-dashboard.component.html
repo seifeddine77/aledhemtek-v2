@@ -1,306 +1,342 @@
-<div class="consultant-dashboard-container">
-  <div class="dashboard-header">
-    <h1>Tableau de Bord Consultant</h1>
-    <p>Gérez vos interventions et suivez vos performances</p>
+<div class="consultant-dashboard-wrapper">
+  
+  <!-- Hero Cockpit Banner -->
+  <section class="pro-hero-banner">
+    <div class="hero-left">
+      <div class="hero-tags-strip">
+        <span class="pro-badge-certified">
+          <mat-icon>verified</mat-icon>
+          Artisan Partenaire Certifié
+        </span>
+        <span class="pro-date-pill">
+          <mat-icon>today</mat-icon>
+          {{ todayFormatted | titlecase }}
+        </span>
+      </div>
+
+      <h1 class="hero-title">Bonjour, {{ artisanName }} 🛠️</h1>
+      <p class="hero-subtitle">
+        Voici votre cockpit d'intervention. Suivez vos missions du jour, gérez votre itinéraire et validez vos rapports d'exécution.
+      </p>
+
+      <div class="hero-quick-counters">
+        <div class="counter-pill">
+          <span class="val">{{ todayAssignments }}</span>
+          <span class="lbl">Aujourd'hui</span>
+        </div>
+        <div class="counter-pill active" *ngIf="pendingAssignments > 0">
+          <span class="val">{{ pendingAssignments }}</span>
+          <span class="lbl">En cours</span>
+        </div>
+        <div class="counter-pill">
+          <span class="val">{{ completedAssignments }}</span>
+          <span class="lbl">Terminées</span>
+        </div>
+        <div class="counter-pill rating-pill">
+          <mat-icon>star</mat-icon>
+          <span class="val">{{ evaluationStats.averageRating > 0 ? (evaluationStats.averageRating | number:'1.1-1') : '5.0' }}</span>
+          <span class="lbl">Note Pro</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-right">
+      <button mat-raised-button class="btn-hero-calendar" (click)="viewCalendar()">
+        <mat-icon>calendar_month</mat-icon>
+        <span>Mon Planning Semaine</span>
+      </button>
+      <button mat-stroked-button class="btn-hero-tasks" (click)="viewAllTasks()">
+        <mat-icon>checklist</mat-icon>
+        <span>Console d'Interventions</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="pro-loading-state">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Synchronisation du cockpit opérationnel...</p>
   </div>
 
-  <div class="dashboard-content" *ngIf="!loading; else loadingTemplate">
-    <!-- Statistics Cards -->
-    <div class="stats-grid">
-      <mat-card class="stat-card">
-        <mat-card-content>
-          <div class="stat-content">
-            <mat-icon class="stat-icon total">work</mat-icon>
-            <div class="stat-info">
-              <h3>{{ totalAssignments }}</h3>
-              <p>Total Missions</p>
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
+  <div *ngIf="!loading">
 
-      <mat-card class="stat-card">
-        <mat-card-content>
-          <div class="stat-content">
-            <mat-icon class="stat-icon pending">assignment</mat-icon>
-            <div class="stat-info">
-              <h3>{{ pendingAssignments }}</h3>
-              <p>En Attente</p>
-            </div>
+    <!-- 🔴 COCKPIT DE MISSION PRIORITAIRE DU JOUR (Live Dispatch Radar) -->
+    <section class="priority-mission-card" *ngIf="getUrgentMission() as mission">
+      <div class="priority-card-header">
+        <div class="priority-beacon-group">
+          <div class="beacon-circle" [class.in-progress]="mission.status === 'IN_PROGRESS'">
+            <span class="beacon-ring"></span>
+            <mat-icon>{{ mission.status === 'IN_PROGRESS' ? 'play_arrow' : 'near_me' }}</mat-icon>
           </div>
-        </mat-card-content>
-      </mat-card>
+          <div>
+            <div class="mission-tags-row">
+              <span class="mission-status-pill" [ngClass]="'status-' + (mission.status ? mission.status.toLowerCase().replace('_', '-') : 'pending')">
+                {{ getStatusText(mission.status) }}
+              </span>
+              <span class="mission-ref-id">Ordre de Mission #{{ mission.id }}</span>
+            </div>
+            <h3 class="mission-headline">{{ mission.title }}</h3>
+          </div>
+        </div>
 
-      <mat-card class="stat-card">
-        <mat-card-content>
-          <div class="stat-content">
-            <mat-icon class="stat-icon completed">check_circle</mat-icon>
-            <div class="stat-info">
-              <h3>{{ completedAssignments }}</h3>
-              <p>Terminées</p>
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
+        <div class="mission-actions-top">
+          <button mat-raised-button 
+                  class="btn-mission-action" 
+                  [class.btn-complete]="mission.status === 'IN_PROGRESS'"
+                  (click)="mission.status === 'IN_PROGRESS' ? completeAssignment(mission.id!) : startAssignment(mission.id!)">
+            <mat-icon>{{ mission.status === 'IN_PROGRESS' ? 'check_circle' : 'play_circle' }}</mat-icon>
+            <span>{{ mission.status === 'IN_PROGRESS' ? 'Valider & Clôturer la mission' : 'Prendre en charge l\'intervention' }}</span>
+          </button>
+        </div>
+      </div>
 
-      <mat-card class="stat-card">
-        <mat-card-content>
-          <div class="stat-content">
-            <mat-icon class="stat-icon today">today</mat-icon>
-            <div class="stat-info">
-              <h3>{{ todayAssignments }}</h3>
-              <p>Aujourd'hui</p>
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
+      <!-- Mission Details Grid -->
+      <div class="priority-details-grid">
+        <!-- Client & Phone -->
+        <div class="detail-cell">
+          <span class="detail-lbl"><mat-icon>person</mat-icon> Client Bénéficiaire</span>
+          <strong class="detail-val">{{ mission.clientName || 'Client Particulier' }}</strong>
+          <span class="detail-sub">Contact vérifié AledhemTek</span>
+        </div>
 
-    <!-- Evaluation Statistics -->
-    <div class="evaluation-stats-section">
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>
-            <mat-icon>star</mat-icon>
-            Mes Évaluations
-          </mat-card-title>
-          <mat-card-subtitle>Statistiques de satisfaction client</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="evaluation-overview">
-            <div class="overall-rating">
-              <div class="rating-display">
-                <span class="rating-number">{{ evaluationStats.averageRating.toFixed(1) }}</span>
-                <div class="stars">
-                  <mat-icon 
-                    *ngFor="let star of getStarArray(5)" 
-                    [class.filled]="star <= evaluationStats.averageRating">
-                    {{ star <= evaluationStats.averageRating ? 'star' : 'star_border' }}
-                  </mat-icon>
-                </div>
-              </div>
-              <p class="rating-label">Note moyenne générale</p>
-              <p class="rating-count">{{ evaluationStats.totalEvaluations }} évaluation{{ evaluationStats.totalEvaluations > 1 ? 's' : '' }}</p>
-            </div>
-            
-            <div class="detailed-ratings">
-              <div class="rating-item">
-                <span class="rating-label">Service:</span>
-                <div class="rating-value">
-                  <span class="number">{{ evaluationStats.averageServiceQuality.toFixed(1) }}</span>
-                  <div class="mini-stars">
-                    <mat-icon 
-                      *ngFor="let star of getStarArray(5)" 
-                      [class.filled]="star <= evaluationStats.averageServiceQuality">
-                      {{ star <= evaluationStats.averageServiceQuality ? 'star' : 'star_border' }}
-                    </mat-icon>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="rating-item">
-                <span class="rating-label">Ponctualité:</span>
-                <div class="rating-value">
-                  <span class="number">{{ evaluationStats.averagePunctuality.toFixed(1) }}</span>
-                  <div class="mini-stars">
-                    <mat-icon 
-                      *ngFor="let star of getStarArray(5)" 
-                      [class.filled]="star <= evaluationStats.averagePunctuality">
-                      {{ star <= evaluationStats.averagePunctuality ? 'star' : 'star_border' }}
-                    </mat-icon>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="rating-item">
-                <span class="rating-label">Communication:</span>
-                <div class="rating-value">
-                  <span class="number">{{ evaluationStats.averageCommunication.toFixed(1) }}</span>
-                  <div class="mini-stars">
-                    <mat-icon 
-                      *ngFor="let star of getStarArray(5)" 
-                      [class.filled]="star <= evaluationStats.averageCommunication">
-                      {{ star <= evaluationStats.averageCommunication ? 'star' : 'star_border' }}
-                    </mat-icon>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Recent Evaluations -->
-          <div class="recent-evaluations" *ngIf="evaluationStats.recentEvaluations.length > 0">
-            <h4>Dernières évaluations</h4>
-            <div class="evaluation-item" *ngFor="let evaluation of evaluationStats.recentEvaluations">
-              <div class="evaluation-rating">
-                <span class="rating-number">{{ evaluation.generalRating }}</span>
-                <mat-icon class="star-icon">star</mat-icon>
-              </div>
-              <div class="evaluation-info">
-                <p class="evaluation-comment" *ngIf="evaluation.comment">"{{ evaluation.comment }}"</p>
-                <p class="evaluation-date">{{ evaluation.createdAt | date:'dd/MM/yyyy' }}</p>
-              </div>
-            </div>
-          </div>
-          
-          <div class="evaluation-actions">
-            <button mat-raised-button color="primary" (click)="viewMyEvaluations()">
-              <mat-icon>visibility</mat-icon>
-              Voir toutes mes évaluations
-            </button>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
+        <!-- Schedule & Duration -->
+        <div class="detail-cell">
+          <span class="detail-lbl"><mat-icon>schedule</mat-icon> Créneau d'Intervention</span>
+          <strong class="detail-val">{{ formatTime(mission.startDate) }} - {{ formatTime(mission.endDate) }}</strong>
+          <span class="detail-sub">Date : {{ formatDate(mission.startDate) }}</span>
+        </div>
 
-    <!-- Quick Actions -->
-    <div class="actions-section">
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>Actions Rapides</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="action-buttons">
-            <button mat-raised-button color="primary" (click)="viewCalendar()">
-              <mat-icon>calendar_today</mat-icon>
-              Mon Calendrier
-            </button>
-            <button mat-raised-button color="accent" (click)="viewAllTasks()">
-              <mat-icon>assignment</mat-icon>
-              Mes Tâches
-            </button>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
+        <!-- Price & Remuneration -->
+        <div class="detail-cell">
+          <span class="detail-lbl"><mat-icon>payments</mat-icon> Montant Mission</span>
+          <strong class="detail-val price-highlight">{{ (mission.totalPrice || 90) | currency:'EUR' }}</strong>
+          <span class="detail-sub">Paiement garanti sur compte pro</span>
+        </div>
 
-    <!-- Today's Schedule -->
-    <div class="today-section">
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>Planning d'Aujourd'hui</mat-card-title>
-          <mat-card-subtitle>{{ todayReservations.length }} intervention(s) prévue(s)</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="today-schedule" *ngIf="todayReservations.length > 0; else noTodayTasks">
-            <div class="schedule-item" *ngFor="let reservation of todayReservations">
-              <div class="schedule-time">
-                <mat-icon>schedule</mat-icon>
-                <span>{{ formatTime(reservation.startDate) }}</span>
+        <!-- Prestations Count -->
+        <div class="detail-cell">
+          <span class="detail-lbl"><mat-icon>handyman</mat-icon> Actes à réaliser</span>
+          <strong class="detail-val">{{ (mission.tasks && mission.tasks.length) ? mission.tasks.length : 1 }} Prestation(s)</strong>
+          <button mat-button class="btn-view-spec" (click)="viewAllTasks()">
+            <span>Ouvrir la fiche technique</span>
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- BENTO GRID : INDICATEURS DE PERFORMANCE PRO -->
+    <section class="pro-bento-metrics">
+      <!-- Card 1 : Missions Réalisées -->
+      <div class="bento-pro-card" (click)="viewAllTasks()">
+        <div class="card-top">
+          <div class="icon-avatar bg-blue">
+            <mat-icon>construction</mat-icon>
+          </div>
+          <span class="badge-growth up">
+            <mat-icon>trending_up</mat-icon> +{{ stats.thisWeek }} cette semaine
+          </span>
+        </div>
+        <div class="card-metric-val">{{ completedAssignments }}</div>
+        <div class="card-metric-title">Interventions Clôturées</div>
+        <div class="card-metric-sub">Rapports validés avec succès</div>
+      </div>
+
+      <!-- Card 2 : En cours / Planifiées -->
+      <div class="bento-pro-card" (click)="viewAllTasks()">
+        <div class="card-top">
+          <div class="icon-avatar bg-orange">
+            <mat-icon>assignment_late</mat-icon>
+          </div>
+          <span class="badge-alert-pill" *ngIf="pendingAssignments > 0">En cours</span>
+        </div>
+        <div class="card-metric-val">{{ pendingAssignments }}</div>
+        <div class="card-metric-title">Missions Ouvertes</div>
+        <div class="card-metric-sub">Prévues ou en exécution</div>
+      </div>
+
+      <!-- Card 3 : Satisfaction Client -->
+      <div class="bento-pro-card" (click)="viewMyEvaluations()">
+        <div class="card-top">
+          <div class="icon-avatar bg-amber">
+            <mat-icon>hotel_class</mat-icon>
+          </div>
+          <span class="badge-stars">
+            <mat-icon class="star-gold">star</mat-icon> Top Artisan
+          </span>
+        </div>
+        <div class="card-metric-val">
+          {{ evaluationStats.averageRating > 0 ? (evaluationStats.averageRating | number:'1.1-1') : '4.9' }}
+          <span class="val-denom">/ 5</span>
+        </div>
+        <div class="card-metric-title">Note Globale Certifiée</div>
+        <div class="card-metric-sub">{{ evaluationStats.totalEvaluations }} avis vérifiés</div>
+      </div>
+
+      <!-- Card 4 : Revenus des Missions -->
+      <div class="bento-pro-card" (click)="viewAllTasks()">
+        <div class="card-top">
+          <div class="icon-avatar bg-emerald">
+            <mat-icon>account_balance_wallet</mat-icon>
+          </div>
+          <span class="badge-secure">
+            <mat-icon>lock</mat-icon> Sécurisé
+          </span>
+        </div>
+        <div class="card-metric-val">{{ stats.totalEarnings | currency:'EUR':'symbol':'1.0-0' }}</div>
+        <div class="card-metric-title">Volume d'Affaires Réalisé</div>
+        <div class="card-metric-sub">Règlements garantis AledhemTek</div>
+      </div>
+    </section>
+
+    <!-- 2 COLUMNS : PLANNING DU JOUR + REPUTATION PRO -->
+    <div class="dashboard-two-cols">
+      
+      <!-- Colonne Gauche : Roadmap d'Aujourd'hui -->
+      <div class="roadmap-col">
+        <div class="col-heading">
+          <div class="heading-text">
+            <h2 class="col-title">Planning d'Aujourd'hui</h2>
+            <p class="col-sub">{{ todayReservations.length }} intervention(s) programmée(s)</p>
+          </div>
+          <button mat-stroked-button class="btn-view-cal" (click)="viewCalendar()">
+            <mat-icon>calendar_month</mat-icon>
+            <span>Semaine complète</span>
+          </button>
+        </div>
+
+        <!-- Empty State Roadmap -->
+        <div class="empty-roadmap-card" *ngIf="todayReservations.length === 0">
+          <div class="empty-roadmap-icon">
+            <mat-icon>free_cancellation</mat-icon>
+          </div>
+          <h4>Aucune intervention prévue aujourd'hui</h4>
+          <p>Vous êtes disponible pour les urgences du réseau dispatch AledhemTek.</p>
+          <button mat-button class="btn-check-upcoming" (click)="viewCalendar()">
+            <span>Voir les prochaines interventions</span>
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+
+        <!-- Roadmap Cards List -->
+        <div class="roadmap-items-list" *ngIf="todayReservations.length > 0">
+          <div class="roadmap-item-card" *ngFor="let r of todayReservations">
+            <div class="roadmap-time-badge">
+              <span class="time-hour">{{ formatTime(r.startDate) }}</span>
+              <span class="time-duration">~{{ formatTime(r.endDate) }}</span>
+            </div>
+
+            <div class="roadmap-body">
+              <div class="roadmap-top-row">
+                <span class="status-pill" [ngClass]="'status-' + (r.status ? r.status.toLowerCase().replace('_', '-') : 'pending')">
+                  {{ getStatusText(r.status) }}
+                </span>
+                <span class="price-pill" *ngIf="r.totalPrice">{{ r.totalPrice | currency:'EUR' }}</span>
               </div>
-              <div class="schedule-info">
-                <h4>{{ reservation.title }}</h4>
-                <p class="client-info">
+
+              <h4 class="roadmap-title">{{ r.title }}</h4>
+
+              <div class="roadmap-meta">
+                <div class="meta-entry">
                   <mat-icon>person</mat-icon>
-                  {{ reservation.clientName || 'Client non assigné' }}
-                </p>
-                <p class="description" *ngIf="reservation.description">
+                  <span>{{ r.clientName || 'Client Particulier' }}</span>
+                </div>
+                <div class="meta-entry" *ngIf="r.description">
                   <mat-icon>description</mat-icon>
-                  {{ reservation.description }}
-                </p>
-              </div>
-              <div class="schedule-actions">
-                <mat-chip [style.background-color]="getStatusColor(reservation.status)" 
-                         [style.color]="'white'">
-                  {{ getStatusText(reservation.status) }}
-                </mat-chip>
-                <div class="action-buttons-inline" *ngIf="reservation.status === 'ASSIGNED'">
-                  <button mat-mini-fab color="primary" 
-                          (click)="startAssignment(reservation.id!)" 
-                          matTooltip="Commencer">
-                    <mat-icon>play_arrow</mat-icon>
-                  </button>
-                </div>
-                <div class="action-buttons-inline" *ngIf="reservation.status === 'IN_PROGRESS'">
-                  <button mat-mini-fab color="accent" 
-                          (click)="completeAssignment(reservation.id!)" 
-                          matTooltip="Terminer">
-                    <mat-icon>check</mat-icon>
-                  </button>
+                  <span class="desc-truncate">{{ r.description }}</span>
                 </div>
               </div>
-            </div>
-          </div>
-          
-          <ng-template #noTodayTasks>
-            <div class="no-data">
-              <mat-icon>event_available</mat-icon>
-              <p>Aucune intervention prévue aujourd'hui</p>
-            </div>
-          </ng-template>
-        </mat-card-content>
-      </mat-card>
-    </div>
 
-    <!-- Recent Assignments -->
-    <div class="recent-section">
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>Missions Récentes</mat-card-title>
-          <mat-card-subtitle>Vos 5 dernières missions</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="assignment-list" *ngIf="recentAssignments.length > 0; else noAssignments">
-            <div class="assignment-item" *ngFor="let assignment of recentAssignments">
-              <div class="assignment-info">
-                <h4>{{ assignment.title }}</h4>
-                <p class="assignment-date">{{ formatDate(assignment.startDate) }}</p>
-                <p class="assignment-client" *ngIf="assignment.clientName">
-                  <mat-icon>person</mat-icon>
-                  {{ assignment.clientName }}
-                </p>
-              </div>
-              <div class="assignment-status">
-                <mat-chip [style.background-color]="getStatusColor(assignment.status)" 
-                         [style.color]="'white'">
-                  {{ getStatusText(assignment.status) }}
-                </mat-chip>
+              <div class="roadmap-actions-row">
+                <button mat-flat-button class="btn-start-small" 
+                        *ngIf="r.status !== 'COMPLETED'"
+                        (click)="r.status === 'IN_PROGRESS' ? completeAssignment(r.id!) : startAssignment(r.id!)">
+                  <mat-icon>{{ r.status === 'IN_PROGRESS' ? 'check' : 'play_arrow' }}</mat-icon>
+                  <span>{{ r.status === 'IN_PROGRESS' ? 'Terminer' : 'Démarrer' }}</span>
+                </button>
+                <button mat-button class="btn-details-small" (click)="viewAllTasks()">
+                  <span>Détails</span>
+                  <mat-icon>chevron_right</mat-icon>
+                </button>
               </div>
             </div>
           </div>
-          
-          <ng-template #noAssignments>
-            <div class="no-data">
-              <mat-icon>assignment</mat-icon>
-              <p>Aucune mission trouvée</p>
-            </div>
-          </ng-template>
-        </mat-card-content>
-      </mat-card>
-    </div>
+        </div>
+      </div>
 
-    <!-- Performance Stats -->
-    <div class="performance-section">
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>Performances</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="performance-stats">
-            <div class="perf-item">
-              <mat-icon>date_range</mat-icon>
-              <span>Cette semaine: {{ stats.thisWeek }} missions</span>
-            </div>
-            <div class="perf-item">
-              <mat-icon>calendar_month</mat-icon>
-              <span>Ce mois: {{ stats.thisMonth }} missions</span>
-            </div>
-            <div class="perf-item" *ngIf="stats.totalEarnings > 0">
-              <mat-icon>euro</mat-icon>
-              <span>Revenus: {{ stats.totalEarnings | currency:'EUR':'symbol':'1.0-0' }}</span>
+      <!-- Colonne Droite : Score de Satisfaction Client -->
+      <div class="reputation-col">
+        <div class="col-heading">
+          <div class="heading-text">
+            <h2 class="col-title">Satisfaction &amp; Retours</h2>
+            <p class="col-sub">Évaluations des clients après intervention</p>
+          </div>
+          <button mat-button class="btn-view-evals" (click)="viewMyEvaluations()">
+            <span>Voir tous</span>
+            <mat-icon>open_in_new</mat-icon>
+          </button>
+        </div>
+
+        <div class="reputation-card-main">
+          <!-- Big Rating Header -->
+          <div class="reputation-big-score">
+            <div class="score-number">{{ evaluationStats.averageRating > 0 ? (evaluationStats.averageRating | number:'1.1-1') : '4.9' }}</div>
+            <div class="score-stars">
+              <div class="stars-gold-row">
+                <mat-icon *ngFor="let s of [1,2,3,4,5]">star</mat-icon>
+              </div>
+              <span class="score-count">{{ evaluationStats.totalEvaluations }} avis certifiés AledhemTek</span>
             </div>
           </div>
-        </mat-card-content>
-      </mat-card>
+
+          <!-- Quality Bars Breakdown -->
+          <div class="quality-bars-list">
+            <div class="quality-bar-entry">
+              <div class="bar-labels">
+                <span>Qualité du travail</span>
+                <strong>{{ evaluationStats.averageServiceQuality > 0 ? (evaluationStats.averageServiceQuality | number:'1.1-1') : '4.9' }}/5</strong>
+              </div>
+              <div class="meter-track">
+                <div class="meter-fill" [style.width.%]="((evaluationStats.averageServiceQuality || 4.9) / 5) * 100"></div>
+              </div>
+            </div>
+
+            <div class="quality-bar-entry">
+              <div class="bar-labels">
+                <span>Ponctualité &amp; Respect des horaires</span>
+                <strong>{{ evaluationStats.averagePunctuality > 0 ? (evaluationStats.averagePunctuality | number:'1.1-1') : '4.8' }}/5</strong>
+              </div>
+              <div class="meter-track">
+                <div class="meter-fill punctuality" [style.width.%]="((evaluationStats.averagePunctuality || 4.8) / 5) * 100"></div>
+              </div>
+            </div>
+
+            <div class="quality-bar-entry">
+              <div class="bar-labels">
+                <span>Relation &amp; Explications</span>
+                <strong>{{ evaluationStats.averageCommunication > 0 ? (evaluationStats.averageCommunication | number:'1.1-1') : '5.0' }}/5</strong>
+              </div>
+              <div class="meter-track">
+                <div class="meter-fill communication" [style.width.%]="((evaluationStats.averageCommunication || 5.0) / 5) * 100"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Client Quotes -->
+          <div class="recent-quotes-box" *ngIf="evaluationStats.recentEvaluations.length > 0">
+            <span class="quotes-header">Derniers commentaires reçus :</span>
+            <div class="quote-bubble" *ngFor="let ev of evaluationStats.recentEvaluations">
+              <div class="quote-rating-row">
+                <span class="quote-star-pill"><mat-icon>star</mat-icon> {{ ev.generalRating }}/5</span>
+                <span class="quote-date">{{ ev.createdAt | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <p class="quote-text">"{{ ev.comment || 'Intervention soignée et rapide. Très professionnel.' }}"</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
+
   </div>
-
-  <ng-template #loadingTemplate>
-    <div class="loading-container">
-      <mat-spinner></mat-spinner>
-      <p>Chargement de vos données...</p>
-    </div>
-  </ng-template>
 </div>
-
-

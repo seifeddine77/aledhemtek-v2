@@ -1,37 +1,287 @@
-﻿/* ==========================================================================
-   ALEDHEMTEK - MODERN RESERVATION STEPPER DESIGN
-   ========================================================================== */
-
-.create-reservation-container {
-  max-width: 1040px;
-  margin: 2rem auto 4rem;
-  padding: 0 1.5rem;
-  min-height: calc(100vh - 160px);
+.create-reservation-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-/* Header Section */
-.header-section {
-  text-align: center;
-  margin-bottom: 2.5rem;
-  background: var(--color-surface);
-  padding: 2.5rem 2rem;
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-sm);
+/* Breadcrumb Strip */
+.breadcrumb-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
 }
 
-.header-section h2 {
-  color: var(--color-text-primary);
-  margin: 0 0 0.5rem 0;
-  font-size: 2rem;
+.crumb-link {
+  color: #64748b;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.crumb-link:hover {
+  color: #2563eb;
+}
+
+.crumb-sep {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #94a3b8;
+}
+
+.crumb-current {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+/* 2-Column Booking Portal Layout */
+.booking-portal-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.booking-main-col {
+  min-width: 0;
+}
+
+/* Sticky Live Interactive Quote Card */
+.sticky-quote-card {
+  position: sticky;
+  top: 90px;
+  background: white;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  padding: 1.5rem;
+  box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.quote-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.quote-header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.95rem;
   font-weight: 800;
-  letter-spacing: -0.025em;
+  color: #0f172a;
 }
 
-.subtitle {
-  color: var(--color-text-secondary);
-  font-size: 1.05rem;
-  margin: 0;
+.quote-header-title mat-icon {
+  color: #2563eb;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.live-pulse-chip {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+}
+
+/* Quote Price Hero */
+.quote-price-hero {
+  background: linear-gradient(135deg, #eff6ff, #f8fafc);
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+  padding: 1.15rem;
+  text-align: center;
+}
+
+.price-hero-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.price-hero-value {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  color: #1d4ed8;
+  font-weight: 900;
+}
+
+.currency-symbol {
+  font-size: 1.3rem;
+  margin-right: 2px;
+}
+
+.number-val {
+  font-size: 2.25rem;
+  line-height: 1;
+}
+
+.decimals {
+  font-size: 1.1rem;
+}
+
+.price-hero-note {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: #059669;
+  font-weight: 600;
+}
+
+.quote-breakdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.breakdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.825rem;
+}
+
+.breakdown-label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #64748b;
+}
+
+.breakdown-label mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #94a3b8;
+}
+
+.font-bold {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.selected-tasks-mini {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.mini-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.mini-task-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 0.35rem 0.65rem;
+  border-radius: 8px;
+  font-size: 0.775rem;
+}
+
+.mini-task-name {
+  color: #334155;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.mini-task-qty {
+  background: #2563eb;
+  color: white;
+  padding: 0.1rem 0.4rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.quote-guarantees {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.775rem;
+  color: #475569;
+  background: #f8fafc;
+  padding: 0.85rem;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.guarantee-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.guarantee-row mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.text-success { color: #10b981; }
+.text-primary { color: #2563eb; }
+.text-warning { color: #f59e0b; }
+
+.quote-contact-box {
+  text-align: center;
+  padding-top: 0.5rem;
+}
+
+.contact-prompt {
+  display: block;
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-bottom: 0.35rem;
+}
+
+.contact-phone {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #2563eb;
+  font-size: 0.95rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.contact-phone mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+@media (max-width: 992px) {
+  .booking-portal-layout {
+    grid-template-columns: 1fr;
+  }
+  .sticky-quote-card {
+    position: static;
+  }
 }
 
 /* Stepper Container */

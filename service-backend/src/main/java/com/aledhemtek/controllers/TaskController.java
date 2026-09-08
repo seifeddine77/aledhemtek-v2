@@ -7,6 +7,7 @@ import com.aledhemtek.interfaces.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -53,6 +54,7 @@ public class TaskController {
      * Créer une nouvelle tâche
      */
     @PostMapping(consumes = "multipart/form-data")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<TaskDto> createTask(
             @RequestPart("taskDto") TaskDto taskDto,
             @RequestPart("image") MultipartFile file) {
@@ -64,6 +66,7 @@ public class TaskController {
      * Mettre à jour une tâche
      */
     @PutMapping("/{taskId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<TaskDto> updateTask(
             @PathVariable Long taskId,
             @RequestBody TaskDto taskDto) {
@@ -78,6 +81,7 @@ public class TaskController {
      * Supprimer une tâche
      */
     @DeleteMapping("/{taskId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteTask(@PathVariable Long taskId) {
         taskService.deleteTask(taskId);
         return ResponseEntity.noContent().build();
@@ -87,6 +91,7 @@ public class TaskController {
      * Ajouter un tarif à une tâche
      */
     @PostMapping("/{taskId}/rates")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RateDto> addRateToTask(
             @PathVariable Long taskId,
             @RequestBody RateDto rateDto) {
@@ -107,6 +112,7 @@ public class TaskController {
      * Mettre à jour un tarif
      */
     @PutMapping("/rates/{rateId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RateDto> updateRate(
             @PathVariable Long rateId,
             @RequestBody RateDto rateDto) {
@@ -121,6 +127,7 @@ public class TaskController {
      * Supprimer un tarif
      */
     @DeleteMapping("/rates/{rateId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteRate(@PathVariable Long rateId) {
         taskService.deleteRate(rateId);
         return ResponseEntity.noContent().build();
@@ -130,6 +137,7 @@ public class TaskController {
      * Ajouter un matériau à une tâche
      */
     @PostMapping("/{taskId}/materials")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MaterialDto> addMaterialToTask(
             @PathVariable Long taskId,
             @RequestBody MaterialDto materialDto) {
@@ -150,6 +158,7 @@ public class TaskController {
      * Mettre à jour un matériau
      */
     @PutMapping("/materials/{materialId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MaterialDto> updateMaterial(
             @PathVariable Long materialId,
             @RequestBody MaterialDto materialDto) {
@@ -164,6 +173,7 @@ public class TaskController {
      * Supprimer un matériau
      */
     @DeleteMapping("/materials/{materialId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteMaterial(@PathVariable Long materialId) {
         taskService.deleteMaterial(materialId);
         return ResponseEntity.noContent().build();

@@ -1,78 +1,72 @@
-<div class="location-dialog">
-  <div class="dialog-header">
-    <h2 mat-dialog-title>
-      <mat-icon>location_on</mat-icon>
-      Localisation de la réservation
-    </h2>
-    <button mat-icon-button mat-dialog-close>
+<div class="location-dialog-modal">
+  <!-- Modal Luxury Header -->
+  <div class="dialog-header-luxury">
+    <div class="header-leading">
+      <div class="icon-badge">
+        <mat-icon>place</mat-icon>
+      </div>
+      <div class="header-titles">
+        <h2>Localisation & Coordonnées GPS</h2>
+        <p>Position géographique du chantier et itinéraire d'intervention</p>
+      </div>
+    </div>
+    <button mat-icon-button mat-dialog-close class="close-btn" matTooltip="Fermer">
       <mat-icon>close</mat-icon>
     </button>
   </div>
 
-  <mat-dialog-content class="dialog-content">
-    <!-- Informations sur la réservation -->
-    <div class="reservation-info">
-      <div class="info-item">
-        <mat-icon>assignment</mat-icon>
-        <span><strong>Titre:</strong> {{ data.reservation.title }}</span>
+  <div class="dialog-body-luxury">
+    <!-- Top Mission Strip -->
+    <div class="mission-loc-strip">
+      <div class="loc-meta-item">
+        <span class="meta-label">Mission :</span>
+        <span class="meta-value">{{ data.reservation.title | cleanText }}</span>
       </div>
-      <div class="info-item">
-        <mat-icon>person</mat-icon>
-        <span><strong>Client:</strong> {{ data.reservation.clientName }}</span>
+      <div class="loc-meta-item">
+        <span class="meta-label">Client :</span>
+        <span class="meta-value">{{ data.reservation.clientName || 'Client' }}</span>
       </div>
-      <div class="info-item" *ngIf="data.reservation.consultantName">
-        <mat-icon>engineering</mat-icon>
-        <span><strong>Consultant:</strong> {{ data.reservation.consultantName }}</span>
-      </div>
-      <div class="info-item" *ngIf="data.reservation.description">
-        <mat-icon>description</mat-icon>
-        <span><strong>Description:</strong> {{ data.reservation.description }}</span>
+      <div class="loc-meta-item" *ngIf="data.reservation.address">
+        <span class="meta-label">Adresse :</span>
+        <span class="meta-value">{{ data.reservation.address }}</span>
       </div>
     </div>
 
-    <!-- Informations de localisation -->
-    <div class="location-info" *ngIf="data.reservation.latitude && data.reservation.longitude">
-      <div class="info-grid">
-        <div class="info-item">
-          <span class="label">Latitude:</span>
-          <span class="value">{{ data.reservation.latitude | number:'1.6-6' }}</span>
-        </div>
-        <div class="info-item">
-          <span class="label">Longitude:</span>
-          <span class="value">{{ data.reservation.longitude | number:'1.6-6' }}</span>
-        </div>
-        <div class="info-item" *ngIf="data.reservation.address">
-          <span class="label">Adresse:</span>
-          <span class="value">{{ data.reservation.address }}</span>
-        </div>
+    <!-- GPS Display & Actions -->
+    <div class="gps-coords-bar" *ngIf="data.reservation.latitude && data.reservation.longitude">
+      <div class="gps-tag">
+        <mat-icon>gps_fixed</mat-icon>
+        <span>Coordonnées : <strong>{{ formatCoordinates() }}</strong></span>
+      </div>
+      <div class="gps-actions">
+        <button mat-stroked-button (click)="copyCoordinates()" class="btn-copy">
+          <mat-icon>content_copy</mat-icon>
+          <span>Copier</span>
+        </button>
+        <button mat-stroked-button (click)="openInMaps()" class="btn-maps">
+          <mat-icon>open_in_new</mat-icon>
+          <span>Ouvrir dans Maps</span>
+        </button>
       </div>
     </div>
 
-    <!-- Carte interactive -->
-    <div class="map-container">
+    <!-- Map container -->
+    <div class="map-card-wrapper">
       <app-location-map
         [position]="getPosition()"
-        [title]="'Localisation de la réservation'"
-        [height]="'400px'"
+        [title]="'Localisation du chantier'"
+        [height]="'360px'"
         [readonly]="true"
         [showHeader]="false"
         [showActions]="true"
         [showInfo]="false">
       </app-location-map>
     </div>
-  </mat-dialog-content>
+  </div>
 
-  <mat-dialog-actions class="dialog-actions">
-    <button mat-button (click)="copyCoordinates()" color="accent">
-      <mat-icon>content_copy</mat-icon>
-      Copier les coordonnées
-    </button>
-    <button mat-button (click)="openInMaps()" color="primary">
-      <mat-icon>open_in_new</mat-icon>
-      Ouvrir dans la carte
-    </button>
-    <button mat-button mat-dialog-close color="primary">
+  <div class="dialog-actions-luxury">
+    <button mat-flat-button color="primary" mat-dialog-close class="btn-close-map">
       Fermer
     </button>
-  </mat-dialog-actions>
+  </div>
 </div>

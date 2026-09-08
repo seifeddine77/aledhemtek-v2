@@ -1,28 +1,55 @@
-<h1 mat-dialog-title>Modifier la Tâche</h1>
-<div mat-dialog-content>
-  <form #editForm="ngForm">
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Nom de la tâche</mat-label>
-      <input matInput [(ngModel)]="data.name" name="name" required>
-    </mat-form-field>
+<div class="dialog-modern-container">
+  <div class="dialog-modern-header">
+    <div class="dialog-header-badge">
+      <mat-icon>edit_note</mat-icon>
+    </div>
+    <div class="dialog-header-text">
+      <h2>Modifier la tâche</h2>
+      <p>Actualisez le nom, la description, la durée et le tarif associé</p>
+    </div>
+  </div>
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Description</mat-label>
-      <textarea matInput [(ngModel)]="data.description" name="description" required></textarea>
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Durée (min)</mat-label>
-      <input matInput type="number" [(ngModel)]="data.duration" name="duration" required>
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Tarif (€)</mat-label>
-        <input matInput type="number" [(ngModel)]="data.price" name="price" required>
+  <div class="dialog-modern-body">
+    <form #editForm="ngForm" class="edit-task-form">
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>Nom de la tâche</mat-label>
+        <mat-icon matPrefix>assignment</mat-icon>
+        <input matInput [(ngModel)]="data.name" name="name" placeholder="Nom de la tâche" required autofocus>
+        <mat-error *ngIf="!data.name">Le nom est obligatoire</mat-error>
       </mat-form-field>
-  </form>
-</div>
-<div mat-dialog-actions align="end">
-  <button mat-button (click)="onCancel()">Annuler</button>
-  <button mat-raised-button color="primary" [mat-dialog-close]="data" [disabled]="!editForm.form.valid">Enregistrer</button>
+
+      <div class="form-row-2">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Durée estimée</mat-label>
+          <mat-icon matPrefix>schedule</mat-icon>
+          <input matInput type="number" [(ngModel)]="data.duration" name="duration" min="1" required>
+          <span matSuffix class="field-unit">min</span>
+          <mat-error *ngIf="!data.duration">Durée requise</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Tarif unitaire HT</mat-label>
+          <mat-icon matPrefix>attach_money</mat-icon>
+          <input matInput type="number" [(ngModel)]="data.price" name="price" min="0" step="0.5" required>
+          <span matSuffix class="field-unit">EUR</span>
+          <mat-error *ngIf="data.price == null">Tarif requis</mat-error>
+        </mat-form-field>
+      </div>
+
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>Description de la tâche</mat-label>
+        <mat-icon matPrefix>description</mat-icon>
+        <textarea matInput [(ngModel)]="data.description" name="description" rows="3" placeholder="Description des prestations..." required></textarea>
+        <mat-error *ngIf="!data.description">La description est obligatoire</mat-error>
+      </mat-form-field>
+    </form>
+  </div>
+
+  <div class="dialog-modern-actions">
+    <button mat-button (click)="onCancel()" class="btn-cancel">Annuler</button>
+    <button mat-raised-button color="primary" [mat-dialog-close]="data" [disabled]="!editForm.form.valid" class="btn-primary">
+      <mat-icon>save</mat-icon>
+      Enregistrer les modifications
+    </button>
+  </div>
 </div>

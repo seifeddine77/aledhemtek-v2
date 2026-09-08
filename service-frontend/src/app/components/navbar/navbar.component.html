@@ -1,10 +1,24 @@
 <header class="app-header">
   <div class="header-inner">
-    <!-- Brand Logo -->
+    <!-- Brand Logo with Artisan Badge -->
     <a class="nav-brand" routerLink="/home" (click)="closeMobileMenu()">
-      <img src="/img/logo.png" alt="AledhemTek" class="brand-logo-img" onerror="this.style.display='none'" />
-      <span class="brand-name">Aledhem<span class="brand-highlight">Tek</span></span>
+      <div class="brand-icon-box">
+        <mat-icon>home_repair_service</mat-icon>
+      </div>
+      <div class="brand-text-wrap">
+        <span class="brand-name">Aledhem<span class="brand-highlight">Tek</span></span>
+        <span class="brand-subtag">Artisans &amp; Rénovation</span>
+      </div>
     </a>
+
+    <!-- Emergency Hotline Badge (Desktop) -->
+    <div class="nav-emergency-badge d-none d-lg-flex">
+      <span class="dot-pulse-emergency"></span>
+      <div class="emergency-text">
+        <span class="emergency-label">Dépannage Urgent 24/7</span>
+        <span class="emergency-phone">01 89 20 00 00</span>
+      </div>
+    </div>
 
     <!-- Desktop Navigation Links -->
     <nav class="desktop-nav">
@@ -19,12 +33,35 @@
           <span>Connexion</span>
         </a>
         <a class="btn-register" routerLink="/register">
-          <span>S'inscrire</span>
+          <mat-icon>person_add</mat-icon>
+          <span>Devenir Artisan / S'inscrire</span>
+        </a>
+        <a class="btn-cta-intervention" routerLink="/login">
+          <mat-icon>bolt</mat-icon>
+          <span>Commander un service</span>
         </a>
       </ng-container>
 
       <!-- Authenticated User Menu -->
       <ng-container *ngIf="isLoggedIn">
+        <!-- Client Shortcut -->
+        <a *ngIf="userRole === 'client'" class="btn-cta-intervention" routerLink="/client/create-reservation-with-tasks">
+          <mat-icon>add_circle</mat-icon>
+          <span>Nouvelle Demande</span>
+        </a>
+
+        <!-- Consultant Shortcut -->
+        <a *ngIf="userRole === 'consultant'" class="nav-item nav-badge-item" routerLink="/consultant/tasks" routerLinkActive="active">
+          <mat-icon class="nav-icon">construction</mat-icon>
+          <span>Mes Interventions</span>
+        </a>
+
+        <!-- Admin Shortcut -->
+        <a *ngIf="userRole === 'admin'" class="nav-item nav-badge-item" routerLink="/admin/reservations" routerLinkActive="active">
+          <mat-icon class="nav-icon">alt_route</mat-icon>
+          <span>Dispatching</span>
+        </a>
+
         <a class="nav-item" [routerLink]="getDashboardLink()" routerLinkActive="active">
           <mat-icon class="nav-icon">dashboard</mat-icon>
           <span>Espace {{ userRole | titlecase }}</span>
@@ -87,6 +124,10 @@
           <mat-icon>dashboard</mat-icon>
           <span>Tableau de bord ({{ userRole }})</span>
         </a>
+        <a *ngIf="userRole === 'client'" class="mobile-nav-item mobile-highlight" routerLink="/client/create-reservation-with-tasks" (click)="closeMobileMenu()">
+          <mat-icon>add_circle</mat-icon>
+          <span>Nouvelle Réservation</span>
+        </a>
         <button class="mobile-nav-item mobile-logout" (click)="logout()">
           <mat-icon>logout</mat-icon>
           <span>Se déconnecter</span>
@@ -95,4 +136,5 @@
     </nav>
   </div>
 </header>
+
 

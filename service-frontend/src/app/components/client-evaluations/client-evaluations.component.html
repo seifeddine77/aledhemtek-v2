@@ -1,4 +1,9 @@
 <div class="client-evaluations-container">
+  <div class="breadcrumb-strip mb-3">
+    <a routerLink="/client/dashboard" class="crumb-link">Espace Client</a>
+    <mat-icon class="crumb-sep">chevron_right</mat-icon>
+    <span class="crumb-current">Mes Avis &amp; Évaluations</span>
+  </div>
   <div class="header">
     <h1>
       <mat-icon>star</mat-icon>
@@ -23,7 +28,7 @@
 
   <!-- Evaluations List -->
   <div *ngIf="!loading && evaluations.length > 0" class="evaluations-grid">
-    <mat-card *ngFor="let evaluation of evaluations" class="evaluation-card">
+    <mat-card *ngFor="let evaluation of paginatedEvaluations" class="evaluation-card">
       <!-- Card Header -->
       <mat-card-header>
         <div class="reservation-info">
@@ -148,6 +153,14 @@
       </mat-card-actions>
     </mat-card>
   </div>
+
+  <!-- Pagination -->
+  <app-pagination
+    *ngIf="!loading && evaluations.length > 0"
+    [config]="paginationConfig"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)">
+  </app-pagination>
 
   <!-- Summary Stats -->
   <div *ngIf="!loading && evaluations.length > 0" class="summary-stats">

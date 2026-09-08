@@ -22,9 +22,14 @@ import { ConsultantService } from '../../services/consultant.service';
 import { AdminService } from '../../services/admin.service';
 import { ReservationTasksDialogComponent } from '../dialogs/reservation-tasks-dialog/reservation-tasks-dialog.component';
 import { ReservationTaskEditorComponent } from '../dialogs/reservation-task-editor/reservation-task-editor.component';
+import { ReservationDetailsDialogComponent } from '../dialogs/reservation-details-dialog/reservation-details-dialog.component';
 import { LocationDialogComponent } from '../dialogs/location-dialog/location-dialog.component';
 import { Reservation, ReservationStatus } from '../../models/reservation.model';
 import { ConsultantInterface } from '../../models/consultant-interface';
+import { PaginationComponent, PaginationConfig } from '../shared/pagination/pagination.component';
+import { CleanTextPipe } from '../../pipes/clean-text.pipe';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-admin-reservations',
@@ -43,27 +48,34 @@ import { ConsultantInterface } from '../../models/consultant-interface';
     MatSnackBarModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatDialogModule
+    MatDialogModule,
+    MatMenuModule,
+    MatTooltipModule,
+    PaginationComponent,
+    CleanTextPipe
   ],
   templateUrl: './admin-reservations.component.html',
-  styleUrls: ['./admin-reservations.component.css'],
-  animations: [
-    trigger('detailExpand', [
-      state('collapsed', style({height: '0px', minHeight: '0'})),
-      state('expanded', style({height: '*'})),
-      transition('expanded <=> collapsed', animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)')),
-    ]),
-  ],
+  styleUrls: ['./admin-reservations.component.css']
 })
 export class AdminReservationsComponent implements OnInit {
   reservations: Reservation[] = [];
+  filteredReservations: Reservation[] = [];
+  paginatedReservations: Reservation[] = [];
   unassignedReservations: Reservation[] = [];
   consultants: ConsultantInterface[] = [];
   selectedReservation: Reservation | null = null;
   loading = false;
-  expandedElement: Reservation | null | undefined;
+  selectedTab: string = 'ALL';
+  searchTerm: string = '';
 
-  displayedColumns: string[] = ['expand', 'id', 'title', 'client', 'consultant', 'startDate', 'endDate', 'location', 'status', 'actions'];
+  paginationConfig: PaginationConfig = {
+    currentPage: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+    pageSizeOptions: [5, 10, 25, 50]
+  };
+
+  displayedColumns: string[] = ['id', 'title', 'client', 'consultant', 'dates', 'location', 'status', 'actions'];
   ReservationStatus = ReservationStatus;
 
   constructor(
@@ -80,11 +92,73 @@ export class AdminReservationsComponent implements OnInit {
     this.loadConsultants();
   }
 
+  selectTab(tab: string): void {
+    this.selectedTab = tab;
+    this.applyFilter();
+  }
+
+  onSearchChange(): void {
+    this.applyFilter();
+  }
+
+  applyFilter(): void {
+    let result = [...this.reservations];
+
+    if (this.selectedTab === 'UNASSIGNED') {
+      result = result.filter(r => !r.consultantId);
+    } else if (this.selectedTab !== 'ALL') {
+      result = result.filter(r => r.status === this.selectedTab);
+    }
+
+    if (this.searchTerm && this.searchTerm.trim()) {
+      const q = this.searchTerm.toLowerCase().trim();
+      result = result.filter(r => 
+        (r.title && r.title.toLowerCase().includes(q)) ||
+        (r.clientName && r.clientName.toLowerCase().includes(q)) ||
+        (r.consultantName && r.consultantName.toLowerCase().includes(q)) ||
+        (r.id && r.id.toString().includes(q))
+      );
+    }
+
+    this.filteredReservations = result;
+    this.paginationConfig.totalItems = result.length;
+    this.paginationConfig.currentPage = 1;
+    this.updatePaginatedReservations();
+  }
+
+  getTabCount(tab: string): number {
+    if (tab === 'ALL') return this.reservations.length;
+    if (tab === 'UNASSIGNED') return this.reservations.filter(r => !r.consultantId).length;
+    return this.reservations.filter(r => r.status === tab).length;
+  }
+
+  updatePagination(): void {
+    this.applyFilter();
+  }
+
+  updatePaginatedReservations(): void {
+    const startIndex = (this.paginationConfig.currentPage - 1) * this.paginationConfig.itemsPerPage;
+    const endIndex = startIndex + this.paginationConfig.itemsPerPage;
+    this.paginatedReservations = this.filteredReservations.slice(startIndex, endIndex);
+  }
+
+  onPageChange(page: number): void {
+    this.paginationConfig.currentPage = page;
+    this.updatePaginatedReservations();
+  }
+
+  onPageSizeChange(pageSize: number): void {
+    this.paginationConfig.itemsPerPage = pageSize;
+    this.paginationConfig.currentPage = 1;
+    this.updatePagination();
+  }
+
   loadReservations(): void {
     this.loading = true;
     this.reservationService.getAllReservations().subscribe({
       next: (reservations) => {
         this.reservations = reservations;
+        this.updatePagination();
         this.loading = false;
       },
       error: (error) => {
@@ -177,7 +251,7 @@ export class AdminReservationsComponent implements OnInit {
   openTasksEditorDialog(reservation: Reservation): void {
     // Utiliser le nouveau dialog d'édition pour modifier les tâches
     const dialogRef = this.dialog.open(ReservationTaskEditorComponent, {
-      width: '1200px',
+      width: '980px',
       maxWidth: '95vw',
       data: {
         reservation: reservation
@@ -190,6 +264,17 @@ export class AdminReservationsComponent implements OnInit {
         // Rafraîchir les données
         this.loadReservations();
       }
+    });
+  }
+
+  openReservationDetailsDialog(reservation: Reservation): void {
+    this.dialog.open(ReservationDetailsDialogComponent, {
+      width: '920px',
+      maxWidth: '95vw',
+      data: {
+        reservation: reservation
+      },
+      disableClose: false
     });
   }
 

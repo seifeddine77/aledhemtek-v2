@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 
 // Angular Material Imports
 import { MatCardModule } from '@angular/material/card';
@@ -21,6 +21,7 @@ import { MatDividerModule } from '@angular/material/divider';
 // Services
 import { ClientInvoiceService, ClientInvoice, InvoiceStatus, ClientInvoiceStats } from '../../../services/client-invoice.service';
 import { AuthService } from '../../../services/auth.service';
+import { PaginationComponent, PaginationConfig } from '../../shared/pagination/pagination.component';
 
 @Component({
   selector: 'app-client-invoices',
@@ -28,6 +29,7 @@ import { AuthService } from '../../../services/auth.service';
   imports: [
     CommonModule,
     FormsModule,
+    RouterModule,
     MatCardModule,
     MatButtonModule,
     MatIconModule,
@@ -40,7 +42,8 @@ import { AuthService } from '../../../services/auth.service';
     MatInputModule,
     MatProgressBarModule,
     MatTooltipModule,
-    MatDividerModule
+    MatDividerModule,
+    PaginationComponent
   ],
   templateUrl: './client-invoices.component.html',
   styleUrls: ['./client-invoices.component.css']
@@ -49,8 +52,17 @@ export class ClientInvoicesComponent implements OnInit {
   // Data Properties
   invoices: ClientInvoice[] = [];
   filteredInvoices: ClientInvoice[] = [];
+  paginatedInvoices: ClientInvoice[] = [];
   stats: ClientInvoiceStats | null = null;
   
+  // Pagination
+  paginationConfig: PaginationConfig = {
+    currentPage: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+    pageSizeOptions: [5, 10, 25, 50]
+  };
+
   // UI State
   loading = false;
   error: string | null = null;
@@ -156,6 +168,30 @@ export class ClientInvoicesComponent implements OnInit {
       
       return matchesStatus && matchesSearch;
     });
+
+    this.updatePagination();
+  }
+
+  updatePagination(): void {
+    this.paginationConfig.totalItems = this.filteredInvoices.length;
+    this.updatePaginatedInvoices();
+  }
+
+  updatePaginatedInvoices(): void {
+    const startIndex = (this.paginationConfig.currentPage - 1) * this.paginationConfig.itemsPerPage;
+    const endIndex = startIndex + this.paginationConfig.itemsPerPage;
+    this.paginatedInvoices = this.filteredInvoices.slice(startIndex, endIndex);
+  }
+
+  onPageChange(page: number): void {
+    this.paginationConfig.currentPage = page;
+    this.updatePaginatedInvoices();
+  }
+
+  onPageSizeChange(pageSize: number): void {
+    this.paginationConfig.itemsPerPage = pageSize;
+    this.paginationConfig.currentPage = 1;
+    this.updatePagination();
   }
 
   onStatusChange(): void {

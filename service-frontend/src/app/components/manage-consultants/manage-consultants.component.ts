@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { ConsultantService } from '../../services/consultant.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { ConsultantInterface } from '../../models/consultant-interface';
@@ -9,20 +10,34 @@ import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { PaginationComponent, PaginationConfig } from '../shared/pagination/pagination.component';
+import { CleanTextPipe } from '../../pipes/clean-text.pipe';
+import { ConsultantDossierDialogComponent } from '../dialogs/consultant-dossier-dialog/consultant-dossier-dialog.component';
 
 @Component({
   selector: 'app-manage-consultants',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     MatTableModule,
     MatButtonModule,
     MatIcon,
     MatTooltip,
     MatCardModule,
     MatChipsModule,
-    MatProgressSpinnerModule
+    MatSelectModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatProgressSpinnerModule,
+    MatDialogModule,
+    PaginationComponent,
+    CleanTextPipe
   ],
   templateUrl: './manage-consultants.component.html',
   styleUrls: ['./manage-consultants.component.css']
@@ -30,26 +45,43 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 export class ManageConsultantsComponent implements OnInit {
   consultantService = inject(ConsultantService);
   snackBar = inject(MatSnackBar);
+  dialog = inject(MatDialog);
+  
   consultants: ConsultantInterface[] = [];
-  displayedColumns = ['id', 'name', 'email', 'profession', 'experience', 'company', 'status', 'resume', 'actions'];
+  filteredConsultants: ConsultantInterface[] = [];
+  paginatedConsultants: ConsultantInterface[] = [];
+  
+  displayedColumns = ['id', 'name', 'profession', 'experience', 'company', 'status', 'resume', 'actions'];
   loading = false;
+  searchTerm = '';
+  statusFilter = 'ALL';
+
+  stats = {
+    total: 0,
+    approved: 0,
+    pending: 0,
+    rejected: 0
+  };
+
+  paginationConfig: PaginationConfig = {
+    currentPage: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+    pageSizeOptions: [5, 10, 25, 50]
+  };
 
   ngOnInit(): void {
     this.fetchAll();
   }
 
-  fetchAll() {
+  fetchAll(): void {
     this.loading = true;
     this.consultantService.getAll().subscribe({
       next: (data) => {
-        this.consultants = data;
+        this.consultants = data || [];
+        this.calculateStats();
+        this.applyFilter();
         this.loading = false;
-        console.log('Consultants chargés:', data);
-        console.log('Premier consultant resumePath:', data[0]?.resumePath);
-        console.log('Premier consultant exp:', data[0]?.exp);
-        console.log('Premier consultant companyName:', data[0]?.companyName);
-        console.log('Premier consultant profession:', data[0]?.profession);
-        console.log('Toutes les propriétés du premier consultant:', data[0]);
       },
       error: (error) => {
         console.error('Erreur lors du chargement des consultants:', error);
@@ -59,91 +91,120 @@ export class ManageConsultantsComponent implements OnInit {
     });
   }
 
-  approve(consultant: ConsultantInterface) {
+  calculateStats(): void {
+    this.stats.total = this.consultants.length;
+    this.stats.approved = this.consultants.filter(c => c.status === 'APPROVED').length;
+    this.stats.pending = this.consultants.filter(c => c.status === 'PENDING' || !c.status).length;
+    this.stats.rejected = this.consultants.filter(c => c.status === 'REJECTED').length;
+  }
+
+  applyFilter(): void {
+    const term = this.searchTerm.toLowerCase().trim();
+    this.filteredConsultants = this.consultants.filter(c => {
+      const fullName = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase();
+      const matchesSearch = !term ||
+        fullName.includes(term) ||
+        (c.email && c.email.toLowerCase().includes(term)) ||
+        (c.profession && c.profession.toLowerCase().includes(term)) ||
+        (c.companyName && c.companyName.toLowerCase().includes(term));
+
+      const matchesStatus = this.statusFilter === 'ALL' ||
+        (this.statusFilter === 'PENDING' && (c.status === 'PENDING' || !c.status)) ||
+        c.status === this.statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+
+    this.paginationConfig.currentPage = 1;
+    this.updatePagination();
+  }
+
+  updatePagination(): void {
+    this.paginationConfig.totalItems = this.filteredConsultants.length;
+    this.updatePaginatedConsultants();
+  }
+
+  updatePaginatedConsultants(): void {
+    const startIndex = (this.paginationConfig.currentPage - 1) * this.paginationConfig.itemsPerPage;
+    const endIndex = startIndex + this.paginationConfig.itemsPerPage;
+    this.paginatedConsultants = this.filteredConsultants.slice(startIndex, endIndex);
+  }
+
+  onPageChange(page: number): void {
+    this.paginationConfig.currentPage = page;
+    this.updatePaginatedConsultants();
+  }
+
+  onPageSizeChange(pageSize: number): void {
+    this.paginationConfig.itemsPerPage = pageSize;
+    this.paginationConfig.currentPage = 1;
+    this.updatePagination();
+  }
+
+  approve(consultant: ConsultantInterface): void {
     this.loading = true;
     this.consultantService.approve(consultant.id!).subscribe({
       next: () => {
-        this.snackBar.open('Consultant approved', 'Close', { duration: 2000 });
+        this.snackBar.open(`Artisan ${consultant.firstName} ${consultant.lastName} agréé avec succès`, 'Fermer', { duration: 3000 });
         this.fetchAll();
       },
-      complete: () => this.loading = false
+      error: () => {
+        this.snackBar.open('Erreur lors de l\'approbation de l\'artisan', 'Fermer', { duration: 3000 });
+        this.loading = false;
+      }
     });
   }
 
-  reject(id: number) {
-    this.consultantService.reject(id).subscribe(() => {
-      this.snackBar.open('Consultant rejected', 'Close', { duration: 2000 });
-      this.fetchAll();
+  reject(consultant: ConsultantInterface): void {
+    this.loading = true;
+    this.consultantService.reject(consultant.id!).subscribe({
+      next: () => {
+        this.snackBar.open(`Dossier de ${consultant.firstName} ${consultant.lastName} refusé`, 'Fermer', { duration: 3000 });
+        this.fetchAll();
+      },
+      error: () => {
+        this.snackBar.open('Erreur lors du rejet du dossier', 'Fermer', { duration: 3000 });
+        this.loading = false;
+      }
     });
   }
 
-  delete(id: number) {
-    this.consultantService.delete(id).subscribe(() => {
-      this.snackBar.open('Consultant deleted', 'Close', { duration: 2000 });
-      this.fetchAll();
+  viewResume(consultant: ConsultantInterface): void {
+    if (consultant.id) {
+      this.consultantService.downloadResume(String(consultant.id)).subscribe({
+        next: (blob) => {
+          const url = window.URL.createObjectURL(blob);
+          window.open(url, '_blank');
+        },
+        error: () => {
+          this.snackBar.open('Document introuvable ou indisponible', 'Fermer', { duration: 3000 });
+        }
+      });
+    }
+  }
+
+  getStatusText(status: string | undefined): string {
+    switch (status) {
+      case 'APPROVED': return 'Agréé & Vérifié';
+      case 'REJECTED': return 'Refusé';
+      case 'PENDING':
+      default: return 'En attente d\'audit';
+    }
+  }
+
+  openConsultantDossier(consultant: ConsultantInterface): void {
+    const dialogRef = this.dialog.open(ConsultantDossierDialogComponent, {
+      width: '800px',
+      maxWidth: '95vw',
+      data: { consultant }
     });
-  }
 
-  viewResume(consultant: ConsultantInterface) {
-    if (!consultant.resumePath) {
-      this.snackBar.open('Aucun CV disponible pour ce consultant', 'Fermer', { duration: 3000 });
-      return;
-    }
-    
-    console.log('=== DÉBOGAGE CV ===');
-    console.log('Visualisation CV pour:', consultant.firstName, consultant.lastName);
-    console.log('Resume path brut:', consultant.resumePath);
-    
-    const resumeUrl = this.consultantService.getResumeUrl(consultant.resumePath);
-    console.log('URL générée:', resumeUrl);
-    
-    // Ouvrir directement l'URL (l'endpoint backend gère l'authentification)
-    console.log('✅ Ouverture du CV dans un nouvel onglet');
-    window.open(resumeUrl, '_blank');
-  }
-
-  downloadResume(consultant: ConsultantInterface) {
-    if (!consultant.resumePath) {
-      this.snackBar.open('Aucun CV disponible pour ce consultant', 'Fermer', { duration: 3000 });
-      return;
-    }
-    
-    console.log('=== TÉLÉCHARGEMENT CV ===');
-    console.log('Téléchargement CV pour:', consultant.firstName, consultant.lastName);
-    console.log('Resume path:', consultant.resumePath);
-    
-    // Utiliser un lien direct avec paramètre download pour forcer le téléchargement
-    const resumeUrl = this.consultantService.getResumeUrl(consultant.resumePath) + '?download=true';
-    console.log('URL de téléchargement:', resumeUrl);
-    
-    // Créer un lien de téléchargement direct
-    const a = document.createElement('a');
-    a.href = resumeUrl;
-    a.download = `CV_${consultant.firstName}_${consultant.lastName}.pdf`;
-    a.target = '_blank'; // Ouvrir dans un nouvel onglet au cas où le téléchargement ne fonctionne pas
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    
-    console.log('✅ Lien de téléchargement créé et cliqué');
-    this.snackBar.open('Téléchargement du CV lancé', 'Fermer', { duration: 2000 });
-  }
-
-  getStatusColor(status: string): string {
-    switch (status?.toLowerCase()) {
-      case 'approved': return 'primary';
-      case 'pending': return 'accent';
-      case 'rejected': return 'warn';
-      default: return '';
-    }
-  }
-
-  getStatusText(status: string): string {
-    switch (status?.toLowerCase()) {
-      case 'approved': return 'Approuvé';
-      case 'pending': return 'En attente';
-      case 'rejected': return 'Rejeté';
-      default: return status || 'Inconnu';
-    }
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result?.action === 'approve') {
+        this.approve(result.consultant);
+      } else if (result?.action === 'reject') {
+        this.reject(result.consultant);
+      }
+    });
   }
 }

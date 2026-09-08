@@ -1,32 +1,208 @@
-.layout-container {
+/* Consultant Shell Layout */
+.consultant-shell {
   display: flex;
-  min-height: calc(100vh - var(--header-height, 68px));
-  background-color: var(--color-bg, #f8fafc);
+  min-height: 100vh;
+  background-color: #f8fafc;
+  color: #0f172a;
+  font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+  overflow-x: hidden;
 }
 
-.sidebar {
-  width: var(--sidebar-width, 260px);
-  background-color: #0f172a;
-  border-right: 1px solid #1e293b;
+/* Sidebar Host */
+.consultant-sidebar-host {
+  width: 270px;
   flex-shrink: 0;
+  display: block;
+  z-index: 1050;
 }
 
-.main-content {
-  flex-grow: 1;
-  padding: 2rem 2.5rem;
+/* Main Content Wrapper */
+.consultant-main-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Top Command Bar */
+.consultant-command-bar {
+  height: 56px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  flex-shrink: 0;
+  z-index: 10;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.command-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.mobile-toggle-btn {
+  background: none;
+  border: none;
+  color: #0f172a;
+  cursor: pointer;
+  padding: 0.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.breadcrumb-trail {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+}
+
+.breadcrumb-root {
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.breadcrumb-sep {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #94a3b8;
+}
+
+.breadcrumb-current {
+  font-weight: 750;
+  color: #0f172a;
+}
+
+.command-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Time Indicator Chip */
+.time-indicator-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  padding: 0.3rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.775rem;
+  font-weight: 700;
+}
+
+.time-indicator-chip mat-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  color: #64748b;
+}
+
+/* Dispatch Status Chip */
+.dispatch-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+}
+
+.pulse-beacon-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+  animation: beacon-ping 2s infinite ease-out;
+}
+
+@keyframes beacon-ping {
+  0% { transform: scale(0.9); opacity: 1; }
+  100% { transform: scale(1.4); opacity: 0.4; }
+}
+
+.dispatch-text {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #065f46;
+}
+
+/* Command Link Buttons */
+.btn-command-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.32rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #475569;
+  font-size: 0.775rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.btn-command-link:hover {
+  background: #f8fafc;
+  color: #2563eb;
+  border-color: #cbd5e1;
+}
+
+.btn-command-link mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+/* Main Content Scroll Area */
+.consultant-content-scroll {
+  flex: 1;
   overflow-y: auto;
-  background-color: var(--color-bg, #f8fafc);
+  padding: 1.75rem 2rem 3.5rem;
+  box-sizing: border-box;
 }
 
-@media (max-width: 768px) {
-  .layout-container {
-    flex-direction: column;
+/* Mobile Drawer Responsive */
+@media (max-width: 992px) {
+  .consultant-sidebar-host {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: -270px;
+    transition: left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  .sidebar {
-    width: 100%;
+
+  .consultant-sidebar-host.mobile-open {
+    left: 0;
   }
-  .main-content {
-    padding: 1.25rem 1rem;
+
+  .mobile-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 1040;
+  }
+
+  .consultant-content-scroll {
+    padding: 1.25rem 1rem 2.5rem;
   }
 }
-

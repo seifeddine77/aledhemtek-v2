@@ -19,6 +19,7 @@ import { AdminService } from '../../../services/admin.service';
 import { TaskEditDialogComponent } from '../task-edit-dialog/task-edit-dialog.component';
 import { RouterModule } from '@angular/router';
 import { PaginationComponent, PaginationConfig } from '../../shared/pagination/pagination.component';
+import { CleanTextPipe } from '../../../pipes/clean-text.pipe';
 import { environment } from '../../../../environments/environment';
 
 @Component({
@@ -40,7 +41,8 @@ import { environment } from '../../../../environments/environment';
     MatTooltipModule,
     MatMenuModule,
     RouterModule,
-    PaginationComponent
+    PaginationComponent,
+    CleanTextPipe
   ],
   templateUrl: './task-management.component.html',
   styleUrls: ['./task-management.component.css']
@@ -171,7 +173,8 @@ export class TaskManagementComponent implements OnInit {
 
   editTask(task: TaskDto): void {
     const dialogRef = this.dialog.open(TaskEditDialogComponent, {
-      width: '500px',
+      width: '700px',
+      maxWidth: '94vw',
       data: { task: task }
     });
 
@@ -276,24 +279,27 @@ export class TaskManagementComponent implements OnInit {
       });
       this.stats.averagePrice = prices.reduce((sum, price) => sum + price, 0) / prices.length;
       
-      // Calcul de la durée moyenne
-      this.stats.averageDuration = this.tasks.reduce((sum, task) => sum + task.duration, 0) / this.tasks.length;
+      // Calcul de la durée moyenne arrondie
+      const totalDuration = this.tasks.reduce((sum, task) => sum + (task.duration || 0), 0);
+      this.stats.averageDuration = Math.round(totalDuration / this.tasks.length);
     }
   }
 
   formatPrice(price: number): string {
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
-      currency: 'EUR'
+      currency: 'EUR',
+      maximumFractionDigits: 0
     }).format(price);
   }
 
   formatDuration(minutes: number): string {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
+    const roundedTotal = Math.round(minutes || 0);
+    const hours = Math.floor(roundedTotal / 60);
+    const mins = roundedTotal % 60;
     
     if (hours > 0) {
-      return `${hours}h ${mins}min`;
+      return mins > 0 ? `${hours}h ${mins}min` : `${hours}h`;
     }
     return `${mins}min`;
   }

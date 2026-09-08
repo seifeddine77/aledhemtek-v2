@@ -14,6 +14,7 @@ import { ReservationService } from '../../../services/reservation.service';
 import { PriceValidationService } from '../../../services/price-validation.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
+import { cleanText } from '../../../pipes/clean-text.pipe';
 
 export interface SelectedTask {
   task: TaskDto;
@@ -70,10 +71,13 @@ export class TaskSelectorComponent implements OnInit {
     // Utiliser l'endpoint public pour les services
     this.http.get<any[]>(`${environment.apiUrl}/public/services`).subscribe({
       next: (services: any[]) => {
-        this.services = services;
-        console.log('Services chargés:', services);
+        this.services = (services || []).map(s => ({
+          ...s,
+          name: cleanText(s.name || '')
+        }));
+        console.log('Services chargés:', this.services);
         // Charger les tâches pour chaque service
-        services.forEach((service: any) => {
+        this.services.forEach((service: any) => {
           this.loadTasksForService(service.id);
         });
       },
@@ -87,8 +91,12 @@ export class TaskSelectorComponent implements OnInit {
     // Utiliser l'endpoint public pour les tâches
     this.http.get<TaskDto[]>(`${environment.apiUrl}/public/tasks/service/${serviceId}`).subscribe({
       next: (tasks: TaskDto[]) => {
-        this.tasksByService[serviceId] = tasks;
-        console.log(`Tâches chargées pour le service ${serviceId}:`, tasks);
+        this.tasksByService[serviceId] = (tasks || []).map(t => ({
+          ...t,
+          name: cleanText(t.name || ''),
+          description: cleanText(t.description || '')
+        }));
+        console.log(`Tâches chargées pour le service ${serviceId}:`, this.tasksByService[serviceId]);
       },
       error: (error: any) => {
         console.error(`Erreur lors du chargement des tâches pour le service ${serviceId}:`, error);

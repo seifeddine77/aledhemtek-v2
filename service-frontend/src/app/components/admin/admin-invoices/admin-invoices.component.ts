@@ -24,6 +24,7 @@ import {
   InvoiceStats 
 } from '../../../services/admin-invoice.service';
 import { AdminPaymentService, AdminPayment } from '../../../services/admin-payment.service';
+import { PaginationComponent, PaginationConfig } from '../../shared/pagination/pagination.component';
 
 @Component({
   selector: 'app-admin-invoices',
@@ -44,7 +45,8 @@ import { AdminPaymentService, AdminPayment } from '../../../services/admin-payme
     MatInputModule,
     MatFormFieldModule,
     MatTooltipModule,
-    MatDialogModule
+    MatDialogModule,
+    PaginationComponent
   ],
   templateUrl: './admin-invoices.component.html',
   styleUrl: './admin-invoices.component.css'
@@ -85,6 +87,13 @@ export class AdminInvoicesComponent implements OnInit {
   totalElements = 0;
   pageSize = 10;
   currentPage = 0;
+
+  paginationConfig: PaginationConfig = {
+    currentPage: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+    pageSizeOptions: [5, 10, 25, 50]
+  };
 
   // Status options for filter
   statusOptions = [
@@ -134,6 +143,9 @@ export class AdminInvoicesComponent implements OnInit {
         this.invoices = response.content;
         this.dataSource.data = this.invoices;
         this.totalElements = response.totalElements;
+        this.paginationConfig.totalItems = response.totalElements;
+        this.paginationConfig.currentPage = this.currentPage + 1;
+        this.paginationConfig.itemsPerPage = this.pageSize;
         this.loading = false;
       },
       error: (error) => {
@@ -161,11 +173,22 @@ export class AdminInvoicesComponent implements OnInit {
   }
 
   /**
-   * Handle page change
+   * Handle page change from mat-paginator or custom pagination
    */
   onPageChange(event: any): void {
     this.currentPage = event.pageIndex;
     this.pageSize = event.pageSize;
+    this.loadInvoices();
+  }
+
+  onCustomPageChange(page: number): void {
+    this.currentPage = page - 1;
+    this.loadInvoices();
+  }
+
+  onCustomPageSizeChange(size: number): void {
+    this.pageSize = size;
+    this.currentPage = 0;
     this.loadInvoices();
   }
 

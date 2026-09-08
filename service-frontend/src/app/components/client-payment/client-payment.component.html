@@ -1,4 +1,11 @@
 <div class="payment-container">
+  <div class="breadcrumb-strip mb-3">
+    <a routerLink="/client/dashboard" class="crumb-link">Espace Client</a>
+    <mat-icon class="crumb-sep">chevron_right</mat-icon>
+    <a routerLink="/client/invoices" class="crumb-link">Factures</a>
+    <mat-icon class="crumb-sep">chevron_right</mat-icon>
+    <span class="crumb-current">Règlement Sécurisé</span>
+  </div>
   <!-- Loading -->
   <div *ngIf="loading" class="loading-container">
     <mat-spinner></mat-spinner>
@@ -294,14 +301,25 @@
       </mat-card-content>
     </mat-card>
 
+    <!-- Escrow Guarantee Box -->
+    <div class="escrow-guarantee-box my-3">
+      <div class="escrow-icon-wrap">
+        <mat-icon>shield</mat-icon>
+      </div>
+      <div class="escrow-text">
+        <h4>Fonds Protégés par Séquestre Garanti</h4>
+        <p>Votre paiement est bloqué en toute sécurité par notre partenaire bancaire Stripe. Il ne sera débloqué et transféré à l'artisan qu'une fois votre attestation de fin de travaux confirmée.</p>
+      </div>
+    </div>
+
     <!-- Security Notice -->
     <mat-card class="security-notice">
       <mat-card-content>
         <div class="security-content">
           <mat-icon>verified_user</mat-icon>
           <div>
-            <h4>Paiement sécurisé</h4>
-            <p>Toutes les transactions sont sécurisées et vos données personnelles sont protégées conformément au RGPD.</p>
+            <h4>Paiement sécurisé SSL &amp; PCI-DSS</h4>
+            <p>Toutes les transactions sont chiffrées selon les normes bancaires les plus strictes. Données protégées conformément au RGPD.</p>
           </div>
         </div>
       </mat-card-content>

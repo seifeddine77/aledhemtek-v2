@@ -1,142 +1,136 @@
-<div class="payment-dialog">
-  <h2 mat-dialog-title>
-    <mat-icon>payment</mat-icon>
-    Ajouter un Paiement
-  </h2>
-
-  <mat-dialog-content>
-    <div class="payment-info">
-      <div class="info-card">
-        <h3>Informations de Facturation</h3>
-        <div class="info-row">
-          <span class="label">Montant restant à payer:</span>
-          <span class="value remaining">{{data.remainingAmount | currency:'EUR':'symbol':'1.2-2'}}</span>
-        </div>
+<div class="dialog-modern-container payment-dialog">
+  <!-- Dialog Header -->
+  <div class="dialog-modern-header">
+    <div class="dialog-modern-header-content">
+      <div class="header-icon">
+        <mat-icon>paid</mat-icon>
+      </div>
+      <div>
+        <h2>Enregistrer un Règlement</h2>
+        <p class="text-muted m-0" style="font-size: 0.8125rem;">Comptabilisez un paiement pour cette facture</p>
       </div>
     </div>
+    <button mat-icon-button (click)="onCancel()" aria-label="Fermer">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
 
-    <form [formGroup]="paymentForm" class="payment-form">
-      <!-- Amount -->
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="amount-field">
-          <mat-label>Montant du paiement (€)</mat-label>
-          <input matInput 
-                 type="number" 
-                 formControlName="amount" 
-                 min="0.01" 
-                 [max]="data.remainingAmount"
-                 step="0.01" 
-                 required
-                 (input)="onAmountChange()">
-          <button mat-icon-button matSuffix 
-                  type="button" 
-                  (click)="setFullAmount()"
-                  matTooltip="Montant total restant">
-            <mat-icon>account_balance_wallet</mat-icon>
-          </button>
+  <div class="dialog-modern-body">
+    <!-- Invoice Balance Alert Card -->
+    <div class="balance-card mb-3">
+      <div class="balance-icon">
+        <mat-icon>account_balance_wallet</mat-icon>
+      </div>
+      <div class="balance-info">
+        <span class="balance-label">Solde restant à régler</span>
+        <span class="balance-amount">{{ data.remainingAmount | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
+      </div>
+      <button mat-stroked-button color="primary" type="button" (click)="setFullAmount()" 
+              matTooltip="Remplir le solde restant automatiquement" class="pay-all-btn">
+        Tout régler
+      </button>
+    </div>
+
+    <form [formGroup]="paymentForm" class="form-grid-1">
+      
+      <div class="form-grid-2">
+        <!-- Amount -->
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Montant reçu (€)</mat-label>
+          <mat-icon matPrefix class="me-2 text-muted">euro</mat-icon>
+          <input matInput type="number" formControlName="amount" min="0.01" 
+                 [max]="data.remainingAmount" step="0.01" required (input)="onAmountChange()">
           <mat-error *ngIf="paymentForm.get('amount')?.hasError('required')">
-            Le montant est requis
+            Le montant est obligatoire
           </mat-error>
           <mat-error *ngIf="paymentForm.get('amount')?.hasError('min')">
-            Le montant doit être supérieur à 0
+            Le montant doit être supérieur à 0 €
           </mat-error>
           <mat-error *ngIf="paymentForm.get('amount')?.hasError('max')">
-            Le montant ne peut pas dépasser {{data.remainingAmount | currency:'EUR':'symbol':'1.2-2'}}
+            Ne peut pas excéder {{ data.remainingAmount | currency:'EUR':'symbol':'1.2-2':'fr' }}
           </mat-error>
         </mat-form-field>
-      </div>
 
-      <!-- Payment Method -->
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Méthode de paiement</mat-label>
+        <!-- Payment Method -->
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Mode de paiement</mat-label>
+          <mat-icon matPrefix class="me-2 text-muted">payment</mat-icon>
           <mat-select formControlName="paymentMethod" required>
             <mat-option *ngFor="let method of paymentMethods" [value]="method">
-              {{getPaymentMethodLabel(method)}}
+              {{ getPaymentMethodLabel(method) }}
             </mat-option>
           </mat-select>
           <mat-error *ngIf="paymentForm.get('paymentMethod')?.hasError('required')">
-            La méthode de paiement est requise
+            Le mode de paiement est requis
           </mat-error>
         </mat-form-field>
       </div>
 
-      <!-- Payment Date -->
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Date de paiement</mat-label>
+      <div class="form-grid-2">
+        <!-- Payment Date -->
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Date du paiement</mat-label>
           <input matInput [matDatepicker]="paymentDatePicker" formControlName="paymentDate" required>
-          <mat-datepicker-toggle matSuffix [for]="paymentDatePicker"></mat-datepicker-toggle>
+          <mat-datepicker-toggle matIconSuffix [for]="paymentDatePicker"></mat-datepicker-toggle>
           <mat-datepicker #paymentDatePicker></mat-datepicker>
           <mat-error *ngIf="paymentForm.get('paymentDate')?.hasError('required')">
-            La date de paiement est requise
+            La date du paiement est requise
           </mat-error>
         </mat-form-field>
-      </div>
 
-      <!-- Transaction ID -->
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="transaction-field">
-          <mat-label>ID de transaction (optionnel)</mat-label>
-          <input matInput formControlName="transactionId" placeholder="Ex: TXN-123456-ABC">
-          <button mat-icon-button matSuffix 
-                  type="button" 
-                  (click)="generateTransactionId()"
-                  matTooltip="Générer un ID automatique">
+        <!-- Transaction ID -->
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Référence / ID Transaction</mat-label>
+          <mat-icon matPrefix class="me-2 text-muted">tag</mat-icon>
+          <input matInput formControlName="transactionId" placeholder="Ex: VIR-2026-9874">
+          <button mat-icon-button matSuffix type="button" (click)="generateTransactionId()" matTooltip="Générer un identifiant automatique">
             <mat-icon>refresh</mat-icon>
           </button>
-          <mat-hint>Référence de la transaction (chèque, virement, etc.)</mat-hint>
         </mat-form-field>
       </div>
 
       <!-- Notes -->
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Notes (optionnel)</mat-label>
-          <textarea matInput 
-                    formControlName="notes" 
-                    rows="3" 
-                    placeholder="Informations complémentaires sur le paiement..."></textarea>
-        </mat-form-field>
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>Observations ou notes de paiement (optionnel)</mat-label>
+        <mat-icon matPrefix class="me-2 text-muted">notes</mat-icon>
+        <textarea matInput formControlName="notes" rows="2" placeholder="Numéro de chèque, émetteur, banque..."></textarea>
+      </mat-form-field>
+
+      <!-- Live Calculation Card -->
+      <div class="calc-card" *ngIf="paymentForm.get('amount')?.value">
+        <div class="calc-row">
+          <span>Montant du règlement saisi :</span>
+          <strong>{{ paymentForm.get('amount')?.value | currency:'EUR':'symbol':'1.2-2':'fr' }}</strong>
+        </div>
+        <div class="calc-row total">
+          <span>Reste à charge après encaissement :</span>
+          <span [class.text-success]="(data.remainingAmount - paymentForm.get('amount')?.value) <= 0"
+                [class.text-danger]="(data.remainingAmount - paymentForm.get('amount')?.value) > 0"
+                class="fw-bold">
+            {{ (data.remainingAmount - paymentForm.get('amount')?.value) | currency:'EUR':'symbol':'1.2-2':'fr' }}
+            <span *ngIf="(data.remainingAmount - paymentForm.get('amount')?.value) <= 0" class="badge-status badge-paid ms-2">Soldée</span>
+          </span>
+        </div>
       </div>
+
     </form>
+  </div>
 
-    <!-- Payment Summary -->
-    <div class="payment-summary" *ngIf="paymentForm.get('amount')?.value">
-      <h3>Récapitulatif du Paiement</h3>
-      <div class="summary-row">
-        <span class="label">Montant à payer:</span>
-        <span class="value">{{paymentForm.get('amount')?.value | currency:'EUR':'symbol':'1.2-2'}}</span>
-      </div>
-      <div class="summary-row">
-        <span class="label">Méthode:</span>
-        <span class="value">{{getPaymentMethodLabel(paymentForm.get('paymentMethod')?.value)}}</span>
-      </div>
-      <div class="summary-row">
-        <span class="label">Montant restant après paiement:</span>
-        <span class="value" [ngClass]="{'zero': (data.remainingAmount - paymentForm.get('amount')?.value) <= 0}">
-          {{(data.remainingAmount - paymentForm.get('amount')?.value) | currency:'EUR':'symbol':'1.2-2'}}
-        </span>
-      </div>
-    </div>
-  </mat-dialog-content>
-
-  <mat-dialog-actions align="end">
-    <button mat-button (click)="onCancel()" [disabled]="loading">
+  <!-- Dialog Actions -->
+  <div class="dialog-modern-actions">
+    <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="loading">
       Annuler
     </button>
-    <button mat-raised-button 
-            color="primary" 
-            (click)="onSubmit()" 
-            [disabled]="loading || !paymentForm.valid">
-      <mat-icon *ngIf="loading">hourglass_empty</mat-icon>
-      <mat-icon *ngIf="!loading">payment</mat-icon>
-      {{loading ? 'Ajout...' : 'Ajouter le Paiement'}}
+    <button mat-raised-button color="primary" type="button" (click)="onSubmit()" [disabled]="loading || !paymentForm.valid">
+      <mat-progress-spinner diameter="18" mode="indeterminate" *ngIf="loading"></mat-progress-spinner>
+      <mat-icon *ngIf="!loading">save</mat-icon>
+      {{ loading ? 'Validation...' : 'Valider le paiement' }}
     </button>
-  </mat-dialog-actions>
+  </div>
 
   <!-- Loading Overlay -->
   <div *ngIf="loading" class="loading-overlay">
-    <mat-spinner></mat-spinner>
+    <mat-spinner diameter="36"></mat-spinner>
   </div>
 </div>
+

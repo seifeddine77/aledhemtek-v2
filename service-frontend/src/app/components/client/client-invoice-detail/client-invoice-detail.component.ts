@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 // Angular Material Imports
 import { MatCardModule } from '@angular/material/card';
@@ -22,6 +22,7 @@ import { ClientInvoiceService, ClientInvoice, InvoiceStatus } from '../../../ser
   standalone: true,
   imports: [
     CommonModule,
+    RouterModule,
     MatCardModule,
     MatButtonModule,
     MatIconModule,

@@ -1,6 +1,6 @@
 <div class="home-container">
   <!-- Hero Section -->
-  <section class="hero-section section-animate">
+  <section class="hero-section">
     <div class="hero-backdrop-glow"></div>
     <div class="hero-content section-inner">
       <div class="hero-badge">
@@ -10,47 +10,74 @@
 
       <h1 class="hero-title">
         L'excellence des services à domicile, <br/>
-        <span class="hero-gradient-text">en toute simplicité.</span>
+        <span class="hero-gradient-text">en toute sérénité.</span>
       </h1>
 
       <p class="hero-subtitle">
-        Trouvez instantanément les meilleurs professionnels certifiés pour tous vos travaux du quotidien. 
-        Tarifs clairs, réservation en quelques clics et intervention garantie.
+        Trouvez instantanément les meilleurs professionnels certifiés et assurés pour tous vos travaux du quotidien. 
+        Tarifs transparents, réservation directe en ligne et paiement sécurisé après satisfaction.
       </p>
 
-      <div class="hero-actions">
-        <button mat-raised-button color="primary" class="hero-btn-primary" (click)="handleSignup()">
-          <span>{{ getSignupButtonText() }}</span>
-          <mat-icon>arrow_forward</mat-icon>
-        </button>
-        <button mat-stroked-button class="hero-btn-secondary" (click)="handleViewAllServices()">
+      <!-- Barre de recherche interactive & dynamique -->
+      <div class="hero-search-box">
+        <div class="search-input-wrapper">
+          <mat-icon class="search-icon">search</mat-icon>
+          <input type="text" 
+                 [(ngModel)]="searchQuery" 
+                 (input)="onSearchChange()" 
+                 placeholder="Que souhaitez-vous réaliser ? (ex: fuite d'eau, peinture, disjoncteur...)" 
+                 class="search-input" />
+          <button *ngIf="searchQuery" mat-icon-button (click)="searchQuery = ''; onSearchChange()" class="btn-clear-search">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <div class="search-category-wrapper">
+          <mat-icon class="category-icon">category</mat-icon>
+          <select [(ngModel)]="selectedCategoryId" (change)="applyFilters()" class="category-select-native">
+            <option [ngValue]="null">Toutes les catégories</option>
+            <option *ngFor="let cat of categories" [ngValue]="cat.id">
+              {{ cat.name }}
+            </option>
+          </select>
+        </div>
+
+        <button mat-raised-button color="primary" class="hero-search-btn" (click)="scrollToServices()">
           <mat-icon>explore</mat-icon>
-          <span>Découvrir nos services</span>
+          <span>Trouver un pro</span>
         </button>
       </div>
 
-      <!-- Quick category pills -->
+      <!-- Pastilles de catégories interactives -->
       <div class="hero-quick-tags">
-        <span class="quick-tag-label">Services populaires :</span>
+        <span class="quick-tag-label">Catégories populaires :</span>
         <div class="quick-tags-container">
-          <span class="quick-tag" (click)="handleViewAllServices()">🔧 Plomberie</span>
-          <span class="quick-tag" (click)="handleViewAllServices()">⚡ Électricité</span>
-          <span class="quick-tag" (click)="handleViewAllServices()">🧹 Ménage</span>
-          <span class="quick-tag" (click)="handleViewAllServices()">🌿 Jardinage</span>
-          <span class="quick-tag" (click)="handleViewAllServices()">🔨 Bricolage</span>
+          <button type="button" 
+                  class="quick-tag" 
+                  [class.active]="selectedCategoryId === null"
+                  (click)="selectCategory(null); scrollToServices()">
+            ✨ Tous
+          </button>
+          <button *ngFor="let cat of categories.slice(0, 6)" 
+                  type="button" 
+                  class="quick-tag"
+                  [class.active]="selectedCategoryId === cat.id"
+                  (click)="selectCategory(cat.id); scrollToServices()">
+            {{ cat.name }}
+          </button>
         </div>
       </div>
     </div>
 
+    <!-- Visuel Hero & Badges de Réassurance -->
     <div class="hero-visual">
       <div class="hero-visual-card">
         <img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=1200&q=80" 
              alt="Artisan qualifié à domicile" 
              class="hero-illustration" 
-             loading="eager" 
-             onerror="this.src='https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80'" />
+             loading="eager" />
         
-        <!-- Floating badge 1: Rating -->
+        <!-- Floating badge 1: Note certifiée -->
         <div class="hero-floating-badge badge-top-right">
           <div class="badge-icon-star">★</div>
           <div class="badge-text-group">
@@ -59,20 +86,20 @@
           </div>
         </div>
 
-        <!-- Floating badge 2: Satisfaction -->
+        <!-- Floating badge 2: Garantie & Sécurité -->
         <div class="hero-floating-badge badge-bottom-left">
           <mat-icon class="badge-icon-check">verified</mat-icon>
           <div class="badge-text-group">
-            <span class="badge-bold">Satisfaction 100%</span>
-            <span class="badge-sub">Assurance & garantie pro</span>
+            <span class="badge-bold">Garantie 100% Pro</span>
+            <span class="badge-sub">Paiement séquestre sécurisé</span>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Trust Metrics Strip -->
-  <div class="trust-band section-animate">
+  <!-- Bandeau des indicateurs de confiance -->
+  <div class="trust-band">
     <div class="trust-item">
       <div class="trust-num">4.9 / 5</div>
       <div class="trust-label">Note moyenne clients</div>
@@ -80,398 +107,314 @@
     <div class="trust-divider"></div>
     <div class="trust-item">
       <div class="trust-num">+2 500</div>
-      <div class="trust-label">Missions réalisées</div>
+      <div class="trust-label">Interventions réalisées</div>
     </div>
     <div class="trust-divider"></div>
     <div class="trust-item">
       <div class="trust-num">100%</div>
-      <div class="trust-label">Artisans certifiés</div>
+      <div class="trust-label">Artisans certifiés & assurés</div>
     </div>
     <div class="trust-divider"></div>
     <div class="trust-item">
       <div class="trust-num">&lt; 2h</div>
-      <div class="trust-label">Délai d'affectation</div>
+      <div class="trust-label">Délai moyen d'affectation</div>
     </div>
   </div>
 
-  <!-- Section Comment ça marche -->
-  <section class="how-section section-animate">
+  <!-- Showcase des Services Dynamiques -->
+  <section class="services-section" id="services-showcase">
     <div class="section-header">
-      <span class="section-subtitle">Processus simple & transparent</span>
+      <span class="section-subtitle">Catalogue des prestations certifiées</span>
+      <h2 class="section-title">Nos Services d'Excellence</h2>
+      <div class="section-divider">
+        <span></span>
+        <mat-icon>construction</mat-icon>
+        <span></span>
+      </div>
+      <p class="section-description">Sélectionnez une prestation pour planifier votre intervention sur-mesure</p>
+    </div>
+
+    <!-- Onglets de filtres par catégorie -->
+    <div class="category-tabs-wrapper">
+      <button type="button" 
+              class="cat-tab-btn" 
+              [class.active]="selectedCategoryId === null"
+              (click)="selectCategory(null)">
+        Toutes les prestations ({{ services.length }})
+      </button>
+
+      <button *ngFor="let cat of categories" 
+              type="button" 
+              class="cat-tab-btn"
+              [class.active]="selectedCategoryId === cat.id"
+              (click)="selectCategory(cat.id)">
+        {{ cat.name }}
+      </button>
+    </div>
+
+    <!-- Barre d'état des filtres -->
+    <div class="filter-status-bar" *ngIf="searchQuery || selectedCategoryId">
+      <div class="filter-status-text">
+        <span>Affichage de <strong>{{ filteredServices.length }}</strong> prestation(s)</span>
+        <span *ngIf="searchQuery"> pour « <em>{{ searchQuery }}</em> »</span>
+      </div>
+      <button mat-button color="primary" (click)="resetFilters()" class="btn-reset-filters">
+        <mat-icon>refresh</mat-icon>
+        Réinitialiser les filtres
+      </button>
+    </div>
+
+    <!-- Grille des services dynamique -->
+    <div class="services-grid" *ngIf="!loadingServices && filteredServices.length > 0">
+      <div *ngFor="let service of filteredServices" class="service-card-modern">
+        <div class="service-card-inner">
+          <div class="service-img-wrap">
+            <img class="service-img" 
+                 [src]="service.processedImg" 
+                 [alt]="service.name" 
+                 loading="lazy" 
+                 (error)="onImageError($event, service)">
+            <div class="service-price-pill">
+              À partir de <strong>{{ (service.price || 45) | number:'1.0-0' }} €</strong>
+            </div>
+          </div>
+          
+          <div class="service-content">
+            <h3 class="service-title">{{ service.name }}</h3>
+            <p class="service-description">{{ service.description }}</p>
+            
+            <div class="service-meta">
+              <span class="meta-item">
+                <mat-icon>schedule</mat-icon>
+                <span>Dès 45 min</span>
+              </span>
+              <span class="meta-item">
+                <mat-icon>verified</mat-icon>
+                <span>Assuré</span>
+              </span>
+            </div>
+
+            <div class="service-footer">
+              <button mat-raised-button color="primary" class="service-book-btn" (click)="handleReservation(service.id)">
+                <span>Réserver ce service</span>
+                <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- État de chargement des services -->
+    <div *ngIf="loadingServices" class="services-loading-state">
+      <mat-icon class="spin-icon">hourglass_empty</mat-icon>
+      <p>Chargement des prestations en direct...</p>
+    </div>
+
+    <!-- État vide si aucun résultat après recherche -->
+    <div *ngIf="!loadingServices && filteredServices.length === 0" class="no-services-found">
+      <div class="no-services-icon-box">
+        <mat-icon>search_off</mat-icon>
+      </div>
+      <h3>Aucune prestation ne correspond à vos critères</h3>
+      <p>Essayez de modifier votre mot-clé ou réinitialisez les filtres pour découvrir tout le catalogue.</p>
+      <button mat-raised-button color="primary" (click)="resetFilters()">
+        <mat-icon>refresh</mat-icon>
+        Afficher toutes les prestations
+      </button>
+    </div>
+  </section>
+
+  <!-- Section Comment ça marche ? -->
+  <section class="how-section">
+    <div class="section-header">
+      <span class="section-subtitle">Processus fluide & transparent</span>
       <h2 class="section-title">Comment ça marche ?</h2>
       <div class="section-divider">
         <span></span>
         <mat-icon>touch_app</mat-icon>
         <span></span>
       </div>
-      <p class="section-description">Trois étapes simples pour concrétiser vos projets en toute sérénité</p>
+      <p class="section-description">Trois étapes simples pour réaliser vos travaux en toute sérénité</p>
     </div>
+
     <div class="how-steps">
       <div class="how-step">
         <div class="how-step-num">01</div>
         <div class="how-step-icon"><mat-icon>search</mat-icon></div>
-        <div class="how-step-title">1. Trouvez votre service</div>
-        <div class="how-step-desc">Parmi nos prestations qualifiées, avec description complète et tarification claire et transparente.</div>
-      </div>
-      <div class="how-step">
-        <div class="how-step-num">02</div>
-        <div class="how-step-icon"><mat-icon>calendar_month</mat-icon></div>
-        <div class="how-step-title">2. Réservez en direct</div>
-        <div class="how-step-desc">Sélectionnez la date, l'heure et vos tâches personnalisées. Un professionnel dédié prend en charge votre demande.</div>
-      </div>
-      <div class="how-step">
-        <div class="how-step-num">03</div>
-        <div class="how-step-icon"><mat-icon>verified</mat-icon></div>
-        <div class="how-step-title">3. Validez en sérénité</div>
-        <div class="how-step-desc">L'artisan intervient avec rigueur. Le paiement n'est débloqué qu'après validation de votre satisfaction.</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Services Section -->
-  <section class="services-section section-animate">
-    <div class="section-header">
-      <span class="section-subtitle">Ce que nous offrons</span>
-      <h2 class="section-title">Nos Services d'Excellence</h2>
-      <div class="section-divider">
-        <span></span>
-        <mat-icon>build</mat-icon>
-        <span></span>
-      </div>
-      <p class="section-description">Découvrez notre gamme complète de services professionnels pour tous vos besoins à domicile</p>
-    </div>
-
-    <div class="services-grid">
-      <!-- Boucle sur les services dynamiques -->
-      <div *ngFor="let service of services; let i = index" class="service-card-modern" data-aos="fade-up" [attr.data-aos-delay]="50 * (i + 1)">
-        <div class="service-card-inner">
-          <div class="service-img-wrap">
-            <div class="service-img-overlay"></div>
-            <img class="service-img" [src]="service.processedImg" [alt]="service.name" loading="lazy" (error)="onImageError($event)">
-            <div class="service-actions">
-              <button mat-raised-button class="service-button" (click)="handleReservation(service.id)">
-                {{ getReservationButtonText() }}
-                <mat-icon>{{ isLoggedIn ? 'arrow_forward' : 'login' }}</mat-icon>
-              </button>
-            </div>
-          </div>
-          <div class="service-content">
-            <div class="service-icon">
-              <!-- Vous pouvez rendre cette icône dynamique si vous l'ajoutez au DTO -->
-              <mat-icon>build</mat-icon>
-            </div>
-            <h3 class="service-title">{{ service.name }}</h3>
-            <p class="service-description">{{ service.description }}</p>
-            <div class="service-footer">
-              <span class="service-price">À partir de <strong>{{ service.price | currency:'EUR' }}</strong></span>
-              <a [routerLink]="['/service', service.id]" class="service-link">En savoir plus <mat-icon>arrow_forward</mat-icon></a>
-            </div>
-          </div>
+        <div class="how-step-title">1. Choisissez votre prestation</div>
+        <div class="how-step-desc">
+          Parcourez notre catalogue ou recherchez votre besoin. Des forfaits clairs et des tarifs transparents sans mauvaise surprise.
         </div>
       </div>
 
-      <!-- Message si aucun service n'est disponible -->
-      <div *ngIf="services.length === 0" class="no-services-message">
-        <mat-icon>info</mat-icon>
-        <p>Aucun service n'est disponible pour le moment. Revenez bientôt !</p>
+      <div class="how-step">
+        <div class="how-step-num">02</div>
+        <div class="how-step-icon"><mat-icon>calendar_month</mat-icon></div>
+        <div class="how-step-title">2. Planifiez votre créneau</div>
+        <div class="how-step-desc">
+          Sélectionnez la date et l'heure idéales. Un artisan certifié et proche de chez vous prend en charge votre mission.
+        </div>
       </div>
-    </div>
 
-    <!-- Bouton pour voir tous les services -->
-    <div class="view-all-services" data-aos="fade-up" *ngIf="services.length >= 6">
-      <button mat-raised-button color="primary" (click)="handleViewAllServices()">
-        {{ getViewAllServicesText() }}
-        <mat-icon>{{ isLoggedIn ? 'visibility' : 'login' }}</mat-icon>
-      </button>
-    </div>
-
-    <div class="services-cta" data-aos="fade-up">
-      <p>Vous ne trouvez pas le service dont vous avez besoin ?</p>
-      <button mat-stroked-button color="primary" class="outline-button" routerLink="/contact">
-        Contactez-nous pour une demande personnalisée
-        <mat-icon>arrow_forward</mat-icon>
-      </button>
+      <div class="how-step">
+        <div class="how-step-num">03</div>
+        <div class="how-step-icon"><mat-icon>verified_user</mat-icon></div>
+        <div class="how-step-title">3. Validez et réglez</div>
+        <div class="how-step-desc">
+          L'intervention est menée avec rigueur. Votre paiement sécurisé n'est débloqué qu'après confirmation de votre satisfaction.
+        </div>
+      </div>
     </div>
   </section>
 
-  <svg class="section-separator" viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill="#f7fafd" d="M0,0 C480,80 960,-20 1440,60 L1440,0 L0,0 Z"></path></svg>
-  <!-- Evaluations Section -->
-  <div class="testimonials-section section-animate">
+  <!-- Section Engagements & Garanties -->
+  <section class="guarantees-section">
     <div class="section-header">
-      <span class="section-subtitle">Témoignages clients</span>
+      <span class="section-subtitle">Normes d'excellence</span>
+      <h2 class="section-title">Pourquoi choisir AledhemTek ?</h2>
+      <div class="section-divider">
+        <span></span>
+        <mat-icon>shield</mat-icon>
+        <span></span>
+      </div>
+      <p class="section-description">Une exigence de qualité sans compromis pour votre habitat</p>
+    </div>
+
+    <div class="guarantees-grid">
+      <div class="guarantee-card">
+        <div class="guarantee-icon-box">
+          <mat-icon>badge</mat-icon>
+        </div>
+        <h3>Artisans 100% Qualifiés</h3>
+        <p>Diplômes d'État vérifiés, extrait de casier judiciaire contrôlé et entretiens techniques rigoureux.</p>
+      </div>
+
+      <div class="guarantee-card">
+        <div class="guarantee-icon-box">
+          <mat-icon>lock</mat-icon>
+        </div>
+        <h3>Paiement Séquestre Sécurisé</h3>
+        <p>Vos fonds restent protégés sur un compte sécurisé Stripe jusqu'à ce que les travaux soient validés.</p>
+      </div>
+
+      <div class="guarantee-card">
+        <div class="guarantee-icon-box">
+          <mat-icon>verified</mat-icon>
+        </div>
+        <h3>Garantie & Assurance Pro</h3>
+        <p>Chaque mission est couverte par une assurance professionnelle et notre garantie d'intervention.</p>
+      </div>
+
+      <div class="guarantee-card">
+        <div class="guarantee-icon-box">
+          <mat-icon>support_agent</mat-icon>
+        </div>
+        <h3>Support Client Réactif 7j/7</h3>
+        <p>Des conseillers experts à votre écoute pour vous accompagner avant, pendant et après chaque prestation.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section Témoignages & Évaluations Réelles -->
+  <section class="testimonials-section" *ngIf="recentEvaluations.length > 0">
+    <div class="section-header">
+      <span class="section-subtitle">Retours d'expérience</span>
       <h2 class="section-title">Ils nous font confiance</h2>
       <div class="section-divider">
         <span></span>
         <mat-icon>star</mat-icon>
         <span></span>
       </div>
-      <p class="section-description">Découvrez les avis authentiques de nos clients satisfaits</p>
+      <p class="section-description">Découvrez les retours authentiques de nos clients vérifiés</p>
     </div>
 
-    <!-- Loading State -->
-    <div *ngIf="loadingEvaluations" class="evaluations-loading">
-      <mat-icon>hourglass_empty</mat-icon>
-      <p>Chargement des témoignages...</p>
-    </div>
-
-    <!-- Dynamic Evaluations -->
-    <div *ngIf="!loadingEvaluations && recentEvaluations.length > 0" class="testimonials-list-modern">
+    <div class="testimonials-grid">
       <div *ngFor="let evaluation of recentEvaluations" class="testimonial-card-modern">
-        <div class="testimonial-avatar-modern">
-          <div class="avatar-placeholder">
-            <mat-icon>person</mat-icon>
+        <div class="testimonial-header">
+          <div class="testimonial-avatar">
+            <mat-icon>account_circle</mat-icon>
+          </div>
+          <div class="testimonial-meta">
+            <span class="client-name">Client Vérifié</span>
+            <span class="review-date">{{ formatDate(evaluation.createdAt) }}</span>
+          </div>
+          <div class="verified-badge" matTooltip="Avis certifié suite à une intervention réelle">
+            <mat-icon>verified</mat-icon>
           </div>
         </div>
-        <div class="testimonial-content-modern">
-          <div class="testimonial-quote-mark">"</div>
-          <div class="testimonial-text-modern">
-            {{ evaluation.comment || 'Service excellent, je recommande vivement !' }}
-          </div>
-          <div class="testimonial-name-modern">
-            {{ getReservation(evaluation.reservationId)?.clientName || 'Client satisfait' }}
-          </div>
-          <div class="testimonial-date">
-            {{ formatDate(evaluation.createdAt || '') }}
-          </div>
-          <div class="testimonial-stars-modern">
-            <span *ngFor="let star of getStarArray(getEvaluationAverage(evaluation))" 
-                  class="star" 
-                  [class.filled]="star <= getEvaluationAverage(evaluation)">
-              ★
-            </span>
-            <span class="rating-number">({{ getEvaluationAverage(evaluation) | number:'1.1-1' }})</span>
-          </div>
-          <div class="testimonial-service" *ngIf="getReservation(evaluation.reservationId)">
-            <mat-icon>build</mat-icon>
-            <span>Intervention du {{ formatDate(getReservation(evaluation.reservationId)!.startDate) }}</span>
-          </div>
+
+        <div class="testimonial-stars">
+          <span *ngFor="let star of getStarArray(evaluation.generalRating)" class="star filled">★</span>
+          <span class="rating-score">{{ evaluation.generalRating }}.0 / 5</span>
+        </div>
+
+        <p class="testimonial-comment">
+          « {{ evaluation.comment }} »
+        </p>
+
+        <div class="testimonial-footer">
+          <mat-icon>check_circle_outline</mat-icon>
+          <span>Intervention réalisée avec succès</span>
         </div>
       </div>
     </div>
+  </section>
 
-    <!-- Fallback to static testimonials if no evaluations -->
-    <div *ngIf="!loadingEvaluations && recentEvaluations.length === 0" class="testimonials-list-modern">
-      <div class="testimonial-card-modern">
-        <div class="testimonial-avatar-modern">
-          <img src="https://images.unsplash.com/photo-1566753323558-f4e0952af115?auto=format&fit=crop&w=256&q=80" alt="Client 1">
-        </div>
-        <div class="testimonial-content-modern">
-          <div class="testimonial-quote-mark">"</div>
-          <div class="testimonial-text-modern">Service rapide et professionnel, j'ai trouvé un plombier en 10 minutes !</div>
-          <div class="testimonial-name-modern">Yassine B.</div>
-          <div class="testimonial-stars-modern">
-            <mat-icon color="warn">star</mat-icon>
-            <mat-icon color="warn">star</mat-icon>
-            <mat-icon color="warn">star</mat-icon>
-            <mat-icon color="warn">star</mat-icon>
-            <mat-icon color="warn">star_half</mat-icon>
-          </div>
-        </div>
+  <!-- Section FAQ Accordion Interactive -->
+  <section class="faq-section">
+    <div class="section-header">
+      <span class="section-subtitle">Foire aux questions</span>
+      <h2 class="section-title">Questions Fréquentes</h2>
+      <div class="section-divider">
+        <span></span>
+        <mat-icon>help_outline</mat-icon>
+        <span></span>
       </div>
-      <div class="testimonial-card-modern">
-        <div class="testimonial-avatar-modern">
-          <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&q=80" alt="Client 2">
-        </div>
-        <div class="testimonial-content-modern">
-          <div class="testimonial-quote-mark">"</div>
-          <div class="testimonial-text-modern">Excellent ! Le service client est très réactif et les prestataires sont fiables.</div>
-          <div class="testimonial-name-modern">Sophie L.</div>
-          <div class="testimonial-stars-modern">
-            <mat-icon color="warn">star</mat-icon>
-            <mat-icon color="warn">star</mat-icon>
-            <mat-icon color="warn">star</mat-icon>
-            <mat-icon color="warn">star</mat-icon>
-            <mat-icon color="warn">star</mat-icon>
+      <p class="section-description">Tout ce que vous devez savoir avant de réserver votre intervention</p>
+    </div>
+
+    <div class="faq-container">
+      <div *ngFor="let item of faqItems; let i = index" class="faq-card" [class.open]="item.isOpen">
+        <button type="button" class="faq-question-btn" (click)="toggleFaq(i)">
+          <div class="faq-question-left">
+            <span class="faq-badge">{{ item.category }}</span>
+            <span class="faq-question-text">{{ item.question }}</span>
           </div>
-        </div>
-      </div>
-      <div class="testimonial-card-modern">
-        <div class="testimonial-avatar-modern">
-          <img src="https://images.unsplash.com/photo-1568602471122-7832951cc4c5?auto=format&fit=crop&w=256&q=80" alt="Client 3">
-        </div>
-        <div class="testimonial-content-modern">
-          <div class="testimonial-quote-mark">"</div>
-          <div class="testimonial-text-modern">Très satisfait : intervention rapide et résultat impeccable. Je recommande !</div>
-          <div class="testimonial-name-modern">Mohamed K.</div>
-          <div class="testimonial-stars-modern">
-            <mat-icon color="warn">star</mat-icon>
-            <mat-icon color="warn">star</mat-icon>
-            <mat-icon color="warn">star</mat-icon>
-            <mat-icon color="warn">star</mat-icon>
-            <mat-icon color="warn">star</mat-icon>
-          </div>
+          <mat-icon class="faq-arrow-icon">{{ item.isOpen ? 'expand_less' : 'expand_more' }}</mat-icon>
+        </button>
+        <div class="faq-answer-wrap" *ngIf="item.isOpen">
+          <p class="faq-answer-text">{{ item.answer }}</p>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 
-  <svg class="section-separator" viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill="#fff" d="M0,0 C480,80 960,-20 1440,60 L1440,0 L0,0 Z"></path></svg>
-  <!-- FAQ Section -->
-  <div class="faq-section section-animate">
-    <h2>FAQ</h2>
-    <mat-accordion>
-      <mat-expansion-panel>
-        <mat-expansion-panel-header>
-          <mat-panel-title>Comment réserver un service ?</mat-panel-title>
-        </mat-expansion-panel-header>
-        <p>Créez un compte, choisissez le service souhaité et réservez en quelques clics !</p>
-      </mat-expansion-panel>
-      <mat-expansion-panel>
-        <mat-expansion-panel-header>
-          <mat-panel-title>Les prestataires sont-ils vérifiés ?</mat-panel-title>
-        </mat-expansion-panel-header>
-        <p>Oui, chaque professionnel est vérifié et noté par nos clients après chaque intervention.</p>
-      </mat-expansion-panel>
-      <mat-expansion-panel>
-        <mat-expansion-panel-header>
-          <mat-panel-title>Puis-je annuler une réservation ?</mat-panel-title>
-        </mat-expansion-panel-header>
-        <p>Vous pouvez annuler sans frais jusqu’à 2h avant l’intervention prévue.</p>
-      </mat-expansion-panel>
-      <mat-expansion-panel>
-        <mat-expansion-panel-header>
-          <mat-panel-title>Comment contacter le support ?</mat-panel-title>
-        </mat-expansion-panel-header>
-        <p>Notre équipe est disponible 24/7 via le bouton “Contactez-nous” ou par email.</p>
-      </mat-expansion-panel>
-    </mat-accordion>
-  </div>
-
-  <svg class="section-separator" viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill="#f7fafd" d="M0,0 C480,80 960,-20 1440,60 L1440,0 L0,0 Z"></path></svg>
-  <!-- Team Section with Advanced Effects -->
-  <div class="team-section section-animate">
-    <!-- Animated Background Elements -->
-    <div class="team-bg-shape-1"></div>
-    <div class="team-bg-shape-2"></div>
-    <div class="team-wave">
-      <svg viewBox="0 0 1440 320" preserveAspectRatio="none">
-        <path d="M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" fill="#f0f4ff" fill-opacity="0.3"></path>
-      </svg>
+  <!-- Double Call to Action Banner -->
+  <section class="cta-banner-section">
+    <div class="cta-card client-cta">
+      <div class="cta-badge">Pour les Particuliers</div>
+      <h2>Besoin de travaux ou d'un dépannage immédiat ?</h2>
+      <p>Réservez un artisan certifié en moins de 2 minutes et bénéficiez de notre garantie satisfaction.</p>
+      <button mat-raised-button color="primary" class="cta-btn-primary" (click)="scrollToServices()">
+        <span>Réserver une intervention</span>
+        <mat-icon>arrow_forward</mat-icon>
+      </button>
     </div>
 
-    <div class="team-container">
-      <div class="section-header">
-        <span class="section-subtitle">Notre équipe</span>
-        <h2 class="section-title">Rencontrez nos experts</h2>
-        <div class="section-divider">
-          <span></span>
-          <mat-icon>groups</mat-icon>
-          <span></span>
-        </div>
-      </div>
-
-      <div class="team-list">
-        <!-- Team Member 1 -->
-        <div class="team-card" data-aos="fade-up" data-aos-delay="100">
-          <div class="team-card-inner">
-            <div class="team-avatar-wrapper">
-              <div class="avatar-glow"></div>
-              <img class="team-avatar" src="https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&w=256&q=80" alt="Seif Eddine" loading="lazy">
-              <div class="team-socials">
-                <a href="#" class="social-icon" aria-label="LinkedIn" data-tooltip="LinkedIn">
-                  <mat-icon>linkedin</mat-icon>
-                </a>
-                <a href="#" class="social-icon" aria-label="Twitter" data-tooltip="Twitter">
-                  <mat-icon>twitter</mat-icon>
-                </a>
-                <a href="#" class="social-icon" aria-label="Email" data-tooltip="Email">
-                  <mat-icon>email</mat-icon>
-                </a>
-              </div>
-              <div class="team-shape"></div>
-            </div>
-            <div class="team-info">
-              <div class="team-badge">Fondateur</div>
-              <h3 class="team-name">Seif Eddine</h3>
-              <span class="team-role">CEO & Tech Lead</span>
-              <p class="team-bio">Visionnaire tech, passionné d'innovation et d'expérience utilisateur. Il apporte plus de 10 ans d'expérience dans le développement web.</p>
-              <div class="team-skills">
-                <span class="skill-tag">Stratégie</span>
-                <span class="skill-tag">Innovation</span>
-                <span class="skill-tag">Tech</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Team Member 2 -->
-        <div class="team-card" data-aos="fade-up" data-aos-delay="200">
-          <div class="team-card-inner">
-            <div class="team-avatar-wrapper">
-              <div class="avatar-glow"></div>
-              <img class="team-avatar" src="https://images.unsplash.com/photo-1589156280159-27698a70f29e?auto=format&fit=crop&w=256&q=80" alt="Ghofrane" loading="lazy">
-              <div class="team-socials">
-                <a href="#" class="social-icon" aria-label="LinkedIn" data-tooltip="LinkedIn">
-                  <mat-icon>linkedin</mat-icon>
-                </a>
-                <a href="#" class="social-icon" aria-label="Twitter" data-tooltip="Twitter">
-                  <mat-icon>twitter</mat-icon>
-                </a>
-                <a href="#" class="social-icon" aria-label="Email" data-tooltip="Email">
-                  <mat-icon>email</mat-icon>
-                </a>
-              </div>
-              <div class="team-shape"></div>
-            </div>
-            <div class="team-info">
-              <div class="team-badge">Responsable</div>
-              <h3 class="team-name">Ghofrane</h3>
-              <span class="team-role">Responsable Qualité</span>
-              <p class="team-bio">Toujours à l'écoute, elle veille à la satisfaction de chaque client avec professionnalisme et bienveillance.</p>
-              <div class="team-skills">
-                <span class="skill-tag">Service Client</span>
-                <span class="skill-tag">Qualité</span>
-                <span class="skill-tag">Relation Client</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Team Member 3 -->
-        <div class="team-card" data-aos="fade-up" data-aos-delay="300">
-          <div class="team-card-inner">
-            <div class="team-avatar-wrapper">
-              <div class="avatar-glow"></div>
-              <img class="team-avatar" src="https://images.unsplash.com/photo-1615109398623-88346a601842?auto=format&fit=crop&w=256&q=80" alt="Imed" loading="lazy">
-              <div class="team-socials">
-                <a href="#" class="social-icon" aria-label="LinkedIn" data-tooltip="LinkedIn">
-                  <mat-icon>linkedin</mat-icon>
-                </a>
-                <a href="#" class="social-icon" aria-label="GitHub" data-tooltip="GitHub">
-                  <mat-icon>code</mat-icon>
-                </a>
-                <a href="#" class="social-icon" aria-label="Email" data-tooltip="Email">
-                  <mat-icon>email</mat-icon>
-                </a>
-              </div>
-              <div class="team-shape"></div>
-            </div>
-            <div class="team-info">
-              <div class="team-badge">Expert</div>
-              <h3 class="team-name">Imed</h3>
-              <span class="team-role">Lead Développeur</span>
-              <p class="team-bio">Expert Angular & Spring, il garantit la fiabilité de la plateforme.</p>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div class="cta-card pro-cta">
+      <div class="cta-badge pro-badge">Pour les Professionnels</div>
+      <h2>Vous êtes un artisan qualifié & indépendant ?</h2>
+      <p>Rejoignez notre réseau de consultants partenaires, développez votre clientèle et sécurisez vos paiements.</p>
+      <button mat-stroked-button class="cta-btn-secondary" routerLink="/register">
+        <span>Devenir artisan partenaire</span>
+        <mat-icon>engineering</mat-icon>
+      </button>
     </div>
-  </div>
+  </section>
 
-  <svg class="section-separator" viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill="#fff" d="M0,0 C480,80 960,-20 1440,60 L1440,0 L0,0 Z"></path></svg>
-  <!-- Partners Section -->
-  <div class="partners-section section-animate">
-    <h2>Nos partenaires</h2>
-    <div class="partners-logos">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft" />
-      <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" />
-      <img src="https://upload.wikimedia.org/wikipedia/commons/c/c8/Orange_logo.svg" alt="Orange" />
-      <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/IBM_logo.svg" alt="IBM" />
-    </div>
-  </div>
-
-  <!-- Scroll to top button -->
-  <button class="scroll-top-btn" title="Remonter" [style.display]="showScrollTopBtn ? 'flex' : 'none'" (click)="scrollToTop()">
+  <!-- Bouton Scroll to Top -->
+  <button *ngIf="showScrollTopBtn" (click)="scrollToTop()" class="scroll-top-btn" mat-fab color="primary" aria-label="Retour en haut">
     <mat-icon>arrow_upward</mat-icon>
   </button>
 </div>

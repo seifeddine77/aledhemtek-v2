@@ -201,6 +201,16 @@ export class AdminEvaluationsComponent implements OnInit {
     this.updatePagination();
   }
 
+  loadEvaluations(): void {
+    this.loadAllEvaluations();
+  }
+
+  clearFilters(): void {
+    this.searchTerm = '';
+    this.ratingFilter = '';
+    this.applyFilters();
+  }
+
   onSearchChange(): void {
     this.applyFilters();
   }
@@ -211,6 +221,22 @@ export class AdminEvaluationsComponent implements OnInit {
 
   getReservation(reservationId: number): Reservation | undefined {
     return this.reservations.get(reservationId);
+  }
+
+  getReservationTitle(reservationId: number): string {
+    const res = this.reservations.get(reservationId);
+    return res?.title || `Chantier #${reservationId}`;
+  }
+
+  getAverageRating(evaluation: Evaluation): number {
+    return this.getEvaluationAverage(evaluation);
+  }
+
+  viewEvaluationDetails(evaluation: Evaluation): void {
+    const res = this.getReservation(evaluation.reservationId);
+    const client = res?.clientName || `Client #${evaluation.clientId}`;
+    const comment = evaluation.comment || 'Aucun commentaire';
+    this.snackBar.open(`${client}: "${comment}" (${this.getEvaluationAverage(evaluation).toFixed(1)}/5)`, 'Fermer', { duration: 5000 });
   }
 
   getEvaluationAverage(evaluation: Evaluation): number {

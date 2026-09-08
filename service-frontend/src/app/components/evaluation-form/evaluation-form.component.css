@@ -1,52 +1,112 @@
-.evaluation-form-container {
-  padding: 20px;
-  max-width: 600px;
-  margin: 0 auto;
+.dialog-modern-container {
+  max-width: 680px;
+  width: 100%;
 }
 
-.reservation-info {
-  background-color: #f5f5f5;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 20px;
+.intervention-banner {
+  background: var(--color-surface-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
 }
 
-.reservation-info h3 {
-  margin: 0 0 10px 0;
-  color: #1976d2;
+.banner-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 0.35rem;
 }
 
-.reservation-info p {
-  margin: 5px 0;
-  color: #666;
-}
-
-.evaluation-form {
+.banner-meta {
   display: flex;
-  flex-direction: column;
-  gap: 20px;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
 }
 
-.rating-section {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 15px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  background-color: #fafafa;
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
-.rating-section h4 {
-  margin: 0;
-  color: #333;
+.meta-item mat-icon {
   font-size: 16px;
-  font-weight: 500;
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-muted);
+}
+
+.rating-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.rating-card {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: all var(--transition-fast);
+}
+
+.rating-card:hover {
+  border-color: var(--color-warning-border);
+  background: var(--color-surface);
+}
+
+.rating-card.primary-rating {
+  grid-column: 1 / -1;
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning-border);
+}
+
+.rating-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rating-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.rating-name mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: var(--color-warning);
+}
+
+.rating-badge-pill {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-warning-text);
+  background: #ffffff;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-warning-border);
+}
+
+.rating-score {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
 }
 
 .star-rating {
   display: flex;
-  gap: 5px;
+  gap: 0.25rem;
   align-items: center;
 }
 
@@ -54,82 +114,29 @@
   background: none;
   border: none;
   cursor: pointer;
-  padding: 2px;
-  transition: transform 0.2s ease;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .star-button:hover {
-  transform: scale(1.1);
+  transform: scale(1.25);
 }
 
 .star-button mat-icon {
-  font-size: 24px;
-  width: 24px;
-  height: 24px;
-  color: #ddd;
-  transition: color 0.2s ease;
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+  color: #cbd5e1;
+  transition: color 0.15s ease;
 }
 
 .star-button.filled mat-icon {
-  color: #ffc107;
+  color: #f59e0b;
 }
 
 .star-button:hover mat-icon {
-  color: #ffb300;
-}
-
-.rating-text {
-  margin-left: 10px;
-  font-weight: 500;
-  color: #666;
-}
-
-.full-width {
-  width: 100%;
-}
-
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 15px;
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #e0e0e0;
-}
-
-.form-actions button {
-  min-width: 120px;
-}
-
-.form-actions button[type="submit"] {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.form-actions mat-spinner {
-  margin-right: 8px;
-}
-
-/* Responsive Design */
-@media (max-width: 600px) {
-  .evaluation-form-container {
-    padding: 15px;
-  }
-  
-  .rating-section {
-    padding: 10px;
-  }
-  
-  .star-rating {
-    justify-content: center;
-  }
-  
-  .form-actions {
-    flex-direction: column;
-  }
-  
-  .form-actions button {
-    width: 100%;
-  }
-}
+  color: #d97706;
+}

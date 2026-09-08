@@ -1,0 +1,168 @@
+<div class="client-shell">
+  <!-- Top Glassmorphism App Header -->
+  <header class="client-topbar">
+    <div class="topbar-inner">
+      
+      <!-- Brand & Portal Badge -->
+      <div class="brand-group">
+        <a routerLink="/client/dashboard" class="brand-link">
+          <div class="brand-icon">
+            <mat-icon>home_repair_service</mat-icon>
+          </div>
+          <div class="brand-text">
+            <span class="brand-name">Aledhem<span class="accent-text">Tek</span></span>
+            <span class="portal-badge">Portail Client</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Desktop Nav Capsule Cluster -->
+      <nav class="nav-capsule-cluster d-none d-lg-flex" aria-label="Navigation principale">
+        <a routerLink="/client/dashboard" routerLinkActive="active" class="nav-capsule">
+          <mat-icon class="capsule-icon">dashboard</mat-icon>
+          <span>Tableau de bord</span>
+        </a>
+        <a routerLink="/client/reservations" routerLinkActive="active" class="nav-capsule">
+          <mat-icon class="capsule-icon">calendar_month</mat-icon>
+          <span>Mes Réservations</span>
+        </a>
+        <a routerLink="/client/create-reservation-with-tasks" routerLinkActive="active" class="nav-capsule nav-capsule-highlight">
+          <mat-icon class="capsule-icon">add_circle</mat-icon>
+          <span>Nouvelle Demande</span>
+        </a>
+        <a routerLink="/client/invoices" routerLinkActive="active" class="nav-capsule">
+          <mat-icon class="capsule-icon">receipt_long</mat-icon>
+          <span>Mes Factures</span>
+        </a>
+        <a routerLink="/client/evaluations" routerLinkActive="active" class="nav-capsule">
+          <mat-icon class="capsule-icon">star_rate</mat-icon>
+          <span>Mes Avis</span>
+        </a>
+      </nav>
+
+      <!-- Right Action Cluster -->
+      <div class="topbar-actions">
+        <!-- Urgent Assistance Chip -->
+        <a href="tel:0189000000" class="hotline-chip d-none d-xl-inline-flex" matTooltip="Service d'urgence dépannage ouvert 24h/24 et 7j/7">
+          <span class="pulse-ring"></span>
+          <mat-icon class="hotline-icon">support_agent</mat-icon>
+          <div class="hotline-text">
+            <span class="hotline-label">Urgence 24/7</span>
+            <span class="hotline-number">01 89 00 00 00</span>
+          </div>
+        </a>
+
+        <!-- Fast Booking CTA Button -->
+        <a routerLink="/client/create-reservation-with-tasks" class="btn-fast-book d-none d-sm-inline-flex">
+          <mat-icon>bolt</mat-icon>
+          <span>Demander un Artisan</span>
+        </a>
+
+        <!-- Client Profile Menu Trigger -->
+        <div class="profile-chip-wrapper" [matMenuTriggerFor]="userProfileMenu">
+          <div class="profile-avatar">
+            {{ userInitials }}
+          </div>
+          <div class="profile-meta d-none d-md-block">
+            <span class="profile-name">{{ userName }}</span>
+            <span class="profile-role">Client Particulier</span>
+          </div>
+          <mat-icon class="profile-chevron d-none d-md-block">expand_more</mat-icon>
+        </div>
+
+        <!-- User Dropdown Menu -->
+        <mat-menu #userProfileMenu="matMenu" xPosition="before" class="client-profile-dropdown">
+          <div class="dropdown-header">
+            <div class="dropdown-avatar">{{ userInitials }}</div>
+            <div class="dropdown-info">
+              <span class="dropdown-name">{{ userName }}</span>
+              <span class="dropdown-email">{{ userEmail }}</span>
+            </div>
+          </div>
+          <mat-divider></mat-divider>
+          <a mat-menu-item routerLink="/client/dashboard">
+            <mat-icon>dashboard</mat-icon>
+            <span>Tableau de bord</span>
+          </a>
+          <a mat-menu-item routerLink="/client/reservations">
+            <mat-icon>history</mat-icon>
+            <span>Historique des interventions</span>
+          </a>
+          <a mat-menu-item routerLink="/client/invoices">
+            <mat-icon>receipt</mat-icon>
+            <span>Mes factures & devis</span>
+          </a>
+          <mat-divider></mat-divider>
+          <a mat-menu-item routerLink="/home" target="_blank">
+            <mat-icon>storefront</mat-icon>
+            <span>Catalogue Public</span>
+          </a>
+          <button mat-menu-item (click)="logout()" class="menu-item-logout">
+            <mat-icon class="text-danger">logout</mat-icon>
+            <span class="text-danger">Déconnexion</span>
+          </button>
+        </mat-menu>
+
+        <!-- Mobile Burger Button -->
+        <button class="mobile-burger-btn d-lg-none" (click)="toggleMobileMenu()" aria-label="Menu mobile">
+          <mat-icon>{{ mobileMenuOpen ? 'close' : 'menu' }}</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Drawer Overlay -->
+    <div class="mobile-drawer" *ngIf="mobileMenuOpen">
+      <nav class="mobile-nav">
+        <a routerLink="/client/dashboard" routerLinkActive="active" (click)="mobileMenuOpen = false" class="mobile-nav-link">
+          <mat-icon>dashboard</mat-icon>
+          <span>Tableau de bord</span>
+        </a>
+        <a routerLink="/client/reservations" routerLinkActive="active" (click)="mobileMenuOpen = false" class="mobile-nav-link">
+          <mat-icon>calendar_month</mat-icon>
+          <span>Mes Réservations</span>
+        </a>
+        <a routerLink="/client/create-reservation-with-tasks" routerLinkActive="active" (click)="mobileMenuOpen = false" class="mobile-nav-link mobile-nav-highlight">
+          <mat-icon>add_circle</mat-icon>
+          <span>Nouvelle Demande</span>
+        </a>
+        <a routerLink="/client/invoices" routerLinkActive="active" (click)="mobileMenuOpen = false" class="mobile-nav-link">
+          <mat-icon>receipt_long</mat-icon>
+          <span>Mes Factures</span>
+        </a>
+        <a routerLink="/client/evaluations" routerLinkActive="active" (click)="mobileMenuOpen = false" class="mobile-nav-link">
+          <mat-icon>star_rate</mat-icon>
+          <span>Mes Avis</span>
+        </a>
+        <div class="mobile-drawer-footer">
+          <a href="tel:0189000000" class="mobile-hotline-btn">
+            <mat-icon>support_agent</mat-icon>
+            <span>Assistance Urgente : 01 89 00 00 00</span>
+          </a>
+          <button (click)="logout()" class="mobile-logout-btn">
+            <mat-icon>logout</mat-icon>
+            <span>Se déconnecter</span>
+          </button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Live Ambient Sub-Bar -->
+  <div class="client-ambient-bar">
+    <div class="ambient-inner">
+      <div class="ambient-left">
+        <span class="ambient-pulse"></span>
+        <span class="ambient-text">Service Conciergerie Actif • Délais d'intervention moyens : <strong>45 minutes</strong></span>
+      </div>
+      <div class="ambient-right d-none d-md-flex">
+        <span class="ambient-badge"><mat-icon>verified_user</mat-icon> Artisans 100% Qualifiés &amp; Assurés</span>
+        <span class="ambient-badge"><mat-icon>lock</mat-icon> Devis Ferme &amp; Fixe</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Scrollable Content -->
+  <main class="client-main-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

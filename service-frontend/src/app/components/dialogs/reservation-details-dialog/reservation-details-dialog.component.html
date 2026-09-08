@@ -1,173 +1,187 @@
-<div class="dialog-header">
-  <h2 mat-dialog-title>
-    <mat-icon>info</mat-icon>
-    Détails de la réservation
-  </h2>
-  <button mat-icon-button mat-dialog-close>
-    <mat-icon>close</mat-icon>
-  </button>
-</div>
+<div class="reservation-dossier-modal">
+  <!-- Modal Luxury Header -->
+  <div class="dialog-header-luxury">
+    <div class="header-leading">
+      <div class="icon-badge">
+        <mat-icon>folder_shared</mat-icon>
+      </div>
+      <div class="header-titles">
+        <h2>Dossier de Mission #{{ data.reservation.id }}</h2>
+        <p>Consultation intégrale de l'ordre d'intervention, des prestations et des coordonnées</p>
+      </div>
+    </div>
+    <button mat-icon-button mat-dialog-close class="close-btn" matTooltip="Fermer">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
 
-<mat-dialog-content class="dialog-content">
-  <mat-tab-group (selectedTabChange)="onTabChange($event)">
-    <!-- Onglet Informations générales -->
-    <mat-tab label="Informations">
-      <div class="tab-content">
-        <div class="info-section">
-          <h3>
-            <mat-icon>assignment</mat-icon>
-            Informations générales
-          </h3>
-          <div class="info-grid">
-            <div class="info-item">
-              <span class="label">Titre :</span>
-              <span class="value">{{ data.reservation.title }}</span>
+  <div class="dialog-body-luxury">
+    <mat-tab-group class="modern-dossier-tabs" (selectedTabChange)="onTabChange($event)">
+      <!-- Tab 1: Synthèse & Informations -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">info</mat-icon>
+          <span>Synthèse</span>
+        </ng-template>
+
+        <div class="dossier-tab-body">
+          <div class="mission-status-hero">
+            <div class="hero-text">
+              <span class="mission-category">Ordre de Réparation & Entretien</span>
+              <h3 class="hero-title">{{ data.reservation.title | cleanText }}</h3>
+              <p class="hero-desc" *ngIf="data.reservation.description">{{ data.reservation.description | cleanText }}</p>
             </div>
-            <div class="info-item">
-              <span class="label">Client :</span>
-              <span class="value">{{ data.reservation.clientName }}</span>
-            </div>
-            <div class="info-item" *ngIf="data.reservation.clientPhone">
-              <span class="label">Téléphone :</span>
-              <span class="value phone-number">
-                <mat-icon>phone</mat-icon>
-                {{ formatPhoneNumber(data.reservation.clientPhone) }}
+            <div class="hero-status">
+              <span class="status-chip-lg" [style.background-color]="getStatusColor(data.reservation.status)">
+                {{ getStatusText(data.reservation.status) }}
               </span>
             </div>
-            <div class="info-item">
-              <span class="label">Statut :</span>
-              <mat-chip [style.background-color]="getStatusColor(data.reservation.status)" 
-                       [style.color]="'white'">
-                {{ getStatusText(data.reservation.status) }}
-              </mat-chip>
-            </div>
-            <div class="info-item">
-              <span class="label">Date début :</span>
-              <span class="value">{{ formatDateTime(data.reservation.startDate) }}</span>
-            </div>
-            <div class="info-item">
-              <span class="label">Date fin :</span>
-              <span class="value">{{ formatDateTime(data.reservation.endDate) }}</span>
-            </div>
-            <div class="info-item" *ngIf="data.reservation.totalPrice">
-              <span class="label">Prix total :</span>
-              <span class="value price">{{ formatPrice(data.reservation.totalPrice) }}</span>
-            </div>
           </div>
-          
-          <div class="description" *ngIf="data.reservation.description">
-            <h4>Description :</h4>
-            <p>{{ data.reservation.description }}</p>
+
+          <div class="dossier-grid">
+            <!-- Client Card -->
+            <div class="dossier-card">
+              <div class="card-head">
+                <mat-icon>person</mat-icon>
+                <span>Donneur d'Ordre</span>
+              </div>
+              <div class="card-body">
+                <span class="primary-val">{{ data.reservation.clientName || 'Client Particulier' }}</span>
+                <span class="secondary-val" *ngIf="data.reservation.clientPhone">
+                  <mat-icon>call</mat-icon> {{ formatPhoneNumber(data.reservation.clientPhone) }}
+                </span>
+                <span class="secondary-val" *ngIf="data.reservation.address">
+                  <mat-icon>home</mat-icon> {{ data.reservation.address }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Artisan Card -->
+            <div class="dossier-card">
+              <div class="card-head">
+                <mat-icon>engineering</mat-icon>
+                <span>Artisan Titulaire</span>
+              </div>
+              <div class="card-body">
+                <span class="primary-val" [class.not-assigned]="!data.reservation.consultantName">
+                  {{ data.reservation.consultantName || 'Non encore attribué' }}
+                </span>
+                <span class="secondary-val" *ngIf="data.reservation.consultantName">
+                  <mat-icon>verified</mat-icon> Artisan Agréé AledhemTek
+                </span>
+                <span class="secondary-val not-assigned-hint" *ngIf="!data.reservation.consultantName">
+                  En attente de désignation par la régie
+                </span>
+              </div>
+            </div>
+
+            <!-- Schedule Card -->
+            <div class="dossier-card">
+              <div class="card-head">
+                <mat-icon>event</mat-icon>
+                <span>Plage d'Intervention</span>
+              </div>
+              <div class="card-body">
+                <span class="date-row">
+                  <mat-icon>play_circle</mat-icon>
+                  <span>Début : {{ formatDateTime(data.reservation.startDate) }}</span>
+                </span>
+                <span class="date-row">
+                  <mat-icon>stop_circle</mat-icon>
+                  <span>Fin estimée : {{ formatDateTime(data.reservation.endDate) }}</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Price Card -->
+            <div class="dossier-card price-highlight">
+              <div class="card-head">
+                <mat-icon>payments</mat-icon>
+                <span>Montant Facturé</span>
+              </div>
+              <div class="card-body">
+                <span class="price-big">{{ data.reservation.totalPrice ? formatPrice(data.reservation.totalPrice) : 'Sur Devis' }}</span>
+                <span class="price-hint">Frais de déplacement et main d'œuvre</span>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </mat-tab>
+      </mat-tab>
 
-    <!-- Onglet Tâches -->
-    <mat-tab label="Tâches" [disabled]="!hasTasks()">
-      <div class="tab-content">
-        <div class="tasks-section">
-          <h3>
-            <mat-icon>task_alt</mat-icon>
-            Tâches à effectuer ({{ data.reservation.tasks?.length || 0 }})
-          </h3>
-          <div class="tasks-list" *ngIf="data.reservation.tasks && data.reservation.tasks.length > 0">
-            <mat-card class="task-card" *ngFor="let task of data.reservation.tasks; let i = index">
-              <mat-card-content>
-                <div class="task-header">
-                  <span class="task-number">{{ i + 1 }}</span>
-                  <h4>{{ task.name }}</h4>
-                  <mat-chip class="duration-chip">{{ task.duration }}min</mat-chip>
+      <!-- Tab 2: Prestations & Tâches -->
+      <mat-tab [disabled]="!hasTasks()">
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">task_alt</mat-icon>
+          <span>Prestations ({{ data.reservation.tasks?.length || 0 }})</span>
+        </ng-template>
+
+        <div class="dossier-tab-body">
+          <div class="tasks-dossier-list" *ngIf="data.reservation.tasks && data.reservation.tasks.length > 0">
+            <div class="dossier-task-item" *ngFor="let task of data.reservation.tasks; let i = index">
+              <div class="task-num">{{ i + 1 }}</div>
+              <div class="task-main">
+                <div class="task-head">
+                  <span class="task-title">{{ task.name | cleanText }}</span>
+                  <span class="dur-pill" *ngIf="task.duration">
+                    <mat-icon>schedule</mat-icon>
+                    {{ task.duration }} min
+                  </span>
                 </div>
-                <p *ngIf="task.description">{{ task.description }}</p>
-              </mat-card-content>
-            </mat-card>
-          </div>
-          <div class="no-tasks" *ngIf="!data.reservation.tasks || data.reservation.tasks.length === 0">
-            <mat-icon>info</mat-icon>
-            <p>Aucune tâche assignée à cette réservation</p>
-          </div>
-        </div>
-      </div>
-    </mat-tab>
-
-    <!-- Onglet Localisation -->
-    <mat-tab label="Localisation" [disabled]="!hasLocation()">
-      <div class="tab-content">
-        <div class="location-section">
-          <h3>
-            <mat-icon>location_on</mat-icon>
-            Localisation de l'intervention
-          </h3>
-          
-          <div class="location-info" *ngIf="hasLocation()">
-            <div class="coordinates-info">
-              <div class="coord-item">
-                <mat-icon>place</mat-icon>
-                <span>{{ data.reservation.latitude }}, {{ data.reservation.longitude }}</span>
-                <button mat-icon-button (click)="copyCoordinates()" matTooltip="Copier les coordonnées">
-                  <mat-icon>content_copy</mat-icon>
-                </button>
-              </div>
-              <div class="address-item" *ngIf="data.reservation.address">
-                <mat-icon>home</mat-icon>
-                <span>{{ data.reservation.address }}</span>
+                <p class="task-desc" *ngIf="task.description">{{ task.description | cleanText }}</p>
               </div>
             </div>
-            
-            <!-- Carte interactive -->
-            <div class="map-container" *ngIf="showMap">
-              <app-location-map 
-                [position]="getLocationPosition()"
-                [height]="'300px'"
-                [showHeader]="false"
-                [showActions]="true"
-                [showInfo]="false">
-              </app-location-map>
-            </div>
-            <div class="map-placeholder" *ngIf="!showMap && hasLocation()">
-              <mat-icon>map</mat-icon>
-              <p>Cliquez sur l'onglet Localisation pour voir la carte</p>
-            </div>
-            
-            <!-- Actions localisation -->
-            <div class="location-actions">
-              <button mat-raised-button color="primary" (click)="openInMaps()">
-                <mat-icon>map</mat-icon>
-                Ouvrir dans Maps
-              </button>
-              <button mat-button (click)="shareLocation()">
-                <mat-icon>share</mat-icon>
-                Partager
-              </button>
-            </div>
           </div>
-          
-          <div class="no-location" *ngIf="!hasLocation()">
-            <mat-icon>location_off</mat-icon>
-            <p>Aucune localisation disponible pour cette réservation</p>
+
+          <div class="empty-state-card" *ngIf="!hasTasks()">
+            <mat-icon>assignment_late</mat-icon>
+            <p>Aucune tâche détaillée enregistrée sur cette mission.</p>
           </div>
         </div>
-      </div>
-    </mat-tab>
-  </mat-tab-group>
-</mat-dialog-content>
+      </mat-tab>
 
-<mat-dialog-actions class="dialog-actions">
-  <button mat-button mat-dialog-close>Fermer</button>
-  <button mat-raised-button 
-          color="primary" 
-          (click)="contactClient()" 
-          *ngIf="data.reservation.clientPhone"
-          [disabled]="!data.reservation.clientPhone">
-    <mat-icon>phone</mat-icon>
-    Appeler {{ data.reservation.clientName }}
-  </button>
-  <button mat-button 
-          color="accent" 
-          (click)="sendSMS()" 
-          *ngIf="data.reservation.clientPhone">
-    <mat-icon>sms</mat-icon>
-    SMS
-  </button>
-</mat-dialog-actions>
+      <!-- Tab 3: Localisation & Carte -->
+      <mat-tab [disabled]="!hasLocation()">
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">location_on</mat-icon>
+          <span>Géolocalisation</span>
+        </ng-template>
+
+        <div class="dossier-tab-body">
+          <div class="location-top-bar" *ngIf="hasLocation()">
+            <div class="coords-display">
+              <mat-icon>place</mat-icon>
+              <span>GPS : <strong>{{ data.reservation.latitude }}, {{ data.reservation.longitude }}</strong></span>
+              <button mat-icon-button (click)="copyCoordinates()" matTooltip="Copier coordonnées">
+                <mat-icon>content_copy</mat-icon>
+              </button>
+            </div>
+            <button mat-stroked-button (click)="openInMaps()" class="btn-open-maps">
+              <mat-icon>open_in_new</mat-icon>
+              <span>Ouvrir dans OpenStreetMap</span>
+            </button>
+          </div>
+
+          <div class="map-embed-wrapper" *ngIf="showMap && hasLocation()">
+            <app-location-map 
+              [position]="getLocationPosition()" 
+              [height]="'320px'" 
+              [showHeader]="false" 
+              [showActions]="true" 
+              [showInfo]="false">
+            </app-location-map>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+
+  <div class="dialog-actions-luxury">
+    <button mat-stroked-button mat-dialog-close class="btn-secondary">
+      Fermer
+    </button>
+    <button mat-flat-button color="primary" (click)="contactClient()" *ngIf="data.reservation.clientPhone" class="btn-call">
+      <mat-icon>phone</mat-icon>
+      <span>Appeler le client</span>
+    </button>
+  </div>
+</div>

@@ -1,62 +1,175 @@
-
-
-
-
-  <!-- Section pour toutes les tâches -->
-  <div class="container">
-  <h1>Gestion des Tâches</h1>
-
-  <section class="task-section">
-    <div class="task-header">
-      <h2>Toutes les Tâches</h2>
-      <button mat-raised-button color="primary" routerLink="/admin/tasks/new">
+<div class="service-catalog-container">
+  <!-- Page Header -->
+  <div class="catalog-header">
+    <div class="header-left">
+      <div class="header-icon-badge">
+        <mat-icon>build_circle</mat-icon>
+      </div>
+      <div>
+        <h1 class="page-title">Référentiel des Tâches & Prestations</h1>
+        <p class="page-subtitle">Catalogue centralisé des interventions artisanales, barèmes tarifaires et outillages</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a mat-raised-button color="primary" routerLink="/admin/tasks/new" class="btn-create-task">
         <mat-icon>add</mat-icon>
-        Ajouter une tâche
-      </button>
+        <span>Ajouter une tâche</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- KPI Stats Grid -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon-wrap blue">
+        <mat-icon>assignment</mat-icon>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.totalTasks }}</div>
+        <div class="stat-label">Tâches répertoriées</div>
+      </div>
     </div>
 
-    <table mat-table [dataSource]="allTasksDataSource" class="mat-elevation-z1 tasks-table">
-      <!-- Colonnes du tableau -->
-      <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef> Nom de tâche </th>
-        <td mat-cell *matCellDef="let task"> {{task.name}} </td>
-      </ng-container>
+    <div class="stat-card">
+      <div class="stat-icon-wrap amber">
+        <mat-icon>schedule</mat-icon>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.avgDuration }} min</div>
+        <div class="stat-label">Durée moyenne estimée</div>
+      </div>
+    </div>
 
-      <ng-container matColumnDef="description">
-        <th mat-header-cell *matHeaderCellDef> Description </th>
-        <td mat-cell *matCellDef="let task"> {{task.description}} </td>
-      </ng-container>
+    <div class="stat-card">
+      <div class="stat-icon-wrap green">
+        <mat-icon>euro</mat-icon>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.avgPrice | currency:'EUR' }}</div>
+        <div class="stat-label">Tarif moyen indicatif</div>
+      </div>
+    </div>
+  </div>
 
-      <ng-container matColumnDef="duration">
-        <th mat-header-cell *matHeaderCellDef> Durée (min) </th>
-        <td mat-cell *matCellDef="let task"> {{task.duration}} </td>
-      </ng-container>
+  <!-- Search & Toolbar -->
+  <div class="table-card mat-elevation-z1">
+    <div class="catalog-toolbar">
+      <div class="search-field-wrap">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input 
+          type="text" 
+          [(ngModel)]="searchTerm" 
+          (ngModelChange)="applyFilter()" 
+          placeholder="Rechercher une tâche par nom ou mot-clé..." 
+          class="custom-search-input"
+        />
+        <button *ngIf="searchTerm" mat-icon-button (click)="searchTerm = ''; applyFilter()" class="btn-clear-search">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
 
-      <ng-container matColumnDef="price">
-        <th mat-header-cell *matHeaderCellDef> Tarif </th>
-        <td mat-cell *matCellDef="let task"> {{(task.rates && task.rates.length > 0 ? task.rates[0].price : 'N/A') | currency:'EUR'}} </td>
-      </ng-container>
+      <div class="toolbar-info">
+        <span class="count-pill">{{ filteredTasks.length }} résultat{{ filteredTasks.length > 1 ? 's' : '' }}</span>
+      </div>
+    </div>
 
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef> Actions </th>
-        <td mat-cell *matCellDef="let task">
-          <button mat-icon-button color="primary" (click)="editTask(task)">
-            <mat-icon>edit</mat-icon>
-          </button>
-          <button mat-icon-button color="warn" (click)="deleteTask(task.id)">
-            <mat-icon>delete</mat-icon>
-          </button>
-          <button mat-icon-button color="accent" (click)="manageMaterials(task)">
-            <mat-icon>build</mat-icon>
-          </button>
-        </td>
-      </ng-container>
+    <!-- Table content -->
+    <div class="table-responsive" *ngIf="!loading && paginatedTasks.length > 0">
+      <table mat-table [dataSource]="paginatedTasks" class="catalog-table">
+        
+        <!-- Name Column -->
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef> Intitulé de la tâche </th>
+          <td mat-cell *matCellDef="let task">
+            <div class="task-name-cell">
+              <span class="task-title">{{ task.name | cleanText }}</span>
+            </div>
+          </td>
+        </ng-container>
 
-      <tr mat-header-row *matHeaderRowDef="allTasksDisplayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: allTasksDisplayedColumns;"></tr>
-    </table>
-    <p *ngIf="!allTasksDataSource.data || allTasksDataSource.data.length === 0" class="no-tasks-message">
-        Aucune tâche trouvée.
-    </p>
-  </section>
+        <!-- Description Column -->
+        <ng-container matColumnDef="description">
+          <th mat-header-cell *matHeaderCellDef> Description & Périmètre </th>
+          <td mat-cell *matCellDef="let task">
+            <span class="task-desc-cell">{{ (task.description | cleanText) || 'Aucune description détaillée.' }}</span>
+          </td>
+        </ng-container>
 
+        <!-- Duration Column -->
+        <ng-container matColumnDef="duration">
+          <th mat-header-cell *matHeaderCellDef class="text-center"> Durée </th>
+          <td mat-cell *matCellDef="let task" class="text-center">
+            <span class="duration-chip">
+              <mat-icon>schedule</mat-icon>
+              {{ task.duration ? task.duration + ' min' : 'Non définie' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Price Column -->
+        <ng-container matColumnDef="price">
+          <th mat-header-cell *matHeaderCellDef class="text-right"> Tarif indicatif </th>
+          <td mat-cell *matCellDef="let task" class="text-right">
+            <span class="price-chip">
+              {{ (task.rates && task.rates.length > 0 && task.rates[0].price ? task.rates[0].price : 0) | currency:'EUR' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Materials Column -->
+        <ng-container matColumnDef="materials">
+          <th mat-header-cell *matHeaderCellDef class="text-center"> Matériaux </th>
+          <td mat-cell *matCellDef="let task" class="text-center">
+            <span class="materials-chip" (click)="manageMaterials(task)">
+              <mat-icon>inventory_2</mat-icon>
+              {{ (task.materials ? task.materials.length : 0) }} fourniture{{ (task.materials && task.materials.length > 1) ? 's' : '' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="text-right"> Actions </th>
+          <td mat-cell *matCellDef="let task" class="text-right">
+            <div class="action-buttons-group">
+              <button mat-icon-button color="primary" (click)="editTask(task)" matTooltip="Modifier la prestation">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="accent" (click)="manageMaterials(task)" matTooltip="Gérer les fournitures et matériaux requis">
+                <mat-icon>handyman</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="deleteTask(task.id)" matTooltip="Supprimer cette tâche">
+                <mat-icon>delete_outline</mat-icon>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="allTasksDisplayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: allTasksDisplayedColumns;" class="catalog-row"></tr>
+      </table>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && paginatedTasks.length === 0" class="empty-state-card">
+      <div class="empty-icon-wrap">
+        <mat-icon>search_off</mat-icon>
+      </div>
+      <h3>Aucune tâche trouvée</h3>
+      <p *ngIf="searchTerm">Aucun résultat ne correspond à "{{ searchTerm }}". Réessayez avec d'autres termes.</p>
+      <p *ngIf="!searchTerm">Le catalogue ne contient pas encore de tâche.</p>
+      <a mat-raised-button color="primary" routerLink="/admin/tasks/new" class="mt-3">
+        <mat-icon>add</mat-icon> Créer une première tâche
+      </a>
+    </div>
+
+    <!-- Pagination Integration -->
+    <div class="pagination-footer" *ngIf="!loading && filteredTasks.length > 0">
+      <app-pagination 
+        [config]="paginationConfig" 
+        (pageChange)="onPageChange($event)" 
+        (pageSizeChange)="onPageSizeChange($event)">
+      </app-pagination>
+    </div>
+  </div>
+</div>

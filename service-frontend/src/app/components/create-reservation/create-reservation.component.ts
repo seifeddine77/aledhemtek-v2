@@ -11,6 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatStepperModule } from '@angular/material/stepper';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ReservationService } from '../../services/reservation.service';
 import { AuthService } from '../../services/auth.service';
 import { GeolocationService, CustomGeolocationPosition } from '../../services/geolocation.service';
@@ -29,7 +30,8 @@ import { Reservation, ReservationStatus } from '../../models/reservation.model';
     MatIconModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatStepperModule
+    MatStepperModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: './create-reservation.component.html',
   styleUrls: ['./create-reservation.component.css']

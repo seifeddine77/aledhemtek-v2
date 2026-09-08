@@ -9,6 +9,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatTabsModule } from '@angular/material/tabs';
 import { Reservation } from '../../../models/reservation.model';
 import { LocationMapComponent } from '../../shared/location-map/location-map.component';
+import { cleanText } from '../../../pipes/clean-text.pipe';
 
 export interface ClientReservationDetailsDialogData {
   reservation: Reservation;
@@ -37,7 +38,19 @@ export class ClientReservationDetailsDialogComponent {
   constructor(
     public dialogRef: MatDialogRef<ClientReservationDetailsDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: ClientReservationDetailsDialogData
-  ) {}
+  ) {
+    if (this.data?.reservation) {
+      this.data.reservation.title = cleanText(this.data.reservation.title || '');
+      this.data.reservation.description = cleanText(this.data.reservation.description || '');
+      if (this.data.reservation.tasks) {
+        this.data.reservation.tasks = this.data.reservation.tasks.map(t => ({
+          ...t,
+          name: cleanText(t.name || ''),
+          description: cleanText(t.description || '')
+        }));
+      }
+    }
+  }
 
   hasTasks(): boolean {
     return !!(this.data.reservation.tasks && this.data.reservation.tasks.length > 0);

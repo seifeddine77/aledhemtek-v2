@@ -1,6 +1,5 @@
-
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule, formatDate } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatInputModule } from '@angular/material/input';
@@ -9,13 +8,15 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ClientInterface } from '../../models/client-interface';
 import { ConsultantDialogComponent } from '../consultant-dialog/consultant-dialog.component';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
-import { formatDate } from '@angular/common';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-register',
@@ -23,6 +24,7 @@ import { formatDate } from '@angular/common';
   imports: [
     CommonModule,
     FormsModule,
+    RouterLink,
     MatCardModule,
     MatInputModule,
     MatFormFieldModule,
@@ -31,12 +33,15 @@ import { formatDate } from '@angular/common';
     MatIconModule,
     MatDialogModule,
     MatDatepickerModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    MatTooltipModule,
+    MatProgressBarModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css']
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnInit {
   client: ClientInterface = {
     email: '',
     firstName: '',
@@ -44,21 +49,27 @@ export class RegisterComponent {
     password: '',
     phone: '',
     dob: '',
-    country: '',
+    country: 'France',
     city: '',
     zip: '',
     address: '',
-    occupation: '',
+    occupation: 'client',
   };
 
-  occupations: string[] = ['Client', 'Consultant'];
+  confirmPassword = '';
+  hidePassword = true;
+  hideConfirmPassword = true;
+  termsAccepted = true;
+
   profile_picture: File | null = null;
   profile_picture_preview: string | ArrayBuffer | null | undefined = null;
+  selectedFileName = '';
+
   isLoading = false;
   errorMessage = '';
-  selectedOccupation: string = '';
-  selectedFileName: string = '';
-  hidePassword = true;
+  successMessage = '';
+  selectedOccupation: 'client' | 'consultant' = 'client';
+  hasConsultantData = false;
 
   constructor(
     private authService: AuthService,
@@ -66,45 +77,124 @@ export class RegisterComponent {
     private dialog: MatDialog
   ) {}
 
-  onOccupationChange(value: string) {
-    this.selectedOccupation = value;
-
-    if (value === 'consultant') {
-      const dialogRef = this.dialog.open(ConsultantDialogComponent, {
-        width: '400px',
-        disableClose: true,
-      });
-
-      dialogRef.afterClosed().subscribe((result) => {
-        if (result) {
-          console.log('[DEBUG] Received from ConsultantDialog:', result);
-          this.client.occupation = 'consultant';
-          (this.client as any).consultantData = {
-            companyName: result.companyName,
-            jobTitle: result.jobTitle,
-            experienceYears: result.experienceYears
-          };
-          (this.client as any).resumeFile = result.resume; // ✅ Attach the file
-        } else {
-          console.log('[DEBUG] ConsultantDialog was closed without data');
-          // Optional: reset occupation if cancelled
-          this.client.occupation = '';
-          this.selectedOccupation = '';
-        }
-      });
-
-    } else {
-      this.client.occupation = 'client';
+  ngOnInit(): void {
+    if (this.authService.isLoggedIn()) {
+      const role = this.authService.getRole();
+      if (role === 'admin') this.router.navigate(['/admin/dashboard']);
+      else if (role === 'consultant') this.router.navigate(['/consultant/dashboard']);
+      else this.router.navigate(['/client/dashboard']);
     }
   }
 
+  // Password strength calculator matching backend policy
+  get passwordStrengthScore(): number {
+    const pwd = this.client.password || '';
+    if (!pwd) return 0;
+    let score = 0;
+    if (pwd.length >= 8) score++;
+    if (/[a-z]/.test(pwd)) score++;
+    if (/[A-Z]/.test(pwd)) score++;
+    if (/\d/.test(pwd)) score++;
+    if (/[^a-zA-Z0-9]/.test(pwd)) score++;
+    return score;
+  }
+
+  get passwordStrengthPercentage(): number {
+    return (this.passwordStrengthScore / 5) * 100;
+  }
+
+  get passwordStrengthLabel(): string {
+    const score = this.passwordStrengthScore;
+    if (score <= 1) return 'Très faible';
+    if (score === 2) return 'Faible';
+    if (score === 3) return 'Moyen';
+    if (score === 4) return 'Bon';
+    return 'Excellent & Conforme';
+  }
+
+  get passwordStrengthColor(): string {
+    const score = this.passwordStrengthScore;
+    if (score <= 1) return '#ef4444';
+    if (score === 2) return '#f97316';
+    if (score === 3) return '#eab308';
+    if (score === 4) return '#3b82f6';
+    return '#10b981';
+  }
+
+  get isPasswordValid(): boolean {
+    const pwd = this.client.password || '';
+    return pwd.length >= 8 &&
+      /[a-z]/.test(pwd) &&
+      /[A-Z]/.test(pwd) &&
+      /\d/.test(pwd) &&
+      /[^a-zA-Z0-9]/.test(pwd);
+  }
+
+  get hasMinLength(): boolean {
+    return (this.client.password?.length || 0) >= 8;
+  }
+
+  get hasUppercase(): boolean {
+    return /[A-Z]/.test(this.client.password || '');
+  }
+
+  get hasLowercase(): boolean {
+    return /[a-z]/.test(this.client.password || '');
+  }
+
+  get hasNumber(): boolean {
+    return /\d/.test(this.client.password || '');
+  }
+
+  get hasSpecial(): boolean {
+    return /[^a-zA-Z0-9]/.test(this.client.password || '');
+  }
+
+  get doPasswordsMatch(): boolean {
+    return !!this.confirmPassword && this.client.password === this.confirmPassword;
+  }
+
+  onOccupationChange(value: 'client' | 'consultant'): void {
+    this.selectedOccupation = value;
+    this.client.occupation = value;
+
+    if (value === 'consultant' && !this.hasConsultantData) {
+      this.openConsultantDialog();
+    }
+  }
+
+  openConsultantDialog(): void {
+    const dialogRef = this.dialog.open(ConsultantDialogComponent, {
+      width: '520px',
+      maxWidth: '92vw',
+      disableClose: false,
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.client.occupation = 'consultant';
+        this.selectedOccupation = 'consultant';
+        (this.client as any).consultantData = {
+          companyName: result.companyName,
+          jobTitle: result.jobTitle,
+          experienceYears: result.experienceYears
+        };
+        (this.client as any).resumeFile = result.resume;
+        this.hasConsultantData = true;
+      } else if (!this.hasConsultantData) {
+        // Kept on client if cancelled
+        this.client.occupation = 'client';
+        this.selectedOccupation = 'client';
+      }
+    });
+  }
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       const file = input.files[0];
       if (!file.type.startsWith('image/')) {
-        this.errorMessage = 'Please upload an image file';
+        this.errorMessage = 'Veuillez sélectionner un fichier image valide (JPG, PNG, WEBP).';
         return;
       }
       this.profile_picture = file;
@@ -123,7 +213,7 @@ export class RegisterComponent {
     this.profile_picture = null;
   }
 
-  resetForm() {
+  resetForm(): void {
     this.client = {
       email: '',
       firstName: '',
@@ -131,132 +221,105 @@ export class RegisterComponent {
       password: '',
       phone: '',
       dob: '',
-      country: '',
+      country: 'France',
       city: '',
       zip: '',
       address: '',
-      occupation: '',
+      occupation: 'client',
     };
-    this.selectedOccupation = '';
+    this.confirmPassword = '';
+    this.selectedOccupation = 'client';
+    this.hasConsultantData = false;
     this.profile_picture = null;
     this.profile_picture_preview = null;
     this.errorMessage = '';
+    this.successMessage = '';
   }
+
   onSubmit(): void {
-    this.isLoading = true;
     this.errorMessage = '';
+    this.successMessage = '';
 
     // Validate required fields
-    if (!this.client.firstName || !this.client.lastName || !this.client.email || !this.client.password || !this.client.dob) {
-      this.isLoading = false;
-      this.errorMessage = 'Please fill all required fields: First Name, Last Name, Email, Password, Date of Birth';
-      alert(this.errorMessage);
+    if (!this.client.firstName || !this.client.lastName || !this.client.email || !this.client.password) {
+      this.errorMessage = 'Veuillez renseigner tous les champs obligatoires (Prénom, Nom, Email, Mot de passe).';
       return;
     }
 
-    try {
-      console.log('Submitting registration form...');
-      console.log('Selected occupation:', this.client.occupation);
-      console.log('Client object:', this.client);
+    // Validate password criteria
+    if (!this.isPasswordValid) {
+      this.errorMessage = 'Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.';
+      return;
+    }
 
+    // Validate password match
+    if (!this.doPasswordsMatch) {
+      this.errorMessage = 'Les deux mots de passe ne correspondent pas.';
+      return;
+    }
+
+    // Validate consultant portfolio if selected
+    if (this.selectedOccupation === 'consultant' && !this.hasConsultantData) {
+      this.errorMessage = 'Veuillez renseigner les informations professionnelles relatives à votre activité artisanale.';
+      return;
+    }
+
+    this.isLoading = true;
+
+    try {
       const formData = new FormData();
-      formData.append('firstName', this.client.firstName);
-      formData.append('lastName', this.client.lastName);
-      formData.append('email', this.client.email);
+      formData.append('firstName', this.client.firstName.trim());
+      formData.append('lastName', this.client.lastName.trim());
+      formData.append('email', this.client.email.trim());
       formData.append('password', this.client.password);
 
-      // Optional fields
-      if (this.client.phone && /^\d+$/.test(this.client.phone)) {
-        formData.append('phone', this.client.phone);
-      }
+      if (this.client.phone) formData.append('phone', this.client.phone);
       if (this.client.dob) {
         formData.append('dob', formatDate(this.client.dob, 'yyyy-MM-dd', 'en-US'));
       }
-      if (this.client.country) {
-        formData.append('country', this.client.country);
-      }
-      if (this.client.city) {
-        formData.append('city', this.client.city);
-      }
-      if (this.client.zip && /^\d+$/.test(this.client.zip)) {
-        formData.append('zip', this.client.zip);
-      }
-      if (this.client.address) {
-        formData.append('address', this.client.address);
-      }
-      if (this.profile_picture) {
-        formData.append('profilePic', this.profile_picture);
-      }
+      if (this.client.country) formData.append('country', this.client.country);
+      if (this.client.city) formData.append('city', this.client.city);
+      if (this.client.zip) formData.append('zip', this.client.zip.toString());
+      if (this.client.address) formData.append('address', this.client.address);
+      if (this.profile_picture) formData.append('profilePic', this.profile_picture);
 
-      // Check if salarie
-      if (this.client.occupation === 'consultant') {
+      if (this.selectedOccupation === 'consultant') {
         const consultantData = (this.client as any).consultantData || {};
-        formData.append('profession', consultantData.jobTitle || '');
-        //formData.append('exp', consultantData.experienceYears || '');
-        formData.append('exp', consultantData.experienceYears?.toString() || '');
-        formData.append('companyName', consultantData.companyName || '');
+        formData.append('profession', consultantData.jobTitle || 'Artisan');
+        formData.append('exp', consultantData.experienceYears?.toString() || '3');
+        formData.append('companyName', consultantData.companyName || 'Artisan Indépendant');
         if ((this.client as any).resumeFile) {
           formData.append('resume', (this.client as any).resumeFile);
         }
 
-        // Debugging
-        console.log('[DEBUG] FormData for consultant registration:');
-        formData.forEach((val, key) => {
-          if (val instanceof File) {
-            console.log(`  ${key}: File { name: ${val.name}, size: ${val.size} bytes }`);
-          } else {
-            console.log(`  ${key}: ${val}`);
-          }
-        });
-
         this.authService.registerConsultant(formData).subscribe({
-          next: (res) => {
+          next: () => {
             this.isLoading = false;
-            console.log('✅ Consultant registered successfully:', res);
-            alert('Consultant registered successfully. Awaiting admin approval.');
-            this.router.navigate(['/login']);
+            this.successMessage = 'Votre dossier artisan a été transmis avec succès ! Nos équipes valideront vos agréments sous 24h.';
+            setTimeout(() => this.router.navigate(['/login']), 2000);
           },
           error: (err) => {
             this.isLoading = false;
-            console.error('❌ Error registering consultant:', err);
-            this.errorMessage = err.error?.message || 'Failed to register consultant.';
-            alert(this.errorMessage);
+            this.errorMessage = err.error?.message || err.error || 'Échec lors de l\'enregistrement de votre dossier artisan.';
           }
         });
-
       } else {
-        // Default: client
-        console.log('[DEBUG] FormData for client registration:');
-        formData.forEach((val, key) => {
-          if (val instanceof File) {
-            console.log(`  ${key}: File { name: ${val.name}, size: ${val.size} bytes }`);
-          } else {
-            console.log(`  ${key}: ${val}`);
-          }
-        });
-
+        // Client registration
         this.authService.registerClient(formData).subscribe({
-          next: (res) => {
+          next: () => {
             this.isLoading = false;
-            console.log('✅ Client registered successfully:', res);
-            alert('Client registered successfully');
-            this.router.navigate(['/login']);
+            this.successMessage = 'Votre compte client a été créé avec succès ! Redirection vers la page de connexion...';
+            setTimeout(() => this.router.navigate(['/login']), 1800);
           },
           error: (err) => {
             this.isLoading = false;
-            console.error('❌ Client registration error:', err);
-            this.errorMessage = err.error?.message || 'Failed to register client.';
-            alert(this.errorMessage);
+            this.errorMessage = err.error?.message || err.error || 'Échec lors de la création de votre compte client.';
           }
         });
       }
-
-    } catch (e) {
+    } catch (e: any) {
       this.isLoading = false;
-      this.errorMessage = 'An unexpected error occurred.';
-      console.error('Unexpected error in onSubmit:', e);
-      alert(this.errorMessage);
+      this.errorMessage = 'Une erreur inattendue est survenue : ' + (e.message || e);
     }
   }
-
 }

@@ -1,263 +1,284 @@
-<div class="client-reservations-container">
-  <div class="header">
-    <h2>Mes Réservations</h2>
-    <button mat-raised-button color="primary" (click)="createNewReservation()">
-      <mat-icon>add</mat-icon>
-      Nouvelle Réservation
-    </button>
+<div class="client-reservations-wrapper">
+  
+  <!-- Page Header -->
+  <div class="reservations-header">
+    <div class="header-titles">
+      <div class="breadcrumb-strip">
+        <a routerLink="/client/dashboard" class="crumb-link">Espace Client</a>
+        <mat-icon class="crumb-sep">chevron_right</mat-icon>
+        <span class="crumb-current">Mes Réservations</span>
+      </div>
+      <h1 class="page-title">Mes Demandes &amp; Interventions</h1>
+      <p class="page-subtitle">
+        Suivez l'avancement de vos dépannages, consultez les rapports de vos artisans et gérez vos plannings.
+      </p>
+    </div>
+
+    <div class="header-action-group">
+      <button mat-raised-button class="btn-create-header" (click)="createNewReservation()">
+        <mat-icon>add_circle</mat-icon>
+        <span>Nouvelle Demande</span>
+      </button>
+    </div>
   </div>
 
-  <!-- Statistics Cards -->
-  <div class="stats-grid">
-    <mat-card class="stat-card pending">
-      <mat-card-content>
-        <div class="stat-content">
-          <mat-icon>{{ getStatusIcon(ReservationStatus.PENDING) }}</mat-icon>
-          <div class="stat-info">
-            <div class="stat-number">{{ getStatusCount(ReservationStatus.PENDING) }}</div>
-            <div class="stat-label">En attente</div>
-          </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
+  <!-- Command & Filter Strip -->
+  <div class="command-filter-strip">
+    <!-- Search Bar -->
+    <div class="search-box">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input type="text" 
+             [(ngModel)]="searchQuery" 
+             (ngModelChange)="onSearchChange()" 
+             placeholder="Rechercher par titre, artisan, référence #..." 
+             class="search-input" />
+      <button *ngIf="searchQuery" (click)="clearSearch()" class="btn-clear-search" aria-label="Effacer recherche">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
 
-    <mat-card class="stat-card assigned">
-      <mat-card-content>
-        <div class="stat-content">
-          <mat-icon>{{ getStatusIcon(ReservationStatus.ASSIGNED) }}</mat-icon>
-          <div class="stat-info">
-            <div class="stat-number">{{ getStatusCount(ReservationStatus.ASSIGNED) }}</div>
-            <div class="stat-label">Assignées</div>
-          </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
+    <!-- Segmented Status Pills -->
+    <div class="filter-pills-row">
+      <button class="filter-pill" [class.active]="selectedFilter === 'ALL'" (click)="setFilter('ALL')">
+        <span>Toutes</span>
+        <span class="pill-count">{{ reservations.length }}</span>
+      </button>
 
-    <mat-card class="stat-card in-progress">
-      <mat-card-content>
-        <div class="stat-content">
-          <mat-icon>{{ getStatusIcon(ReservationStatus.IN_PROGRESS) }}</mat-icon>
-          <div class="stat-info">
-            <div class="stat-number">{{ getStatusCount(ReservationStatus.IN_PROGRESS) }}</div>
-            <div class="stat-label">En cours</div>
-          </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
+      <button class="filter-pill" [class.active]="selectedFilter === ReservationStatus.PENDING" (click)="setFilter(ReservationStatus.PENDING)">
+        <span class="dot-status pending"></span>
+        <span>En attente</span>
+        <span class="pill-count">{{ getStatusCount(ReservationStatus.PENDING) }}</span>
+      </button>
 
-    <mat-card class="stat-card completed">
-      <mat-card-content>
-        <div class="stat-content">
-          <mat-icon>{{ getStatusIcon(ReservationStatus.COMPLETED) }}</mat-icon>
-          <div class="stat-info">
-            <div class="stat-number">{{ getStatusCount(ReservationStatus.COMPLETED) }}</div>
-            <div class="stat-label">Terminées</div>
-          </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
+      <button class="filter-pill" [class.active]="selectedFilter === ReservationStatus.ASSIGNED" (click)="setFilter(ReservationStatus.ASSIGNED)">
+        <span class="dot-status assigned"></span>
+        <span>Assignées</span>
+        <span class="pill-count">{{ getStatusCount(ReservationStatus.ASSIGNED) }}</span>
+      </button>
+
+      <button class="filter-pill" [class.active]="selectedFilter === ReservationStatus.IN_PROGRESS" (click)="setFilter(ReservationStatus.IN_PROGRESS)">
+        <span class="dot-status in-progress"></span>
+        <span>En cours</span>
+        <span class="pill-count">{{ getStatusCount(ReservationStatus.IN_PROGRESS) }}</span>
+      </button>
+
+      <button class="filter-pill" [class.active]="selectedFilter === ReservationStatus.COMPLETED" (click)="setFilter(ReservationStatus.COMPLETED)">
+        <span class="dot-status completed"></span>
+        <span>Terminées</span>
+        <span class="pill-count">{{ getStatusCount(ReservationStatus.COMPLETED) }}</span>
+      </button>
+    </div>
+
+    <!-- View Mode Toggle -->
+    <div class="view-mode-toggle">
+      <button class="btn-toggle-mode" [class.active]="viewMode === 'GRID'" (click)="toggleViewMode('GRID')" matTooltip="Vue Grille de Cartes">
+        <mat-icon>grid_view</mat-icon>
+      </button>
+      <button class="btn-toggle-mode" [class.active]="viewMode === 'LIST'" (click)="toggleViewMode('LIST')" matTooltip="Vue Tableau Liste">
+        <mat-icon>view_list</mat-icon>
+      </button>
+    </div>
   </div>
 
-  <!-- Reservations Content -->
-  <mat-card class="reservations-content">
-    <mat-card-content>
-      <mat-tab-group>
-        
-        <!-- All Reservations Tab -->
-        <mat-tab label="Toutes">
-          <div class="tab-content">
-            <div *ngIf="loading" class="loading-container">
-              <mat-spinner></mat-spinner>
-            </div>
-            
-            <div *ngIf="!loading && reservations.length === 0" class="empty-state">
-              <mat-icon>event_note</mat-icon>
-              <h3>Aucune réservation</h3>
-              <p>Vous n'avez pas encore de réservations.</p>
-              <button mat-raised-button color="primary" (click)="createNewReservation()">
-                Créer une réservation
-              </button>
-            </div>
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state-container">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Chargement de vos réservations...</p>
+  </div>
 
-            <div *ngIf="!loading && reservations.length > 0" class="reservations-list">
-              <div class="reservation-card" *ngFor="let reservation of reservations">
-                <div class="reservation-header">
-                  <h3>{{ reservation.title }}</h3>
-                  <mat-chip [style.background-color]="getStatusColor(reservation.status)" 
-                           [style.color]="'white'">
-                    {{ getStatusText(reservation.status) }}
-                  </mat-chip>
-                </div>
-                
-                <div class="reservation-details">
-                  <div class="detail-item">
-                    <mat-icon>person</mat-icon>
-                    <span>
-                      <strong>Consultant:</strong> 
-                      {{ reservation.consultantName || 'Non assigné' }}
-                    </span>
-                  </div>
-                  
-                  <div class="detail-item">
-                    <mat-icon>schedule</mat-icon>
-                    <span>
-                      <strong>Début:</strong> 
-                      {{ formatDate(reservation.startDate) }}
-                    </span>
-                  </div>
-                  
-                  <div class="detail-item">
-                    <mat-icon>schedule</mat-icon>
-                    <span>
-                      <strong>Fin:</strong> 
-                      {{ formatDate(reservation.endDate) }}
-                    </span>
-                  </div>
-                  
-                  <div class="detail-item" *ngIf="reservation.description">
-                    <mat-icon>description</mat-icon>
-                    <span>
-                      <strong>Description:</strong> 
-                      {{ reservation.description }}
-                    </span>
-                  </div>
-                </div>
-                
-                <div class="reservation-actions">
-                  <button mat-stroked-button (click)="viewReservationDetails(reservation.id!)">
-                    <mat-icon>visibility</mat-icon>
-                    Détails
-                  </button>
-                  
-                  <button mat-stroked-button 
-                          color="accent" 
-                          *ngIf="canEvaluate(reservation)"
-                          (click)="openEvaluationDialog(reservation)">
-                    <mat-icon>star</mat-icon>
-                    Évaluer
-                  </button>
-                  
-                  <button mat-stroked-button 
-                          color="warn" 
-                          *ngIf="canCancelReservation(reservation)"
-                          (click)="cancelReservation(reservation.id!)">
-                    <mat-icon>cancel</mat-icon>
-                    Annuler
-                  </button>
-                </div>
-              </div>
-            </div>
+  <!-- Empty State -->
+  <div *ngIf="!loading && filteredReservations.length === 0" class="empty-reservations-card">
+    <div class="empty-icon-circle">
+      <mat-icon>search_off</mat-icon>
+    </div>
+    <h3>Aucune intervention trouvée</h3>
+    <p *ngIf="searchQuery || selectedFilter !== 'ALL'">
+      Aucune réservation ne correspond à vos critères de recherche.
+    </p>
+    <p *ngIf="!searchQuery && selectedFilter === 'ALL'">
+      Vous n'avez pas encore d'intervention enregistrée. Bénéficiez d'un artisan certifié au meilleur tarif.
+    </p>
+    <div class="empty-actions">
+      <button mat-stroked-button *ngIf="searchQuery || selectedFilter !== 'ALL'" (click)="clearSearch(); setFilter('ALL')">
+        Réinitialiser les filtres
+      </button>
+      <button mat-raised-button class="btn-empty-book" (click)="createNewReservation()">
+        <mat-icon>add</mat-icon>
+        <span>Programmer une Intervention</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- CONTENT VIEW 1 : GRID VIEW (LUXURY BENTO CARDS) -->
+  <div *ngIf="!loading && filteredReservations.length > 0 && viewMode === 'GRID'" class="missions-cards-grid">
+    <div class="mission-card-luxury" *ngFor="let r of paginatedReservations">
+      
+      <!-- Card Top -->
+      <div class="card-top-row">
+        <div class="ref-and-date">
+          <span class="card-ref-badge">Mission #{{ r.id }}</span>
+          <span class="card-date-badge">
+            <mat-icon>schedule</mat-icon>
+            {{ formatDate(r.startDate) }}
+          </span>
+        </div>
+        <span class="status-pill" [ngClass]="'status-' + (r.status ? r.status.toLowerCase().replace('_', '-') : 'pending')">
+          {{ getStatusText(r.status) }}
+        </span>
+      </div>
+
+      <!-- Card Title & Description -->
+      <h3 class="card-mission-title">{{ r.title }}</h3>
+      <p class="card-mission-desc" *ngIf="r.description">{{ r.description }}</p>
+
+      <!-- Artisan / Dispatch Box -->
+      <div class="card-artisan-strip" *ngIf="r.consultantName">
+        <div class="artisan-badge-icon">
+          <mat-icon>engineering</mat-icon>
+        </div>
+        <div class="artisan-info-col">
+          <span class="artisan-label">Artisan Dédié</span>
+          <span class="artisan-val">{{ r.consultantName }}</span>
+        </div>
+        <span class="artisan-guarantee-pill" matTooltip="Artisan agréé et couvert par assurance">
+          <mat-icon>verified</mat-icon> Agréé
+        </span>
+      </div>
+
+      <div class="card-artisan-strip dispatching" *ngIf="!r.consultantName">
+        <div class="artisan-badge-icon pulse">
+          <mat-icon>sync</mat-icon>
+        </div>
+        <div class="artisan-info-col">
+          <span class="artisan-label">Attribution automatique</span>
+          <span class="artisan-val text-muted">Affectation en cours...</span>
+        </div>
+      </div>
+
+      <!-- Prestations / Tasks Count & Price Strip -->
+      <div class="card-metrics-strip">
+        <div class="metric-block">
+          <span class="metric-lbl">Prestations</span>
+          <span class="metric-val">
+            <mat-icon>handyman</mat-icon>
+            {{ (r.tasks && r.tasks.length) ? r.tasks.length : 1 }} acte(s)
+          </span>
+        </div>
+        <div class="metric-block text-right" *ngIf="r.totalPrice">
+          <span class="metric-lbl">Montant Devis</span>
+          <span class="metric-val price-text">{{ r.totalPrice | currency:'EUR' }}</span>
+        </div>
+      </div>
+
+      <!-- Card Action Buttons -->
+      <div class="card-actions-row">
+        <button mat-flat-button class="btn-action-primary" (click)="viewReservationDetails(r.id!)">
+          <mat-icon>visibility</mat-icon>
+          <span>Détails &amp; Fiche</span>
+        </button>
+
+        <button mat-stroked-button class="btn-action-eval" *ngIf="canEvaluate(r)" (click)="openEvaluationDialog(r)">
+          <mat-icon>star</mat-icon>
+          <span>Évaluer</span>
+        </button>
+
+        <button mat-button class="btn-action-cancel" *ngIf="canCancelReservation(r)" (click)="cancelReservation(r.id!)">
+          <mat-icon>close</mat-icon>
+          <span>Annuler</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CONTENT VIEW 2 : LIST VIEW (CLEAN TABULAR) -->
+  <div *ngIf="!loading && filteredReservations.length > 0 && viewMode === 'LIST'" class="table-card-container">
+    <table mat-table [dataSource]="paginatedReservations" class="modern-reservations-table">
+      <!-- ID -->
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef>Réf</th>
+        <td mat-cell *matCellDef="let r">
+          <span class="card-ref-badge">#{{ r.id }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Title -->
+      <ng-container matColumnDef="title">
+        <th mat-header-cell *matHeaderCellDef>Prestation / Titre</th>
+        <td mat-cell *matCellDef="let r">
+          <div class="table-title-cell">
+            <strong>{{ r.title }}</strong>
+            <span class="table-subdesc" *ngIf="r.description">{{ r.description }}</span>
           </div>
-        </mat-tab>
+        </td>
+      </ng-container>
 
-        <!-- Pending Tab -->
-        <mat-tab label="En attente" [disabled]="getStatusCount(ReservationStatus.PENDING) === 0">
-          <div class="tab-content">
-            <div class="reservations-list">
-              <div class="reservation-card" *ngFor="let reservation of getReservationsByStatus(ReservationStatus.PENDING)">
-                <div class="reservation-header">
-                  <h3>{{ reservation.title }}</h3>
-                  <mat-chip [style.background-color]="getStatusColor(reservation.status)" 
-                           [style.color]="'white'">
-                    {{ getStatusText(reservation.status) }}
-                  </mat-chip>
-                </div>
-                
-                <div class="reservation-details">
-                  <div class="detail-item">
-                    <mat-icon>schedule</mat-icon>
-                    <span>{{ formatDate(reservation.startDate) }} - {{ formatDate(reservation.endDate) }}</span>
-                  </div>
-                </div>
-                
-                <div class="reservation-actions">
-                  <button mat-stroked-button (click)="viewReservationDetails(reservation.id!)">
-                    Détails
-                  </button>
-                  <button mat-stroked-button color="warn" (click)="cancelReservation(reservation.id!)">
-                    Annuler
-                  </button>
-                </div>
-              </div>
-            </div>
+      <!-- Consultant -->
+      <ng-container matColumnDef="consultant">
+        <th mat-header-cell *matHeaderCellDef>Artisan</th>
+        <td mat-cell *matCellDef="let r">
+          <span *ngIf="r.consultantName" class="artisan-text-link">
+            <mat-icon>engineering</mat-icon> {{ r.consultantName }}
+          </span>
+          <span *ngIf="!r.consultantName" class="text-muted font-italic">En attente</span>
+        </td>
+      </ng-container>
+
+      <!-- Date -->
+      <ng-container matColumnDef="startDate">
+        <th mat-header-cell *matHeaderCellDef>Date d'intervention</th>
+        <td mat-cell *matCellDef="let r">{{ formatDate(r.startDate) }}</td>
+      </ng-container>
+
+      <!-- Price -->
+      <ng-container matColumnDef="totalPrice">
+        <th mat-header-cell *matHeaderCellDef>Montant</th>
+        <td mat-cell *matCellDef="let r">
+          <strong *ngIf="r.totalPrice">{{ r.totalPrice | currency:'EUR' }}</strong>
+          <span *ngIf="!r.totalPrice" class="text-muted">-</span>
+        </td>
+      </ng-container>
+
+      <!-- Status -->
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Statut</th>
+        <td mat-cell *matCellDef="let r">
+          <span class="status-pill" [ngClass]="'status-' + (r.status ? r.status.toLowerCase().replace('_', '-') : 'pending')">
+            {{ getStatusText(r.status) }}
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Actions -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef class="text-right">Actions</th>
+        <td mat-cell *matCellDef="let r" class="text-right">
+          <div class="table-actions-cluster">
+            <button mat-icon-button color="primary" (click)="viewReservationDetails(r.id!)" matTooltip="Voir la fiche complète">
+              <mat-icon>visibility</mat-icon>
+            </button>
+            <button mat-icon-button color="accent" *ngIf="canEvaluate(r)" (click)="openEvaluationDialog(r)" matTooltip="Évaluer l'artisan">
+              <mat-icon>star</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" *ngIf="canCancelReservation(r)" (click)="cancelReservation(r.id!)" matTooltip="Annuler">
+              <mat-icon>cancel</mat-icon>
+            </button>
           </div>
-        </mat-tab>
+        </td>
+      </ng-container>
 
-        <!-- In Progress Tab -->
-        <mat-tab label="En cours" [disabled]="getStatusCount(ReservationStatus.IN_PROGRESS) === 0">
-          <div class="tab-content">
-            <div class="reservations-list">
-              <div class="reservation-card" *ngFor="let reservation of getReservationsByStatus(ReservationStatus.IN_PROGRESS)">
-                <div class="reservation-header">
-                  <h3>{{ reservation.title }}</h3>
-                  <mat-chip [style.background-color]="getStatusColor(reservation.status)" 
-                           [style.color]="'white'">
-                    {{ getStatusText(reservation.status) }}
-                  </mat-chip>
-                </div>
-                
-                <div class="reservation-details">
-                  <div class="detail-item">
-                    <mat-icon>person</mat-icon>
-                    <span>{{ reservation.consultantName }}</span>
-                  </div>
-                  <div class="detail-item">
-                    <mat-icon>schedule</mat-icon>
-                    <span>{{ formatDate(reservation.startDate) }} - {{ formatDate(reservation.endDate) }}</span>
-                  </div>
-                </div>
-                
-                <div class="reservation-actions">
-                  <button mat-stroked-button (click)="viewReservationDetails(reservation.id!)">
-                    Détails
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </mat-tab>
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  </div>
 
-        <!-- Completed Tab -->
-        <mat-tab label="Terminées" [disabled]="getStatusCount(ReservationStatus.COMPLETED) === 0">
-          <div class="tab-content">
-            <div class="reservations-list">
-              <div class="reservation-card" *ngFor="let reservation of getReservationsByStatus(ReservationStatus.COMPLETED)">
-                <div class="reservation-header">
-                  <h3>{{ reservation.title }}</h3>
-                  <mat-chip [style.background-color]="getStatusColor(reservation.status)" 
-                           [style.color]="'white'">
-                    {{ getStatusText(reservation.status) }}
-                  </mat-chip>
-                </div>
-                
-                <div class="reservation-details">
-                  <div class="detail-item">
-                    <mat-icon>person</mat-icon>
-                    <span>{{ reservation.consultantName }}</span>
-                  </div>
-                  <div class="detail-item">
-                    <mat-icon>schedule</mat-icon>
-                    <span>{{ formatDate(reservation.startDate) }} - {{ formatDate(reservation.endDate) }}</span>
-                  </div>
-                </div>
-                
-                <div class="reservation-actions">
-                  <button mat-stroked-button (click)="viewReservationDetails(reservation.id!)">
-                    Détails
-                  </button>
-                  <button mat-raised-button color="accent" 
-                          (click)="openEvaluationDialog(reservation)"
-                          [disabled]="!canEvaluate(reservation)">
-                    <mat-icon>star</mat-icon>
-                    Évaluer
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </mat-tab>
+  <!-- Pagination Component -->
+  <div class="pagination-wrapper" *ngIf="!loading && filteredReservations.length > paginationConfig.itemsPerPage">
+    <app-pagination
+      [config]="paginationConfig"
+      (pageChange)="onPageChange($event)"
+      (pageSizeChange)="onPageSizeChange($event)">
+    </app-pagination>
+  </div>
 
-      </mat-tab-group>
-    </mat-card-content>
-  </mat-card>
 </div>

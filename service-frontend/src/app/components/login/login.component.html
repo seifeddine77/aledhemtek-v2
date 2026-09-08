@@ -1,69 +1,206 @@
-<div class="login-wrapper">
-  <div class="login-container">
+<div class="login-page-root">
+  <div class="login-split-container">
 
-    <!-- Welcome Branded Panel -->
-    <div class="login-welcome-panel">
-      <div class="welcome-badge">
-        <mat-icon>verified</mat-icon>
-        <span>Espace Sécurisé</span>
-      </div>
-      <div class="welcome-content">
-        <h1>Bienvenue sur <br><span class="brand-accent">AledhemTek</span></h1>
-        <p>Accédez à votre espace pour piloter vos interventions, réserver des artisans qualifiés et suivre vos factures en toute simplicité.</p>
-      </div>
-      <div class="welcome-features">
-        <div class="feature-item">
-          <mat-icon>bolt</mat-icon>
-          <span>Interventions rapides</span>
+    <!-- Brand Showcase Left Panel -->
+    <aside class="showcase-panel">
+      <div class="showcase-glow"></div>
+      
+      <!-- Top Brand Tag -->
+      <a routerLink="/home" class="brand-link" matTooltip="Retour au site public">
+        <div class="brand-icon-box">
+          <mat-icon>home_repair_service</mat-icon>
         </div>
-        <div class="feature-item">
-          <mat-icon>shield</mat-icon>
-          <span>Transactions certifiées</span>
+        <div class="brand-text">
+          <span class="brand-name">Aledhem<span class="brand-dot">Tek</span></span>
+          <span class="brand-tagline">Artisans &amp; Rénovation</span>
+        </div>
+      </a>
+
+      <!-- Center Hero Statement -->
+      <div class="showcase-hero">
+        <div class="hero-badge">
+          <mat-icon>security</mat-icon>
+          <span>Authentification Sécurisée SSL 256-Bit</span>
+        </div>
+        <h1 class="hero-title">
+          La plateforme de référence <br>pour vos <span class="highlight-text">travaux certifiés</span>.
+        </h1>
+        <p class="hero-desc">
+          Accédez en toute sécurité à vos devis en temps réel, suivez vos artisans agréés sur le terrain et pilotez vos interventions.
+        </p>
+      </div>
+
+      <!-- Trust Metrics Strip -->
+      <div class="trust-metrics-grid">
+        <div class="metric-card">
+          <span class="metric-val">100%</span>
+          <span class="metric-lbl">Artisans Vérifiés</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-val">10 Ans</span>
+          <span class="metric-lbl">Garantie Décennale</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-val">24/7</span>
+          <span class="metric-lbl">Support Régulation</span>
         </div>
       </div>
-    </div>
 
-    <!-- Form Panel -->
-    <div class="login-form-panel">
-      <div class="form-header">
-        <h2>Connexion</h2>
-        <p>Entrez vos identifiants pour vous connecter à votre compte.</p>
+      <!-- Footer Cert -->
+      <div class="showcase-foot">
+        <mat-icon>verified_user</mat-icon>
+        <span>Conforme RGPD &amp; Protection des données bancaires</span>
       </div>
+    </aside>
 
-      <form (ngSubmit)="onLogin()" #loginForm="ngForm" class="auth-form">
+    <!-- Auth Form Right Panel -->
+    <main class="form-panel">
+      <div class="form-wrapper">
+
+        <!-- Header -->
+        <header class="form-header">
+          <div class="mobile-brand-logo d-lg-none">
+            <mat-icon>home_repair_service</mat-icon>
+            <span>AledhemTek</span>
+          </div>
+          <h2 class="form-title">Espace Connexion</h2>
+          <p class="form-subtitle">Renseignez vos identifiants pour accéder à votre portail.</p>
+        </header>
+
+        <!-- Fast Demo Login Chips (High UX Value) -->
+        <section class="demo-login-strip">
+          <span class="demo-label">Accès rapide démonstration :</span>
+          <div class="demo-chips">
+            <button type="button" class="demo-chip client" (click)="loginAs('client')" [disabled]="isLoading" matTooltip="Se connecter en tant que Client">
+              <mat-icon>person</mat-icon>
+              <span>Client</span>
+            </button>
+            <button type="button" class="demo-chip consultant" (click)="loginAs('consultant')" [disabled]="isLoading" matTooltip="Se connecter en tant qu'Artisan / Consultant">
+              <mat-icon>engineering</mat-icon>
+              <span>Artisan</span>
+            </button>
+            <button type="button" class="demo-chip admin" (click)="loginAs('admin')" [disabled]="isLoading" matTooltip="Se connecter en tant qu'Administrateur">
+              <mat-icon>admin_panel_settings</mat-icon>
+              <span>Admin</span>
+            </button>
+          </div>
+        </section>
+
         <!-- Error Alert -->
-        <div *ngIf="errorMessage" class="error-alert">
+        <div *ngIf="errorMessage" class="error-banner animate-shake" role="alert">
           <mat-icon>error_outline</mat-icon>
-          <span>{{ errorMessage }}</span>
+          <div class="error-content">
+            <strong>Erreur de connexion</strong>
+            <span>{{ errorMessage }}</span>
+          </div>
         </div>
 
-        <mat-form-field appearance="outline" class="w-100 mb-3">
-          <mat-label>Adresse Email</mat-label>
-          <mat-icon matPrefix class="form-icon">mail_outline</mat-icon>
-          <input matInput type="email" name="email" [(ngModel)]="credentials.email" placeholder="nom@exemple.com" required autocomplete="email">
-        </mat-form-field>
+        <!-- Success Alert -->
+        <div *ngIf="isSuccess" class="success-banner" role="status">
+          <mat-icon>check_circle</mat-icon>
+          <div class="success-content">
+            <strong>Connexion réussie !</strong>
+            <span>Redirection vers votre espace...</span>
+          </div>
+        </div>
 
-        <mat-form-field appearance="outline" class="w-100 mb-3">
-          <mat-label>Mot de passe</mat-label>
-          <mat-icon matPrefix class="form-icon">lock_outline</mat-icon>
-          <input matInput [type]="hidePassword ? 'password' : 'text'" name="password" [(ngModel)]="credentials.password" required autocomplete="current-password">
-          <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword" [attr.aria-label]="'Afficher mot de passe'">
-            <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+        <!-- Main Form -->
+        <form (ngSubmit)="onLogin()" #loginForm="ngForm" class="auth-form" novalidate>
+
+          <!-- Email Field -->
+          <div class="input-group-field">
+            <label for="login-email" class="custom-label">Adresse Email</label>
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-icon matPrefix class="field-icon">mail_outline</mat-icon>
+              <input matInput 
+                     id="login-email"
+                     type="email" 
+                     name="email" 
+                     [(ngModel)]="credentials.email" 
+                     #emailField="ngModel"
+                     placeholder="exemple@domaine.com" 
+                     required 
+                     email
+                     autocomplete="email"
+                     [disabled]="isLoading">
+              <mat-error *ngIf="emailField.invalid && emailField.touched">
+                Veuillez saisir une adresse email valide
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <!-- Password Field -->
+          <div class="input-group-field">
+            <div class="password-label-row">
+              <label for="login-password" class="custom-label">Mot de passe</label>
+            </div>
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-icon matPrefix class="field-icon">lock_outline</mat-icon>
+              <input matInput 
+                     id="login-password"
+                     [type]="hidePassword ? 'password' : 'text'" 
+                     name="password" 
+                     [(ngModel)]="credentials.password" 
+                     #passwordField="ngModel"
+                     placeholder="Saisissez votre mot de passe"
+                     required 
+                     autocomplete="current-password"
+                     [disabled]="isLoading">
+              <button mat-icon-button matSuffix type="button" 
+                      (click)="hidePassword = !hidePassword" 
+                      [attr.aria-label]="hidePassword ? 'Afficher mot de passe' : 'Masquer mot de passe'"
+                      class="toggle-pass-btn">
+                <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              <mat-error *ngIf="passwordField.invalid && passwordField.touched">
+                Le mot de passe est obligatoire
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <!-- Submit Button -->
+          <button mat-flat-button 
+                  color="primary" 
+                  type="submit" 
+                  class="submit-btn" 
+                  [disabled]="isLoading || !loginForm.form.valid">
+            <span *ngIf="!isLoading && !isSuccess" class="btn-text">
+              <span>Se connecter</span>
+              <mat-icon>arrow_forward</mat-icon>
+            </span>
+            <span *ngIf="isLoading" class="btn-loader">
+              <mat-progress-spinner diameter="20" mode="indeterminate" color="accent"></mat-progress-spinner>
+              <span>Vérification en cours...</span>
+            </span>
+            <span *ngIf="isSuccess" class="btn-text">
+              <mat-icon>check</mat-icon>
+              <span>Authentifié</span>
+            </span>
           </button>
-        </mat-form-field>
 
-        <button mat-raised-button color="primary" class="login-button mt-3" [disabled]="isLoading || !loginForm.form.valid">
-          <span *ngIf="!isLoading">Se connecter</span>
-          <mat-progress-spinner *ngIf="isLoading" diameter="22" mode="indeterminate"></mat-progress-spinner>
-        </button>
+          <!-- Divider -->
+          <div class="form-divider">
+            <span>ou</span>
+          </div>
 
-        <div class="signup-link">
-          <span>Vous n'avez pas encore de compte ? </span>
-          <a routerLink="/register">Inscrivez-vous ici</a>
-        </div>
-      </form>
-    </div>
+          <!-- Register Prompt -->
+          <div class="switch-prompt">
+            <span>Vous n'avez pas encore de compte ?</span>
+            <a routerLink="/register" class="register-link">Créer un compte particulier ou artisan</a>
+          </div>
+
+          <!-- Return Home -->
+          <div class="return-home">
+            <a routerLink="/home" class="home-link">
+              <mat-icon>arrow_back</mat-icon>
+              <span>Retourner à la page d'accueil</span>
+            </a>
+          </div>
+
+        </form>
+
+      </div>
+    </main>
 
   </div>
 </div>
-

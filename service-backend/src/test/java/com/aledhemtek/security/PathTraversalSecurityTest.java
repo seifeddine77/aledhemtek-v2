@@ -1,4 +1,4 @@
-﻿package com.aledhemtek.security;
+package com.aledhemtek.security;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

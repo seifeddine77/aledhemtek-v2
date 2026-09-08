@@ -8,6 +8,8 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { FormsModule } from '@angular/forms';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ReservationService } from '../../services/reservation.service';
@@ -16,12 +18,15 @@ import { EvaluationService } from '../../services/evaluation.service';
 import { Reservation, ReservationStatus } from '../../models/reservation.model';
 import { EvaluationFormComponent } from '../evaluation-form/evaluation-form.component';
 import { ClientReservationDetailsDialogComponent } from '../dialogs/client-reservation-details-dialog/client-reservation-details-dialog.component';
+import { PaginationComponent, PaginationConfig } from '../shared/pagination/pagination.component';
+import { cleanText } from '../../pipes/clean-text.pipe';
 
 @Component({
   selector: 'app-client-reservations',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     MatCardModule,
     MatButtonModule,
     MatTableModule,
@@ -30,17 +35,32 @@ import { ClientReservationDetailsDialogComponent } from '../dialogs/client-reser
     MatTabsModule,
     MatProgressSpinnerModule,
     MatDialogModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatTooltipModule,
+    PaginationComponent
   ],
   templateUrl: './client-reservations.component.html',
   styleUrls: ['./client-reservations.component.css']
 })
 export class ClientReservationsComponent implements OnInit {
   reservations: Reservation[] = [];
+  filteredReservations: Reservation[] = [];
+  paginatedReservations: Reservation[] = [];
   loading = false;
   clientId: number = 0;
   
-  displayedColumns: string[] = ['title', 'consultant', 'startDate', 'endDate', 'status', 'actions'];
+  searchQuery: string = '';
+  selectedFilter: string = 'ALL';
+  viewMode: 'GRID' | 'LIST' = 'GRID';
+
+  paginationConfig: PaginationConfig = {
+    currentPage: 1,
+    totalItems: 0,
+    itemsPerPage: 6,
+    pageSizeOptions: [6, 12, 24]
+  };
+
+  displayedColumns: string[] = ['id', 'title', 'consultant', 'startDate', 'totalPrice', 'status', 'actions'];
   ReservationStatus = ReservationStatus;
 
   constructor(
@@ -57,13 +77,88 @@ export class ClientReservationsComponent implements OnInit {
     this.loadReservations();
   }
 
+  applyFilters(): void {
+    let result = [...this.reservations];
+
+    // Status filter
+    if (this.selectedFilter !== 'ALL') {
+      result = result.filter(r => r.status === this.selectedFilter);
+    }
+
+    // Search query
+    if (this.searchQuery && this.searchQuery.trim() !== '') {
+      const q = this.searchQuery.toLowerCase().trim();
+      result = result.filter(r => 
+        (r.title && r.title.toLowerCase().includes(q)) ||
+        (r.description && r.description.toLowerCase().includes(q)) ||
+        (r.consultantName && r.consultantName.toLowerCase().includes(q)) ||
+        (r.id && r.id.toString().includes(q))
+      );
+    }
+
+    this.filteredReservations = result;
+    this.paginationConfig.totalItems = this.filteredReservations.length;
+    this.paginationConfig.currentPage = 1;
+    this.updatePaginatedReservations();
+  }
+
+  setFilter(filter: string): void {
+    this.selectedFilter = filter;
+    this.applyFilters();
+  }
+
+  onSearchChange(): void {
+    this.applyFilters();
+  }
+
+  clearSearch(): void {
+    this.searchQuery = '';
+    this.applyFilters();
+  }
+
+  toggleViewMode(mode: 'GRID' | 'LIST'): void {
+    this.viewMode = mode;
+  }
+
+  updatePagination(): void {
+    this.applyFilters();
+  }
+
+  updatePaginatedReservations(): void {
+    const startIndex = (this.paginationConfig.currentPage - 1) * this.paginationConfig.itemsPerPage;
+    const endIndex = startIndex + this.paginationConfig.itemsPerPage;
+    this.paginatedReservations = this.filteredReservations.slice(startIndex, endIndex);
+  }
+
+  onPageChange(page: number): void {
+    this.paginationConfig.currentPage = page;
+    this.updatePaginatedReservations();
+  }
+
+  onPageSizeChange(pageSize: number): void {
+    this.paginationConfig.itemsPerPage = pageSize;
+    this.paginationConfig.currentPage = 1;
+    this.updatePagination();
+  }
+
   loadReservations(): void {
     this.loading = true;
     this.reservationService.getReservationsByClient(this.clientId).subscribe({
       next: (reservations) => {
-        this.reservations = reservations.sort((a, b) => 
+        const cleaned = (reservations || []).map(r => ({
+          ...r,
+          title: cleanText(r.title || ''),
+          description: cleanText(r.description || ''),
+          tasks: (r.tasks || []).map(t => ({
+            ...t,
+            name: cleanText(t.name || ''),
+            description: cleanText(t.description || '')
+          }))
+        }));
+        this.reservations = cleaned.sort((a, b) => 
           new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
         );
+        this.updatePagination();
         this.loading = false;
       },
       error: (error) => {

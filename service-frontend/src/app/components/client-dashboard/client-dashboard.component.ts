@@ -9,6 +9,7 @@ import { Router } from '@angular/router';
 import { ReservationService } from '../../services/reservation.service';
 import { AuthService } from '../../services/auth.service';
 import { Reservation, ReservationStatus } from '../../models/reservation.model';
+import { cleanText } from '../../pipes/clean-text.pipe';
 
 @Component({
   selector: 'app-client-dashboard',
@@ -27,6 +28,8 @@ import { Reservation, ReservationStatus } from '../../models/reservation.model';
 export class ClientDashboardComponent implements OnInit {
   loading = false;
   clientId: number = 0;
+  userName = 'Client';
+  todayDate = '';
   
   // Statistics
   totalReservations = 0;
@@ -44,6 +47,15 @@ export class ClientDashboardComponent implements OnInit {
     favoriteService: 'N/A'
   };
 
+  quickServices = [
+    { id: 'plomberie', name: 'Plomberie & Fuites', icon: 'plumbing', desc: 'Fuite d\'eau, robinet, évier, chasse d\'eau', color: '#2563eb', bg: 'rgba(37, 99, 235, 0.08)' },
+    { id: 'electricite', name: 'Électricité Générale', icon: 'electrical_services', desc: 'Tableau, prises, disjoncteur, éclairage', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.08)' },
+    { id: 'serrurerie', name: 'Serrurerie & Accès', icon: 'lock_open', desc: 'Ouverture de porte, cylindre, blindage', color: '#10b981', bg: 'rgba(16, 185, 129, 0.08)' },
+    { id: 'chauffage', name: 'Chauffage & Climatisation', icon: 'thermostat', desc: 'Chaudière, radiateur, purge, maintenance', color: '#ef4444', bg: 'rgba(239, 68, 68, 0.08)' },
+    { id: 'peinture', name: 'Peinture & Finitions', icon: 'format_paint', desc: 'Rénovation murs, plafonds, finitions', color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.08)' },
+    { id: 'debouchage', name: 'Canalisations & Curage', icon: 'water_damage', desc: 'Débouchage haute pression, curage rapide', color: '#06b6d4', bg: 'rgba(6, 182, 212, 0.08)' },
+  ];
+
   constructor(
     private reservationService: ReservationService,
     private authService: AuthService,
@@ -52,7 +64,25 @@ export class ClientDashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.clientId = this.authService.getCurrentUserId();
+    this.extractUserInfo();
+    this.todayDate = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
     this.loadDashboardData();
+  }
+
+  extractUserInfo(): void {
+    try {
+      const token = localStorage.getItem('jwt');
+      if (token) {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const email = payload.sub || '';
+        if (email) {
+          const raw = email.split('@')[0];
+          this.userName = raw.charAt(0).toUpperCase() + raw.slice(1);
+        }
+      }
+    } catch (e) {
+      this.userName = 'Client';
+    }
   }
 
   loadDashboardData(): void {
@@ -60,8 +90,13 @@ export class ClientDashboardComponent implements OnInit {
     
     this.reservationService.getReservationsByClient(this.clientId).subscribe({
       next: (reservations) => {
-        this.calculateStatistics(reservations);
-        this.recentReservations = reservations
+        const cleaned = (reservations || []).map(r => ({
+          ...r,
+          title: cleanText(r.title || ''),
+          description: cleanText(r.description || '')
+        }));
+        this.calculateStatistics(cleaned);
+        this.recentReservations = cleaned
           .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime())
           .slice(0, 5);
         this.loading = false;
@@ -138,7 +173,21 @@ export class ClientDashboardComponent implements OnInit {
   }
 
   viewReservationDetails(reservationId: number): void {
-    // Navigate to reservation details (to be implemented)
-    console.log('View reservation details:', reservationId);
+    this.router.navigate(['/client/reservations']);
+  }
+
+  getActiveReservation(): Reservation | undefined {
+    return this.recentReservations.find(r => 
+      r.status === ReservationStatus.IN_PROGRESS || 
+      r.status === ReservationStatus.ASSIGNED || 
+      r.status === ReservationStatus.PENDING
+    );
+  }
+
+  orderTrade(tradeName: string): void {
+    this.router.navigate(['/client/create-reservation-with-tasks'], {
+      queryParams: { category: tradeName }
+    });
   }
 }
+

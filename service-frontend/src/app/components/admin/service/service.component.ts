@@ -18,6 +18,9 @@ import { EditTaskDialogComponent } from './edit-task-dialog.component';
 import { ManageMaterialsDialogComponent } from './manage-materials-dialog.component';
 import { AdminService } from '../../../services/admin.service';
 
+import { PaginationComponent, PaginationConfig } from '../../shared/pagination/pagination.component';
+import { CleanTextPipe } from '../../../pipes/clean-text.pipe';
+
 @Component({
   selector: 'app-service',
   standalone: true,
@@ -34,15 +37,34 @@ import { AdminService } from '../../../services/admin.service';
     MatTooltipModule,
     RouterModule,
     MatTableModule,
+    PaginationComponent,
+    CleanTextPipe
   ],
   templateUrl: './service.component.html',
   styleUrls: ['./service.component.css']
 })
 export class ServiceComponent implements OnInit {
 
-  // Propriétés pour le tableau de toutes les tâches
-  allTasksDataSource = new MatTableDataSource<any>();
-  allTasksDisplayedColumns: string[] = ['name', 'description', 'duration', 'price', 'actions'];
+  allTasks: any[] = [];
+  filteredTasks: any[] = [];
+  paginatedTasks: any[] = [];
+  searchTerm: string = '';
+  loading = false;
+
+  stats = {
+    totalTasks: 0,
+    avgDuration: 0,
+    avgPrice: 0
+  };
+
+  paginationConfig: PaginationConfig = {
+    currentPage: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+    pageSizeOptions: [5, 10, 25, 50]
+  };
+
+  allTasksDisplayedColumns: string[] = ['name', 'description', 'duration', 'price', 'materials', 'actions'];
 
   constructor(public dialog: MatDialog, private adminService: AdminService) { }
 
@@ -51,14 +73,79 @@ export class ServiceComponent implements OnInit {
   }
 
   loadAllTasks(): void {
-    this.adminService.getAllTasks().subscribe(res => {
-      this.allTasksDataSource.data = res;
+    this.loading = true;
+    this.adminService.getAllTasks().subscribe({
+      next: (res) => {
+        this.allTasks = res || [];
+        this.applyFilter();
+        this.calculateStats();
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Erreur chargement tâches:', err);
+        this.loading = false;
+      }
     });
+  }
+
+  applyFilter(): void {
+    const term = this.searchTerm.toLowerCase().trim();
+    if (!term) {
+      this.filteredTasks = [...this.allTasks];
+    } else {
+      this.filteredTasks = this.allTasks.filter(t => 
+        (t.name && t.name.toLowerCase().includes(term)) ||
+        (t.description && t.description.toLowerCase().includes(term))
+      );
+    }
+    this.paginationConfig.currentPage = 1;
+    this.updatePagination();
+  }
+
+  updatePagination(): void {
+    this.paginationConfig.totalItems = this.filteredTasks.length;
+    this.updatePaginatedTasks();
+  }
+
+  updatePaginatedTasks(): void {
+    const start = (this.paginationConfig.currentPage - 1) * this.paginationConfig.itemsPerPage;
+    const end = start + this.paginationConfig.itemsPerPage;
+    this.paginatedTasks = this.filteredTasks.slice(start, end);
+  }
+
+  onPageChange(page: number): void {
+    this.paginationConfig.currentPage = page;
+    this.updatePaginatedTasks();
+  }
+
+  onPageSizeChange(size: number): void {
+    this.paginationConfig.itemsPerPage = size;
+    this.paginationConfig.currentPage = 1;
+    this.updatePagination();
+  }
+
+  calculateStats(): void {
+    this.stats.totalTasks = this.allTasks.length;
+    if (this.allTasks.length > 0) {
+      const totalDur = this.allTasks.reduce((sum, t) => sum + (t.duration || 0), 0);
+      this.stats.avgDuration = Math.round(totalDur / this.allTasks.length);
+
+      let priceCount = 0;
+      let totalPrice = 0;
+      this.allTasks.forEach(t => {
+        if (t.rates && t.rates.length > 0 && t.rates[0].price) {
+          totalPrice += Number(t.rates[0].price);
+          priceCount++;
+        }
+      });
+      this.stats.avgPrice = priceCount > 0 ? Math.round((totalPrice / priceCount) * 10) / 10 : 0;
+    }
   }
 
   editTask(task: any): void {
     const dialogRef = this.dialog.open(EditTaskDialogComponent, {
-      width: '400px',
+      width: '580px',
+      maxWidth: '94vw',
       data: { 
         id: task.id, 
         name: task.name, 

@@ -45,6 +45,7 @@ public class SecurityConfig {
                                 "/actuator/info",
                                 "/api/auth/**",
                                 "/api/public/**",
+                                "/api/evaluations/public/**",
                                 "/api/invoices/public/**",
                                 "/api/consultants/create-consultant",
                                 "/api/clients/save-client",

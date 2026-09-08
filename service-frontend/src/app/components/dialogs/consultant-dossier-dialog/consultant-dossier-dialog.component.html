@@ -1,0 +1,127 @@
+<div class="artisan-dossier-modal">
+  <!-- Modal Luxury Header -->
+  <div class="dialog-header-luxury">
+    <div class="header-leading">
+      <div class="icon-badge">
+        <mat-icon>verified_user</mat-icon>
+      </div>
+      <div class="header-titles">
+        <h2>Dossier de Conformité Artisan</h2>
+        <p>Agrément réseau, garanties décennales et audit des compétences techniques</p>
+      </div>
+    </div>
+    <button mat-icon-button (click)="onClose()" class="close-btn" matTooltip="Fermer">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="dialog-body-luxury">
+    <!-- Artisan Profile Header Strip -->
+    <div class="artisan-hero-strip">
+      <div class="hero-avatar">
+        {{ (data.consultant.firstName ? data.consultant.firstName[0] : '') }}{{ (data.consultant.lastName ? data.consultant.lastName[0] : '') }}
+      </div>
+      <div class="hero-details">
+        <div class="hero-top-line">
+          <h3 class="hero-name">{{ data.consultant.firstName }} {{ data.consultant.lastName }}</h3>
+          <span class="status-pill" [ngClass]="data.consultant.status === 'APPROVED' ? 'status-completed' : (data.consultant.status === 'REJECTED' ? 'status-cancelled' : 'status-pending')">
+            {{ getStatusText(data.consultant.status) }}
+          </span>
+        </div>
+        <div class="hero-sub-line">
+          <span class="hero-trade">
+            <mat-icon>handyman</mat-icon>
+            {{ (data.consultant.profession | cleanText) || 'Artisan Tous Corps d\'État' }}
+          </span>
+          <span class="hero-exp" *ngIf="data.consultant.exp != null">
+            • {{ data.consultant.exp }} an(s) d'expérience
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Details Grid -->
+    <div class="dossier-info-grid">
+      <!-- Card Contact -->
+      <div class="info-card">
+        <div class="card-title-line">
+          <mat-icon>contact_mail</mat-icon>
+          <span>Coordonnées Professionnelles</span>
+        </div>
+        <div class="card-content-items">
+          <div class="item-row">
+            <span class="item-label">Email :</span>
+            <span class="item-val">{{ data.consultant.email }}</span>
+          </div>
+          <div class="item-row" *ngIf="data.consultant.phone">
+            <span class="item-label">Téléphone :</span>
+            <span class="item-val">{{ data.consultant.phone }}</span>
+          </div>
+          <div class="item-row">
+            <span class="item-label">Identifiant Réseau :</span>
+            <span class="item-val">#{{ data.consultant.id }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Entreprise & Assurances -->
+      <div class="info-card">
+        <div class="card-title-line">
+          <mat-icon>domain_verification</mat-icon>
+          <span>Statut Légal & Garanties</span>
+        </div>
+        <div class="card-content-items">
+          <div class="item-row">
+            <span class="item-label">Raison Sociale :</span>
+            <span class="item-val font-bold">{{ data.consultant.companyName || 'Artisan Indépendant' }}</span>
+          </div>
+          <div class="item-row">
+            <span class="item-label">Assurance Décennale :</span>
+            <span class="badge-verified">
+              <mat-icon>verified</mat-icon>
+              Certificat Valide & Actif
+            </span>
+          </div>
+          <div class="item-row">
+            <span class="item-label">Immatriculation :</span>
+            <span class="item-val">Artisan Certifié #{{ data.consultant.id }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assurance & Séquestre Notice -->
+    <div class="escrow-notice-box">
+      <mat-icon>shield</mat-icon>
+      <div class="notice-texts">
+        <strong>Agrément Réseau AledhemTek & Protection Client</strong>
+        <p>L'agrément de cet artisan l'autorise à recevoir des missions réservées sur la plateforme. Les paiements clients sont sécurisés sous compte séquestre Stripe et libérés après validation de chantier.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Luxury Actions Footer -->
+  <div class="dialog-actions-luxury">
+    <button mat-stroked-button (click)="onClose()" class="btn-cancel">
+      Fermer
+    </button>
+    <button 
+      *ngIf="data.consultant.status !== 'REJECTED'" 
+      mat-stroked-button 
+      color="warn" 
+      (click)="onReject()" 
+      class="btn-reject">
+      <mat-icon>close</mat-icon>
+      <span>Refuser le dossier</span>
+    </button>
+    <button 
+      *ngIf="data.consultant.status !== 'APPROVED'" 
+      mat-flat-button 
+      color="primary" 
+      (click)="onApprove()" 
+      class="btn-approve">
+      <mat-icon>check_circle</mat-icon>
+      <span>Agréer cet artisan</span>
+    </button>
+  </div>
+</div>

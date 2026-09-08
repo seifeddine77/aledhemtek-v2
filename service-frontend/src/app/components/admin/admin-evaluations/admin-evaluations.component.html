@@ -1,299 +1,245 @@
-<div class="admin-evaluations">
-  <!-- Header -->
-  <div class="page-header">
-    <h1>
-      <mat-icon>star</mat-icon>
-      Gestion des Évaluations
-    </h1>
-    <p class="subtitle">Modération et analyse des évaluations clients</p>
+<div class="evaluations-page-container">
+  <!-- Page Header -->
+  <div class="page-header-row">
+    <div class="header-titles">
+      <div class="title-badge gold">
+        <mat-icon>star</mat-icon>
+      </div>
+      <div>
+        <h1 class="page-title">Modération &amp; Registre des Avis</h1>
+        <p class="page-subtitle">Supervision des retours d'expérience clients et contrôle qualité des prestations artisanales</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a mat-stroked-button color="primary" routerLink="/admin/evaluation-stats" class="btn-stats-link">
+        <mat-icon>insights</mat-icon>
+        <span>Observatoire Qualité</span>
+      </a>
+      <button mat-raised-button color="primary" (click)="loadEvaluations()" [disabled]="loading" class="btn-refresh">
+        <mat-icon>refresh</mat-icon>
+        <span>Actualiser</span>
+      </button>
+    </div>
   </div>
 
   <!-- Loading State -->
-  <div *ngIf="loading" class="loading-container">
-    <mat-spinner></mat-spinner>
-    <p>Chargement des évaluations...</p>
+  <div *ngIf="loading" class="loading-state mat-elevation-z1">
+    <mat-spinner diameter="42"></mat-spinner>
+    <p>Chargement des avis et calculs de conformité...</p>
   </div>
 
   <!-- Content -->
-  <div *ngIf="!loading" class="content">
-    <!-- Statistics Cards -->
-    <div class="stats-section">
-      <div class="stats-grid">
-        <mat-card class="stat-card">
-          <mat-card-content>
-            <div class="stat-content">
-              <div class="stat-icon">
-                <mat-icon>assessment</mat-icon>
-              </div>
-              <div class="stat-details">
-                <div class="stat-number">{{ stats.totalEvaluations }}</div>
-                <div class="stat-label">Total Évaluations</div>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
+  <div *ngIf="!loading">
+    <!-- Statistics Grid -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon-box blue">
+          <mat-icon>rate_review</mat-icon>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.totalEvaluations }}</div>
+          <div class="stat-label">Total Évaluations</div>
+        </div>
+      </div>
 
-        <mat-card class="stat-card">
-          <mat-card-content>
-            <div class="stat-content">
-              <div class="stat-icon average">
-                <mat-icon>star</mat-icon>
-              </div>
-              <div class="stat-details">
-                <div class="stat-number">{{ stats.averageRating | number:'1.1-1' }}</div>
-                <div class="stat-label">Note Moyenne</div>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
+      <div class="stat-card">
+        <div class="stat-icon-box gold">
+          <mat-icon>star</mat-icon>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.averageRating | number:'1.1-1' }} / 5.0</div>
+          <div class="stat-label">Note Moyenne Réseau</div>
+        </div>
+      </div>
 
-        <mat-card class="stat-card">
-          <mat-card-content>
-            <div class="stat-content">
-              <div class="stat-icon excellent">
-                <mat-icon>thumb_up</mat-icon>
-              </div>
-              <div class="stat-details">
-                <div class="stat-number">{{ stats.excellentCount }}</div>
-                <div class="stat-label">Excellentes</div>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
+      <div class="stat-card">
+        <div class="stat-icon-box green">
+          <mat-icon>verified</mat-icon>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.excellentCount }}</div>
+          <div class="stat-label">Excellents (4.5 - 5★)</div>
+        </div>
+      </div>
 
-        <mat-card class="stat-card">
-          <mat-card-content>
-            <div class="stat-content">
-              <div class="stat-icon recent">
-                <mat-icon>schedule</mat-icon>
-              </div>
-              <div class="stat-details">
-                <div class="stat-number">{{ stats.recentEvaluations }}</div>
-                <div class="stat-label">Cette Semaine</div>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
+      <div class="stat-card">
+        <div class="stat-icon-box purple">
+          <mat-icon>history</mat-icon>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.recentEvaluations }}</div>
+          <div class="stat-label">Déposés Cette Semaine</div>
+        </div>
       </div>
     </div>
 
-    <!-- Filters and Actions -->
-    <mat-card class="filters-card">
-      <mat-card-content>
-        <div class="filters-section">
-          <div class="filters-row">
-            <!-- Search -->
-            <mat-form-field appearance="outline" class="search-field">
-              <mat-label>Rechercher</mat-label>
-              <input matInput 
-                     [(ngModel)]="searchTerm" 
-                     (input)="onSearchChange()"
-                     placeholder="Client, consultant, commentaire...">
-              <mat-icon matSuffix>search</mat-icon>
-            </mat-form-field>
-
-            <!-- Rating Filter -->
-            <mat-form-field appearance="outline" class="filter-field">
-              <mat-label>Filtrer par note</mat-label>
-              <mat-select [(ngModel)]="ratingFilter" (selectionChange)="onRatingFilterChange()">
-                <mat-option value="">Toutes les notes</mat-option>
-                <mat-option value="excellent">Excellent (4.5-5)</mat-option>
-                <mat-option value="good">Très bien (3.5-4.4)</mat-option>
-                <mat-option value="average">Bien (2.5-3.4)</mat-option>
-                <mat-option value="poor">À améliorer (1-2.4)</mat-option>
-              </mat-select>
-            </mat-form-field>
-
-            <!-- Actions -->
-            <div class="actions-section">
-              <button mat-raised-button color="primary" (click)="refreshData()" [disabled]="loading">
-                <mat-icon>refresh</mat-icon>
-                Actualiser
-              </button>
-              
-              <button mat-raised-button color="accent" (click)="exportEvaluations()">
-                <mat-icon>download</mat-icon>
-                Exporter
-              </button>
-            </div>
-          </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
-
-    <!-- Evaluations Table -->
-    <mat-card class="table-card">
-      <mat-card-header>
-        <mat-card-title>
-          Évaluations ({{ filteredEvaluations.length }})
-        </mat-card-title>
-      </mat-card-header>
-      
-      <mat-card-content>
-        <!-- Empty State -->
-        <div *ngIf="filteredEvaluations.length === 0" class="empty-state">
-          <mat-icon>star_border</mat-icon>
-          <h3>Aucune évaluation trouvée</h3>
-          <p *ngIf="searchTerm || ratingFilter">Essayez de modifier vos filtres de recherche.</p>
-          <p *ngIf="!searchTerm && !ratingFilter">Aucune évaluation n'a encore été créée.</p>
+    <!-- Table Card with Filter Toolbar -->
+    <div class="table-card mat-elevation-z1">
+      <div class="filter-toolbar">
+        <!-- Search -->
+        <div class="search-input-box">
+          <mat-icon class="search-icon">search</mat-icon>
+          <input 
+            type="text" 
+            [(ngModel)]="searchTerm" 
+            (input)="onSearchChange()" 
+            placeholder="Rechercher par client, artisan, commentaire..." 
+            class="custom-search"
+          />
+          <button *ngIf="searchTerm" mat-icon-button (click)="clearFilters()" class="btn-clear-search">
+            <mat-icon>close</mat-icon>
+          </button>
         </div>
 
-        <!-- Table -->
-        <div *ngIf="filteredEvaluations.length > 0" class="table-container">
-          <table mat-table [dataSource]="paginatedEvaluations" class="evaluations-table">
-            
-            <!-- ID Column -->
-            <ng-container matColumnDef="id">
-              <th mat-header-cell *matHeaderCellDef>ID</th>
-              <td mat-cell *matCellDef="let evaluation">#{{ evaluation.id }}</td>
-            </ng-container>
+        <!-- Rating Filter -->
+        <div class="rating-filter-box">
+          <mat-form-field appearance="outline" class="select-field">
+            <mat-label>Filtrer par note</mat-label>
+            <mat-select [(ngModel)]="ratingFilter" (selectionChange)="onRatingFilterChange()">
+              <mat-option value="">Toutes les notes</mat-option>
+              <mat-option value="excellent">Excellents (4.5 - 5★)</mat-option>
+              <mat-option value="good">Très bons (3.5 - 4.4★)</mat-option>
+              <mat-option value="average">Moyens (2.5 - 3.4★)</mat-option>
+              <mat-option value="poor">Critiques (&lt; 2.5★)</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
 
-            <!-- Client Column -->
-            <ng-container matColumnDef="client">
-              <th mat-header-cell *matHeaderCellDef>Client</th>
-              <td mat-cell *matCellDef="let evaluation">
-                <div class="client-info">
+        <div class="count-badge-wrap">
+          <span class="count-badge">{{ filteredEvaluations.length }} avis affiché{{ filteredEvaluations.length > 1 ? 's' : '' }}</span>
+        </div>
+      </div>
+
+      <!-- Reviews Table -->
+      <div class="table-responsive" *ngIf="paginatedEvaluations.length > 0">
+        <table mat-table [dataSource]="paginatedEvaluations" class="evaluations-table">
+
+          <!-- ID -->
+          <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef> #ID </th>
+            <td mat-cell *matCellDef="let evaluation">
+              <span class="id-tag">#{{ evaluation.id }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Client -->
+          <ng-container matColumnDef="client">
+            <th mat-header-cell *matHeaderCellDef> Client </th>
+            <td mat-cell *matCellDef="let evaluation">
+              <div class="client-cell">
+                <div class="user-avatar-tiny">
                   <mat-icon>person</mat-icon>
-                  <span>{{ getReservation(evaluation.reservationId)?.clientName || 'N/A' }}</span>
                 </div>
-              </td>
-            </ng-container>
+                <span class="user-name-bold">{{ evaluation.clientName || 'Client #' + evaluation.clientId }}</span>
+              </div>
+            </td>
+          </ng-container>
 
-            <!-- Consultant Column -->
-            <ng-container matColumnDef="consultant">
-              <th mat-header-cell *matHeaderCellDef>Consultant</th>
-              <td mat-cell *matCellDef="let evaluation">
-                <div class="consultant-info">
-                  <mat-icon>work</mat-icon>
-                  <span>{{ getReservation(evaluation.reservationId)?.consultantName || 'N/A' }}</span>
-                </div>
-              </td>
-            </ng-container>
+          <!-- Consultant -->
+          <ng-container matColumnDef="consultant">
+            <th mat-header-cell *matHeaderCellDef> Artisan Noté </th>
+            <td mat-cell *matCellDef="let evaluation">
+              <div class="consultant-cell">
+                <mat-icon class="artisan-ico">engineering</mat-icon>
+                <span>{{ evaluation.consultantName || 'Artisan #' + evaluation.consultantId }}</span>
+              </div>
+            </td>
+          </ng-container>
 
-            <!-- Reservation Column -->
-            <ng-container matColumnDef="reservation">
-              <th mat-header-cell *matHeaderCellDef>Réservation</th>
-              <td mat-cell *matCellDef="let evaluation">
-                <mat-chip-listbox>
-                  <mat-chip-option>
-                    #{{ evaluation.reservationId }}
-                  </mat-chip-option>
-                </mat-chip-listbox>
-              </td>
-            </ng-container>
+          <!-- Reservation -->
+          <ng-container matColumnDef="reservation">
+            <th mat-header-cell *matHeaderCellDef> Mission Rattachée </th>
+            <td mat-cell *matCellDef="let evaluation">
+              <span class="reservation-badge">
+                <mat-icon>build_circle</mat-icon>
+                {{ getReservationTitle(evaluation.reservationId) }}
+              </span>
+            </td>
+          </ng-container>
 
-            <!-- Ratings Column -->
-            <ng-container matColumnDef="ratings">
-              <th mat-header-cell *matHeaderCellDef>Notes Détaillées</th>
-              <td mat-cell *matCellDef="let evaluation">
-                <div class="detailed-ratings">
-                  <div class="rating-item">
-                    <span class="rating-label">G:</span>
-                    <span class="rating-value">{{ evaluation.generalRating }}</span>
-                  </div>
-                  <div class="rating-item">
-                    <span class="rating-label">S:</span>
-                    <span class="rating-value">{{ evaluation.serviceQualityRating }}</span>
-                  </div>
-                  <div class="rating-item">
-                    <span class="rating-label">P:</span>
-                    <span class="rating-value">{{ evaluation.punctualityRating }}</span>
-                  </div>
-                  <div class="rating-item">
-                    <span class="rating-label">C:</span>
-                    <span class="rating-value">{{ evaluation.communicationRating }}</span>
-                  </div>
-                </div>
-              </td>
-            </ng-container>
+          <!-- Ratings breakdown -->
+          <ng-container matColumnDef="ratings">
+            <th mat-header-cell *matHeaderCellDef> Détail des 4 Notes </th>
+            <td mat-cell *matCellDef="let evaluation">
+              <div class="mini-scores-row">
+                <span class="score-pill" matTooltip="Qualité générale">G: {{ evaluation.generalRating }}</span>
+                <span class="score-pill" matTooltip="Qualité de service">S: {{ evaluation.serviceQualityRating }}</span>
+                <span class="score-pill" matTooltip="Ponctualité">P: {{ evaluation.punctualityRating }}</span>
+                <span class="score-pill" matTooltip="Communication">C: {{ evaluation.communicationRating }}</span>
+              </div>
+            </td>
+          </ng-container>
 
-            <!-- Average Rating Column -->
-            <ng-container matColumnDef="averageRating">
-              <th mat-header-cell *matHeaderCellDef>Moyenne</th>
-              <td mat-cell *matCellDef="let evaluation">
-                <div class="average-rating">
-                  <div class="stars-container">
-                    <span *ngFor="let star of getStarArray(getEvaluationAverage(evaluation))" 
-                          class="star" 
-                          [class.filled]="star <= getEvaluationAverage(evaluation)">
-                      ★
-                    </span>
-                  </div>
-                  <span class="rating-number" 
-                        [style.color]="getRatingColor(getEvaluationAverage(evaluation))">
-                    {{ getEvaluationAverage(evaluation) | number:'1.1-1' }}
-                  </span>
-                  <mat-chip-listbox>
-                    <mat-chip-option [style.background-color]="getRatingColor(getEvaluationAverage(evaluation))"
-                                     [style.color]="'white'">
-                      {{ getRatingText(getEvaluationAverage(evaluation)) }}
-                    </mat-chip-option>
-                  </mat-chip-listbox>
-                </div>
-              </td>
-            </ng-container>
+          <!-- Average rating -->
+          <ng-container matColumnDef="averageRating">
+            <th mat-header-cell *matHeaderCellDef class="text-center"> Moyenne </th>
+            <td mat-cell *matCellDef="let evaluation" class="text-center">
+              <div class="avg-stars-badge">
+                <mat-icon class="star-mini-gold">star</mat-icon>
+                <strong>{{ getAverageRating(evaluation) | number:'1.1-1' }}</strong>
+              </div>
+            </td>
+          </ng-container>
 
-            <!-- Comment Column -->
-            <ng-container matColumnDef="comment">
-              <th mat-header-cell *matHeaderCellDef>Commentaire</th>
-              <td mat-cell *matCellDef="let evaluation">
-                <div class="comment-cell" *ngIf="evaluation.comment">
-                  <mat-icon>format_quote</mat-icon>
-                  <span class="comment-text" 
-                        [matTooltip]="evaluation.comment"
-                        matTooltipPosition="above">
-                    {{ evaluation.comment.length > 50 ? (evaluation.comment | slice:0:50) + '...' : evaluation.comment }}
-                  </span>
-                </div>
-                <span *ngIf="!evaluation.comment" class="no-comment">Aucun commentaire</span>
-              </td>
-            </ng-container>
+          <!-- Comment -->
+          <ng-container matColumnDef="comment">
+            <th mat-header-cell *matHeaderCellDef> Commentaire Client </th>
+            <td mat-cell *matCellDef="let evaluation">
+              <div class="comment-text-box" *ngIf="evaluation.comment">
+                "{{ evaluation.comment }}"
+              </div>
+              <span class="text-muted" *ngIf="!evaluation.comment">Aucun commentaire textuel</span>
+            </td>
+          </ng-container>
 
-            <!-- Date Column -->
-            <ng-container matColumnDef="date">
-              <th mat-header-cell *matHeaderCellDef>Date</th>
-              <td mat-cell *matCellDef="let evaluation">
-                <div class="date-info">
-                  <mat-icon>schedule</mat-icon>
-                  <span>{{ formatDate(evaluation.createdAt || '') }}</span>
-                </div>
-              </td>
-            </ng-container>
+          <!-- Date -->
+          <ng-container matColumnDef="date">
+            <th mat-header-cell *matHeaderCellDef class="text-center"> Date </th>
+            <td mat-cell *matCellDef="let evaluation" class="text-center">
+              <span class="date-text">{{ formatDate(evaluation.createdAt) }}</span>
+            </td>
+          </ng-container>
 
-            <!-- Actions Column -->
-            <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef>Actions</th>
-              <td mat-cell *matCellDef="let evaluation">
-                <div class="actions-cell">
-                  <button mat-icon-button 
-                          [matMenuTriggerFor]="actionMenu"
-                          matTooltip="Actions">
-                    <mat-icon>more_vert</mat-icon>
-                  </button>
-                  
-                  <mat-menu #actionMenu="matMenu">
-                    <button mat-menu-item (click)="deleteEvaluation(evaluation)">
-                      <mat-icon color="warn">delete</mat-icon>
-                      <span>Supprimer</span>
-                    </button>
-                  </mat-menu>
-                </div>
-              </td>
-            </ng-container>
+          <!-- Actions -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef class="text-right"> Actions </th>
+            <td mat-cell *matCellDef="let evaluation" class="text-right">
+              <div class="row-actions">
+                <button mat-icon-button color="primary" (click)="viewEvaluationDetails(evaluation)" matTooltip="Voir les détails complets">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deleteEvaluation(evaluation)" matTooltip="Supprimer cet avis">
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
 
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-          </table>
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="evaluation-row"></tr>
+        </table>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="paginatedEvaluations.length === 0">
+        <div class="empty-icon-wrap">
+          <mat-icon>rate_review</mat-icon>
         </div>
-      </mat-card-content>
-    </mat-card>
+        <h3>Aucun avis ne correspond aux critères</h3>
+        <p>Essayez de modifier votre recherche ou de réinitialiser les filtres.</p>
+        <button mat-stroked-button color="primary" (click)="clearFilters()" class="mt-3">
+          Réinitialiser les filtres
+        </button>
+      </div>
 
-    <!-- Pagination -->
-    <app-pagination 
-      *ngIf="filteredEvaluations.length > 0"
-      [config]="paginationConfig"
-      (pageChange)="onPageChange($event)"
-      (pageSizeChange)="onPageSizeChange($event)">
-    </app-pagination>
+      <!-- Pagination -->
+      <div class="pagination-footer" *ngIf="filteredEvaluations.length > 0">
+        <app-pagination 
+          [config]="paginationConfig" 
+          (pageChange)="onPageChange($event)" 
+          (pageSizeChange)="onPageSizeChange($event)">
+        </app-pagination>
+      </div>
+    </div>
   </div>
 </div>

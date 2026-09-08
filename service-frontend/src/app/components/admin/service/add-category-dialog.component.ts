@@ -29,6 +29,8 @@ export interface AddCategoryData {
   styleUrls: ['./add-category-dialog.component.css']
 })
 export class AddCategoryDialogComponent {
+  imagePreview: string | null = null;
+
   constructor(
     public dialogRef: MatDialogRef<AddCategoryDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: AddCategoryData
@@ -37,6 +39,13 @@ export class AddCategoryDialogComponent {
   onFileSelected(event: any): void {
     if (event.target.files.length > 0) {
       this.data.file = event.target.files[0];
+      if (this.data.file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          this.imagePreview = reader.result as string;
+        };
+        reader.readAsDataURL(this.data.file);
+      }
     }
   }
 

@@ -22,6 +22,7 @@ import { LocationMapComponent } from '../../shared/location-map/location-map.com
 import { Reservation, ReservationStatus } from '../../../models/reservation.model';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
+import { cleanText } from '../../../pipes/clean-text.pipe';
 
 @Component({
   selector: 'app-create-reservation-with-tasks',
@@ -259,15 +260,15 @@ export class CreateReservationWithTasksComponent implements OnInit {
     const taskIds = this.selectedTasks.map(selectedTask => selectedTask.task.id);
 
     return {
-      title: formData.title,
-      description: formData.description,
+      title: cleanText(formData.title || ''),
+      description: cleanText(formData.description || ''),
       startDate: startDateTime,
       endDate: endDateTime,
       status: ReservationStatus.PENDING,
       assigned: false,
       clientId: this.currentUser?.id,
       taskIds: taskIds,
-      notes: confirmationData.notes,
+      notes: cleanText(confirmationData.notes || ''),
       // Ajouter les données de géolocalisation si disponibles
       latitude: this.currentPosition?.latitude,
       longitude: this.currentPosition?.longitude,

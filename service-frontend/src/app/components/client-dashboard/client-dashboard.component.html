@@ -1,153 +1,339 @@
-<div class="dashboard-container">
-  <div class="dashboard-header">
-    <h1>Tableau de Bord Client</h1>
-    <p>Bienvenue dans votre espace personnel</p>
+<div class="dashboard-modern-wrapper">
+  
+  <!-- Hero Salutation & Live Status -->
+  <section class="hero-welcome-banner">
+    <div class="hero-content">
+      <div class="hero-badge-strip">
+        <span class="concierge-badge">
+          <mat-icon>verified</mat-icon>
+          Conciergerie Particulier
+        </span>
+        <span class="live-date-pill">
+          <span class="status-pulse-dot"></span>
+          {{ todayDate | titlecase }}
+        </span>
+      </div>
+
+      <h1 class="hero-greeting">Bonjour, {{ userName }} 👋</h1>
+      <p class="hero-subtitle">
+        Gérez vos interventions techniques à domicile, suivez vos artisans en temps réel et planifiez vos travaux en toute sérénité.
+      </p>
+
+      <div class="hero-quick-stats">
+        <div class="quick-stat-pill">
+          <span class="pill-number">{{ totalReservations }}</span>
+          <span class="pill-label">Missions</span>
+        </div>
+        <div class="quick-stat-pill" [class.highlight]="pendingReservations > 0">
+          <span class="pill-number">{{ pendingReservations }}</span>
+          <span class="pill-label">En cours</span>
+        </div>
+        <div class="quick-stat-pill">
+          <span class="pill-number">{{ completedReservations }}</span>
+          <span class="pill-label">Terminées</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-actions">
+      <button mat-raised-button class="btn-hero-primary" (click)="createNewReservation()">
+        <mat-icon>add_circle</mat-icon>
+        <span>Nouvelle Demande d'Intervention</span>
+      </button>
+      <button mat-stroked-button class="btn-hero-secondary" (click)="viewAllReservations()">
+        <mat-icon>visibility</mat-icon>
+        <span>Historique &amp; Devis</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="dashboard-loading-state">
+    <mat-spinner diameter="44"></mat-spinner>
+    <p>Synchronisation de votre espace client...</p>
   </div>
 
-  <div class="dashboard-content" *ngIf="!loading; else loadingTemplate">
-    <!-- Statistics Cards -->
-    <div class="stats-grid">
-      <mat-card class="stat-card">
-        <mat-card-content>
-          <div class="stat-content">
-            <mat-icon class="stat-icon total">assignment</mat-icon>
-            <div class="stat-info">
-              <h3>{{ totalReservations }}</h3>
-              <p>Total Réservations</p>
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
+  <div *ngIf="!loading">
 
-      <mat-card class="stat-card">
-        <mat-card-content>
-          <div class="stat-content">
-            <mat-icon class="stat-icon pending">schedule</mat-icon>
-            <div class="stat-info">
-              <h3>{{ pendingReservations }}</h3>
-              <p>En Attente</p>
-            </div>
+    <!-- 🔴 LIVE RADAR D'INTERVENTION EN DIRECT (Deliveroo/Uber Style) -->
+    <section class="live-radar-card" *ngIf="getActiveReservation() as activeRes">
+      <div class="radar-header">
+        <div class="radar-title-group">
+          <div class="radar-beacon">
+            <span class="beacon-pulse"></span>
+            <span class="beacon-core"></span>
           </div>
-        </mat-card-content>
-      </mat-card>
+          <div>
+            <div class="radar-tag-row">
+              <span class="radar-status-badge" [ngClass]="'status-' + activeRes.status.toLowerCase()">
+                {{ getStatusText(activeRes.status) }}
+              </span>
+              <span class="radar-ref">Mission #{{ activeRes.id }}</span>
+            </div>
+            <h3 class="radar-mission-title">{{ activeRes.title }}</h3>
+          </div>
+        </div>
 
-      <mat-card class="stat-card">
-        <mat-card-content>
-          <div class="stat-content">
-            <mat-icon class="stat-icon completed">check_circle</mat-icon>
-            <div class="stat-info">
-              <h3>{{ completedReservations }}</h3>
-              <p>Terminées</p>
+        <div class="radar-artisan-box" *ngIf="activeRes.consultantName">
+          <div class="artisan-avatar-circle">
+            <mat-icon>engineering</mat-icon>
+          </div>
+          <div class="artisan-info">
+            <span class="artisan-role">Artisan Assigné</span>
+            <span class="artisan-name">{{ activeRes.consultantName }}</span>
+            <div class="artisan-stars">
+              <mat-icon class="star-gold">star</mat-icon>
+              <span>4.9 • Agréé AledhemTek</span>
             </div>
           </div>
-        </mat-card-content>
-      </mat-card>
+        </div>
 
-      <mat-card class="stat-card">
-        <mat-card-content>
-          <div class="stat-content">
-            <mat-icon class="stat-icon money">euro</mat-icon>
-            <div class="stat-info">
-              <h3>{{ totalSpent | currency:'EUR':'symbol':'1.0-0' }}</h3>
-              <p>Total Dépensé</p>
-            </div>
+        <div class="radar-artisan-box pending-dispatch" *ngIf="!activeRes.consultantName">
+          <div class="artisan-avatar-circle pending-pulse">
+            <mat-icon>hourglass_top</mat-icon>
           </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
+          <div class="artisan-info">
+            <span class="artisan-role">Attribution en cours</span>
+            <span class="artisan-name">Recherche d'un artisan...</span>
+            <span class="artisan-note">Délai estimé : ~15 min</span>
+          </div>
+        </div>
+      </div>
 
-    <!-- Quick Actions -->
-    <div class="actions-section">
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>Actions Rapides</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="action-buttons">
-            <button mat-raised-button color="primary" (click)="createNewReservation()">
-              <mat-icon>add</mat-icon>
-              Nouvelle Réservation
-            </button>
-            <button mat-raised-button color="accent" (click)="viewAllReservations()">
-              <mat-icon>list</mat-icon>
-              Mes Réservations
-            </button>
-            <button mat-raised-button color="warn" (click)="viewMyEvaluations()">
-              <mat-icon>star</mat-icon>
-              Mes Évaluations
-            </button>
-            <button mat-raised-button color="primary" (click)="viewMyInvoices()">
-              <mat-icon>receipt</mat-icon>
-              Mes Factures
-            </button>
+      <!-- Radar 4-Stage Timeline -->
+      <div class="radar-timeline">
+        <div class="radar-timeline-track">
+          <!-- Étape 1 -->
+          <div class="radar-node completed">
+            <div class="node-icon-box"><mat-icon>done</mat-icon></div>
+            <span class="node-label">Demande transmise</span>
           </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
+          <!-- Étape 2 -->
+          <div class="radar-node" [ngClass]="{'completed': activeRes.status !== 'PENDING', 'active': activeRes.status === 'PENDING'}">
+            <div class="node-icon-box">
+              <mat-icon *ngIf="activeRes.status !== 'PENDING'">done</mat-icon>
+              <span *ngIf="activeRes.status === 'PENDING'">2</span>
+            </div>
+            <span class="node-label">Artisan Assigné</span>
+          </div>
+          <!-- Étape 3 -->
+          <div class="radar-node" [ngClass]="{'completed': activeRes.status === 'COMPLETED', 'active': activeRes.status === 'IN_PROGRESS'}">
+            <div class="node-icon-box">
+              <mat-icon *ngIf="activeRes.status === 'COMPLETED'">done</mat-icon>
+              <span *ngIf="activeRes.status !== 'COMPLETED'">3</span>
+            </div>
+            <span class="node-label">Intervention en cours</span>
+          </div>
+          <!-- Étape 4 -->
+          <div class="radar-node" [ngClass]="{'completed': activeRes.status === 'COMPLETED'}">
+            <div class="node-icon-box">
+              <mat-icon *ngIf="activeRes.status === 'COMPLETED'">done</mat-icon>
+              <span *ngIf="activeRes.status !== 'COMPLETED'">4</span>
+            </div>
+            <span class="node-label">Clôture &amp; Facture</span>
+          </div>
+        </div>
+      </div>
 
-    <!-- Recent Reservations -->
-    <div class="recent-section">
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>Réservations Récentes</mat-card-title>
-          <mat-card-subtitle>Vos 5 dernières réservations</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="reservation-list" *ngIf="recentReservations.length > 0; else noReservations">
-            <div class="reservation-item" *ngFor="let reservation of recentReservations" 
-                 (click)="viewReservationDetails(reservation.id!)">
-              <div class="reservation-info">
-                <h4>{{ reservation.title }}</h4>
-                <p class="reservation-date">{{ formatDate(reservation.startDate) }}</p>
-                <p class="reservation-consultant" *ngIf="reservation.consultantName">
-                  <mat-icon>person</mat-icon>
-                  {{ reservation.consultantName }}
-                </p>
-              </div>
-              <div class="reservation-status">
-                <mat-chip [style.background-color]="getStatusColor(reservation.status)" 
-                         [style.color]="'white'">
-                  {{ getStatusText(reservation.status) }}
-                </mat-chip>
-              </div>
-            </div>
-          </div>
-          
-          <ng-template #noReservations>
-            <div class="no-data">
-              <mat-icon>assignment</mat-icon>
-              <p>Aucune réservation trouvée</p>
-              <button mat-raised-button color="primary" (click)="createNewReservation()">
-                Créer votre première réservation
-              </button>
-            </div>
-          </ng-template>
-        </mat-card-content>
-      </mat-card>
-    </div>
+      <!-- Radar Footer Actions -->
+      <div class="radar-footer">
+        <div class="radar-schedule-info">
+          <mat-icon>event</mat-icon>
+          <span>Date prévue : <strong>{{ formatDate(activeRes.startDate) }}</strong></span>
+        </div>
+        <div class="radar-action-buttons">
+          <button mat-button class="btn-radar-details" (click)="viewAllReservations()">
+            <span>Voir les détails de l'intervention</span>
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+      </div>
+    </section>
 
-    <!-- Additional Stats -->
-    <div class="additional-stats">
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>Statistiques du Mois</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="monthly-stats">
-            <div class="stat-item">
-              <mat-icon>calendar_today</mat-icon>
-              <span>Ce mois: {{ stats.thisMonth }} réservations</span>
+    <!-- BENTO GRID : MÉTRIQUES DE PERFORMANCE & FINANCIÈRES -->
+    <section class="bento-metrics-grid">
+      <!-- Card 1 : Interventions Totales -->
+      <div class="bento-metric-card" (click)="viewAllReservations()">
+        <div class="metric-top">
+          <div class="metric-icon-wrap icon-blue">
+            <mat-icon>assignment</mat-icon>
+          </div>
+          <span class="metric-trend up">
+            <mat-icon>trending_up</mat-icon> +{{ stats.thisMonth }} ce mois
+          </span>
+        </div>
+        <div class="metric-value">{{ totalReservations }}</div>
+        <div class="metric-title">Interventions Totales</div>
+        <div class="metric-subtext">Toutes vos demandes enregistrées</div>
+      </div>
+
+      <!-- Card 2 : En attente & Planifiées -->
+      <div class="bento-metric-card" (click)="viewAllReservations()">
+        <div class="metric-top">
+          <div class="metric-icon-wrap icon-orange">
+            <mat-icon>schedule</mat-icon>
+          </div>
+          <span class="metric-badge-status" *ngIf="pendingReservations > 0">Actives</span>
+        </div>
+        <div class="metric-value">{{ pendingReservations }}</div>
+        <div class="metric-title">Missions en cours</div>
+        <div class="metric-subtext">Sous suivi direct d'un artisan</div>
+      </div>
+
+      <!-- Card 3 : Terminées avec Garantie -->
+      <div class="bento-metric-card" (click)="viewAllReservations()">
+        <div class="metric-top">
+          <div class="metric-icon-wrap icon-green">
+            <mat-icon>check_circle</mat-icon>
+          </div>
+          <span class="metric-badge-guarantee">
+            <mat-icon>verified</mat-icon> 100% Garanti
+          </span>
+        </div>
+        <div class="metric-value">{{ completedReservations }}</div>
+        <div class="metric-title">Interventions Réussies</div>
+        <div class="metric-subtext">Couvertes par garantie décennale</div>
+      </div>
+
+      <!-- Card 4 : Total Facturé / Dépensé -->
+      <div class="bento-metric-card" (click)="viewMyInvoices()">
+        <div class="metric-top">
+          <div class="metric-icon-wrap icon-purple">
+            <mat-icon>account_balance_wallet</mat-icon>
+          </div>
+          <span class="metric-trend">
+            <mat-icon>receipt</mat-icon> Factures
+          </span>
+        </div>
+        <div class="metric-value">{{ totalSpent | currency:'EUR':'symbol':'1.0-0' }}</div>
+        <div class="metric-title">Dépenses Réglées</div>
+        <div class="metric-subtext">Factures &amp; règlements sécurisés</div>
+      </div>
+    </section>
+
+    <!-- BENTO GRID : ACCÈS RAPIDE AUX PRESTATIONS POPULAIRES (1-Click Booking) -->
+    <section class="bento-quick-services-section">
+      <div class="section-heading">
+        <div>
+          <h2 class="section-title">Besoin d'un Dépannage Immédiat ?</h2>
+          <p class="section-subtitle">Sélectionnez un corps de métier pour lancer une demande en 1 clic</p>
+        </div>
+        <button mat-button class="btn-view-all-services" (click)="createNewReservation()">
+          <span>Voir tout le catalogue</span>
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+
+      <div class="quick-services-grid">
+        <div class="service-bento-card" *ngFor="let s of quickServices" (click)="orderTrade(s.id)">
+          <div class="service-card-top">
+            <div class="service-icon-bubble" [style.background]="s.bg" [style.color]="s.color">
+              <mat-icon>{{ s.icon }}</mat-icon>
+            </div>
+            <div class="card-arrow-pill">
+              <mat-icon>arrow_forward</mat-icon>
             </div>
           </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
+          <h4 class="service-card-name">{{ s.name }}</h4>
+          <p class="service-card-desc">{{ s.desc }}</p>
+          <div class="service-card-footer">
+            <span class="service-tag">Artisan disponible</span>
+            <span class="service-delay">~45 min</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION DERNIÈRES ACTIVITÉS & HISTORIQUE -->
+    <section class="recent-reservations-section">
+      <div class="section-heading">
+        <div>
+          <h2 class="section-title">Vos Dernières Interventions</h2>
+          <p class="section-subtitle">Historique récent et suivi de vos demandes</p>
+        </div>
+        <button mat-stroked-button class="btn-see-more" (click)="viewAllReservations()">
+          <span>Toutes les réservations</span>
+          <mat-icon>open_in_new</mat-icon>
+        </button>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state-modern" *ngIf="recentReservations.length === 0">
+        <div class="empty-icon-wrap">
+          <mat-icon>event_available</mat-icon>
+        </div>
+        <h3>Aucune intervention pour le moment</h3>
+        <p>Commandez votre premier dépannage ou planifiez des travaux avec nos artisans agréés.</p>
+        <button mat-raised-button class="btn-create-first" (click)="createNewReservation()">
+          <mat-icon>add</mat-icon>
+          <span>Créer ma première demande</span>
+        </button>
+      </div>
+
+      <!-- Recent Reservations Grid -->
+      <div class="recent-missions-grid" *ngIf="recentReservations.length > 0">
+        <div class="mission-mini-card" *ngFor="let res of recentReservations" (click)="viewAllReservations()">
+          <div class="mission-mini-header">
+            <div class="mission-ref-pill">#{{ res.id }}</div>
+            <span class="status-pill" [ngClass]="'status-' + (res.status ? res.status.toLowerCase().replace('_', '-') : 'pending')">
+              {{ getStatusText(res.status) }}
+            </span>
+          </div>
+          <h4 class="mission-mini-title">{{ res.title }}</h4>
+          <div class="mission-mini-meta">
+            <div class="meta-row">
+              <mat-icon>schedule</mat-icon>
+              <span>Date : {{ formatDate(res.startDate) }}</span>
+            </div>
+            <div class="meta-row" *ngIf="res.consultantName">
+              <mat-icon>person</mat-icon>
+              <span>Artisan : <strong>{{ res.consultantName }}</strong></span>
+            </div>
+            <div class="meta-row" *ngIf="res.totalPrice">
+              <mat-icon>payments</mat-icon>
+              <span>Montant : <strong>{{ res.totalPrice | currency:'EUR' }}</strong></span>
+            </div>
+          </div>
+          <div class="mission-mini-action">
+            <span>Consulter la fiche</span>
+            <mat-icon>chevron_right</mat-icon>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ASSISTANCE & ENGAGEMENTS QUALITÉ -->
+    <section class="trust-guarantees-banner">
+      <div class="trust-item">
+        <div class="trust-icon-box">
+          <mat-icon>shield</mat-icon>
+        </div>
+        <div class="trust-text">
+          <strong>Garantie Décennale &amp; RC Pro</strong>
+          <p>Toutes nos interventions sont couvertes et certifiées.</p>
+        </div>
+      </div>
+
+      <div class="trust-item">
+        <div class="trust-icon-box">
+          <mat-icon>price_check</mat-icon>
+        </div>
+        <div class="trust-text">
+          <strong>Prix Ferme &amp; Transparent</strong>
+          <p>Aucun surcoût imprévu. Devis validé avant travaux.</p>
+        </div>
+      </div>
+
+      <div class="trust-item">
+        <div class="trust-icon-box">
+          <mat-icon>support_agent</mat-icon>
+        </div>
+        <div class="trust-text">
+          <strong>Assistance Dédiée 7j/7</strong>
+          <p>Un conseiller joignable par téléphone à tout moment.</p>
+        </div>
+      </div>
+    </section>
+
   </div>
-
-  <ng-template #loadingTemplate>
-    <div class="loading-container">
-      <mat-spinner></mat-spinner>
-      <p>Chargement de vos données...</p>
-    </div>
-  </ng-template>
 </div>

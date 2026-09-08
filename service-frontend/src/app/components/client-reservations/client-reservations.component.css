@@ -1,197 +1,645 @@
-﻿/* ==========================================================================
-   ALEDHEMTEK - MODERN CLIENT RESERVATIONS DESIGN
-   ========================================================================== */
-
-.client-reservations-container {
-  padding: 2rem;
-  max-width: 1240px;
-  margin: 0 auto;
+/* Client Reservations Wrapper */
+.client-reservations-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
 }
 
-.header {
+/* Page Header */
+.reservations-header {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-}
-
-.header h2 {
-  color: var(--color-text-primary);
-  font-size: 1.85rem;
-  font-weight: 800;
-  letter-spacing: -0.025em;
-  margin: 0;
-}
-
-.header button {
-  height: 44px;
-  border-radius: var(--radius-full);
-  font-weight: 600;
-  padding: 0 22px;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
-}
-
-/* Stats Grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.25rem;
-  margin-bottom: 2rem;
-}
-
-.stat-card {
-  border-radius: var(--radius-lg) !important;
-  border: 1px solid var(--color-border) !important;
-  box-shadow: var(--shadow-sm) !important;
-  background: var(--color-surface) !important;
-  transition: all var(--transition-normal) !important;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md) !important;
-}
-
-.stat-card.pending { border-left: 4px solid var(--color-warning) !important; }
-.stat-card.assigned { border-left: 4px solid var(--color-info) !important; }
-.stat-card.in-progress { border-left: 4px solid var(--color-primary) !important; }
-.stat-card.completed { border-left: 4px solid var(--color-success) !important; }
-
-.stat-content {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.5rem;
-}
-
-.stat-content mat-icon {
-  font-size: 24px;
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-surface-secondary);
-  color: var(--color-text-secondary);
-}
-
-.stat-card.pending .stat-content mat-icon { background: var(--color-warning-bg); color: var(--color-warning); }
-.stat-card.assigned .stat-content mat-icon { background: var(--color-info-bg); color: var(--color-info); }
-.stat-card.in-progress .stat-content mat-icon { background: var(--primary-100); color: var(--primary-600); }
-.stat-card.completed .stat-content mat-icon { background: var(--color-success-bg); color: var(--color-success); }
-
-.stat-number {
-  font-size: 1.75rem;
-  font-weight: 800;
-  color: var(--color-text-primary);
-  line-height: 1.1;
-}
-
-.stat-label {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-top: 2px;
-}
-
-/* Reservations List */
-.reservations-list {
-  display: grid;
-  gap: 1.25rem;
-}
-
-.reservation-card {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 1.5rem;
-  background-color: var(--color-surface);
-  box-shadow: var(--shadow-xs);
-  transition: all var(--transition-fast);
-}
-
-.reservation-card:hover {
-  border-color: var(--primary-300);
-  box-shadow: var(--shadow-sm);
-  transform: translateY(-2px);
-}
-
-.reservation-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--color-border-subtle);
-}
-
-.reservation-header h3 {
-  margin: 0;
-  color: var(--color-text-primary);
-  font-size: 1.15rem;
-  font-weight: 700;
-}
-
-.reservation-details {
-  margin-bottom: 1.25rem;
-}
-
-.detail-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
-  color: var(--color-text-secondary);
-}
-
-.detail-item mat-icon {
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
-  color: var(--color-text-muted);
-}
-
-.detail-item strong {
-  color: var(--color-text-primary);
-}
-
-.reservation-actions {
-  display: flex;
-  gap: 10px;
+  gap: 1.5rem;
   flex-wrap: wrap;
 }
 
-.reservation-actions button {
-  height: 38px;
-  border-radius: var(--radius-md);
-  font-weight: 600;
-  font-size: 0.85rem;
+.breadcrumb-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+  margin-bottom: 0.5rem;
 }
 
-/* Tabs */
-.mat-mdc-tab-group {
-  --mdc-tab-indicator-active-indicator-color: var(--color-primary);
+.crumb-link {
+  color: #64748b;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.crumb-link:hover {
+  color: #2563eb;
+}
+
+.crumb-sep {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #94a3b8;
+}
+
+.crumb-current {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.page-title {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.025em;
+  margin: 0 0 0.4rem;
+}
+
+.page-subtitle {
+  font-size: 0.925rem;
+  color: #64748b;
+  margin: 0;
+  max-width: 650px;
+  line-height: 1.5;
+}
+
+.btn-create-header {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+  color: white !important;
+  font-weight: 700 !important;
+  padding: 0.65rem 1.35rem !important;
+  border-radius: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3) !important;
+}
+
+/* Command & Filter Strip */
+.command-filter-strip {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 0.85rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+  flex-wrap: wrap;
+}
+
+/* Search Box */
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 240px;
+  max-width: 380px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 0.75rem;
+  color: #94a3b8;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.6rem 2.2rem 0.6rem 2.4rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  color: #0f172a;
+  background: #f8fafc;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.search-input:focus {
+  background: white;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.btn-clear-search {
+  position: absolute;
+  right: 0.6rem;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.btn-clear-search mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+/* Filter Pills */
+.filter-pills-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding: 0.2rem 0;
+}
+
+.filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #f1f5f9;
+  border: 1px solid transparent;
+  color: #475569;
+  padding: 0.4rem 0.85rem;
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.filter-pill:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.filter-pill.active {
+  background: #2563eb;
+  color: white;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+}
+
+.pill-count {
+  background: rgba(0, 0, 0, 0.08);
+  padding: 0.1rem 0.45rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.filter-pill.active .pill-count {
+  background: rgba(255, 255, 255, 0.25);
+  color: white;
+}
+
+.dot-status {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.dot-status.pending { background: #f59e0b; }
+.dot-status.assigned { background: #2563eb; }
+.dot-status.in-progress { background: #10b981; }
+.dot-status.completed { background: #059669; }
+
+/* View Mode Toggle */
+.view-mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: #f1f5f9;
+  padding: 0.25rem;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.btn-toggle-mode {
+  background: none;
+  border: none;
+  color: #64748b;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.btn-toggle-mode mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.btn-toggle-mode.active {
+  background: white;
+  color: #2563eb;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* Loading State */
+.loading-state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 1rem;
+  gap: 1rem;
+  color: #64748b;
+}
+
+/* Empty State */
+.empty-reservations-card {
+  background: white;
+  border: 1px dashed #cbd5e1;
+  border-radius: 18px;
+  padding: 4rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.empty-icon-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.empty-icon-circle mat-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+}
+
+.empty-reservations-card h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 750;
+  color: #0f172a;
+}
+
+.empty-reservations-card p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #64748b;
+  max-width: 440px;
+}
+
+.empty-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.btn-empty-book {
+  background: #2563eb !important;
+  color: white !important;
+  font-weight: 700 !important;
+  padding: 0.65rem 1.4rem !important;
+  border-radius: 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.4rem !important;
+}
+
+/* 📦 GRID VIEW : LUXURY MISSION CARDS */
+.missions-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 1.5rem;
+}
+
+.mission-card-luxury {
+  background: white;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  padding: 1.6rem;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.mission-card-luxury:hover {
+  transform: translateY(-4px);
+  border-color: #cbd5e1;
+  box-shadow: 0 16px 30px -6px rgba(15, 23, 42, 0.1);
+}
+
+.card-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+}
+
+.ref-and-date {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.card-ref-badge {
+  font-size: 0.75rem;
+  font-weight: 800;
+  background: #f1f5f9;
+  color: #475569;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+}
+
+.card-date-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.card-date-badge mat-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  color: #94a3b8;
+}
+
+.card-mission-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.015em;
+  margin: 0 0 0.4rem;
+  line-height: 1.35;
+}
+
+.card-mission-desc {
+  font-size: 0.825rem;
+  color: #64748b;
+  line-height: 1.45;
+  margin: 0 0 1rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Artisan Strip in Card */
+.card-artisan-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.65rem 0.85rem;
+  margin-bottom: 1.1rem;
+}
+
+.artisan-badge-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #2563eb;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.artisan-badge-icon mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.artisan-badge-icon.pulse {
+  background: #f59e0b;
+}
+
+.artisan-info-col {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.artisan-label {
+  font-size: 0.6875rem;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.artisan-val {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.artisan-guarantee-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: #dcfce7;
+  color: #15803d;
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+}
+
+.artisan-guarantee-pill mat-icon {
+  font-size: 12px;
+  width: 12px;
+  height: 12px;
+}
+
+/* Prestations & Price */
+.card-metrics-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-top: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 1.1rem;
+}
+
+.metric-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-lbl {
+  font-size: 0.7rem;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.metric-val {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.metric-val mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #64748b;
+}
+
+.price-text {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #2563eb;
+}
+
+/* Card Actions */
+.card-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: auto;
+}
+
+.btn-action-primary {
+  flex: 1;
+  background: #eff6ff !important;
+  color: #2563eb !important;
+  font-weight: 700 !important;
+  border-radius: 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.4rem !important;
+  height: 38px !important;
+}
+
+.btn-action-primary:hover {
+  background: #2563eb !important;
+  color: white !important;
+}
+
+.btn-action-eval {
+  color: #f59e0b !important;
+  border-color: #fde68a !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+  height: 38px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.3rem !important;
+}
+
+.btn-action-eval:hover {
+  background: #fef3c7 !important;
+}
+
+.btn-action-cancel {
+  color: #ef4444 !important;
+  font-weight: 600 !important;
+  height: 38px !important;
+}
+
+/* 📋 LIST VIEW (TABLE) */
+.table-card-container {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+}
+
+.modern-reservations-table {
+  width: 100%;
+}
+
+.table-title-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.table-subdesc {
+  font-size: 0.775rem;
+  color: #64748b;
+  max-width: 320px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.artisan-text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.artisan-text-link mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #2563eb;
+}
+
+.table-actions-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem;
+}
+
+/* Status Pills */
+.status-pill {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.status-pending { background: #fef3c7; color: #b45309; }
+.status-assigned { background: #dbeafe; color: #1d4ed8; }
+.status-in-progress, .status-in_progress { background: #dcfce7; color: #15803d; }
+.status-completed { background: #e0e7ff; color: #4338ca; }
+.status-cancelled { background: #fee2e2; color: #b91c1c; }
+
+.pagination-wrapper {
+  margin-top: 1rem;
 }
 
 @media (max-width: 768px) {
-  .client-reservations-container {
-    padding: 1rem;
-  }
-
-  .header {
+  .command-filter-strip {
     flex-direction: column;
     align-items: stretch;
-    gap: 1rem;
   }
-
-  .reservation-actions {
-    flex-direction: column;
+  .search-box {
+    max-width: 100%;
   }
-
-  .reservation-actions button {
-    width: 100%;
+  .missions-cards-grid {
+    grid-template-columns: 1fr;
   }
 }

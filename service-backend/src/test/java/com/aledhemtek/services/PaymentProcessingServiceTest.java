@@ -1,4 +1,4 @@
-﻿package com.aledhemtek.services;
+package com.aledhemtek.services;
 
 import com.aledhemtek.model.Invoice;
 import com.aledhemtek.model.Payment;
@@ -42,7 +42,7 @@ class PaymentProcessingServiceTest {
         invoice.setInvoiceNumber("INV-2026-001");
         invoice.setTotalAmount(100.0);
         invoice.setPayments(new ArrayList<>());
-        invoice.setStatus(Invoice.InvoiceStatus.ISSUED);
+        invoice.setStatus(Invoice.InvoiceStatus.SENT);
     }
 
     @Test

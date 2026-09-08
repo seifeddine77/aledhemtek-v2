@@ -8,11 +8,13 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { EvaluationService } from '../../services/evaluation.service';
 import { AuthService } from '../../services/auth.service';
 import { ReservationService } from '../../services/reservation.service';
 import { Evaluation } from '../../models/evaluation.model';
 import { Reservation } from '../../models/reservation.model';
+import { PaginationComponent, PaginationConfig } from '../shared/pagination/pagination.component';
 
 @Component({
   selector: 'app-consultant-evaluations-page',
@@ -23,19 +25,51 @@ import { Reservation } from '../../models/reservation.model';
     MatButtonModule,
     MatIconModule,
     MatChipsModule,
+    MatProgressBarModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
     MatDividerModule,
-    MatTooltipModule
+    MatTooltipModule,
+    PaginationComponent
   ],
   templateUrl: './consultant-evaluations-page.component.html',
   styleUrls: ['./consultant-evaluations-page.component.css']
 })
 export class ConsultantEvaluationsPageComponent implements OnInit {
   evaluations: Evaluation[] = [];
+  paginatedEvaluations: Evaluation[] = [];
   reservations: Map<number, Reservation> = new Map();
   loading = true;
   currentUserId: number | null = null;
+
+  paginationConfig: PaginationConfig = {
+    currentPage: 1,
+    totalItems: 0,
+    itemsPerPage: 6,
+    pageSizeOptions: [3, 6, 12, 24]
+  };
+
+  updatePagination(): void {
+    this.paginationConfig.totalItems = this.evaluations.length;
+    this.updatePaginatedEvaluations();
+  }
+
+  updatePaginatedEvaluations(): void {
+    const startIndex = (this.paginationConfig.currentPage - 1) * this.paginationConfig.itemsPerPage;
+    const endIndex = startIndex + this.paginationConfig.itemsPerPage;
+    this.paginatedEvaluations = this.evaluations.slice(startIndex, endIndex);
+  }
+
+  onPageChange(page: number): void {
+    this.paginationConfig.currentPage = page;
+    this.updatePaginatedEvaluations();
+  }
+
+  onPageSizeChange(pageSize: number): void {
+    this.paginationConfig.itemsPerPage = pageSize;
+    this.paginationConfig.currentPage = 1;
+    this.updatePagination();
+  }
 
   // Statistics
   stats = {
@@ -75,6 +109,7 @@ export class ConsultantEvaluationsPageComponent implements OnInit {
           new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
         );
         this.calculateStatistics();
+        this.updatePagination();
         this.loadReservationDetails();
       },
       error: (error) => {
@@ -192,5 +227,21 @@ export class ConsultantEvaluationsPageComponent implements OnInit {
 
   getPercentage(count: number): number {
     return this.stats.totalEvaluations > 0 ? (count / this.stats.totalEvaluations) * 100 : 0;
+  }
+
+  getScorePercentage(score: number): number {
+    return Math.min(100, Math.max(0, (score / 5) * 100));
+  }
+
+  getClientInitials(name?: string): string {
+    if (!name) return 'CL';
+    return name
+      .trim()
+      .split(' ')
+      .filter(p => p.length > 0)
+      .map(p => p[0])
+      .join('')
+      .substring(0, 2)
+      .toUpperCase();
   }
 }

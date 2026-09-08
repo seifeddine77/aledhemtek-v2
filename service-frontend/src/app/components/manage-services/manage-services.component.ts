@@ -2,11 +2,28 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AdminService } from '../../services/admin.service';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-manage-services',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [
+    CommonModule, 
+    ReactiveFormsModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTooltipModule
+  ],
   templateUrl: './manage-services.component.html',
   styleUrls: ['./manage-services.component.css']
 })
@@ -14,6 +31,7 @@ export class ManageServicesComponent implements OnInit {
 
   serviceForm: FormGroup;
   selectedFile: File | null = null;
+  imagePreview: string | null = null;
   categories: any[] = [];
   services: any[] = [];
 
@@ -33,6 +51,11 @@ export class ManageServicesComponent implements OnInit {
   onFileSelected(event: any): void {
     if (event.target.files.length > 0) {
       this.selectedFile = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.imagePreview = reader.result as string;
+      };
+      reader.readAsDataURL(this.selectedFile!);
     }
   }
 
@@ -44,6 +67,7 @@ export class ManageServicesComponent implements OnInit {
           this.getAllServices(); // Refresh the list
           this.serviceForm.reset();
           this.selectedFile = null;
+          this.imagePreview = null;
           const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
           if (fileInput) {
             fileInput.value = '';

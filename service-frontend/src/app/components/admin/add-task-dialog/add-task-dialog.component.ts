@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-add-task-dialog',
@@ -18,9 +19,67 @@ import { MatButtonModule } from '@angular/material/button';
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    MatButtonModule
+    MatButtonModule,
+    MatIconModule
   ],
   templateUrl: './add-task-dialog.component.html',
+  styles: [`
+    .dialog-modern-container {
+      padding: 1.5rem;
+      min-width: 420px;
+    }
+    .dialog-modern-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--color-border, #e2e8f0);
+    }
+    .dialog-header-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: rgba(37, 99, 235, 0.1);
+      color: var(--color-primary, #2563eb);
+    }
+    .dialog-header-text h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--color-text-primary, #0f172a);
+    }
+    .dialog-header-text p {
+      margin: 0.25rem 0 0;
+      font-size: 0.85rem;
+      color: var(--color-text-secondary, #64748b);
+    }
+    .task-dialog-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .dialog-modern-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--color-border, #e2e8f0);
+    }
+    .w-100 {
+      width: 100%;
+    }
+    @media (max-width: 480px) {
+      .dialog-modern-container {
+        min-width: 100%;
+        padding: 1rem;
+      }
+    }
+  `]
 })
 export class AddTaskDialogComponent implements OnInit {
   taskForm: FormGroup;

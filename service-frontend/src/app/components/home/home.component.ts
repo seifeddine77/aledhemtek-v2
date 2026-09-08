@@ -1,22 +1,29 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { MatGridListModule } from '@angular/material/grid-list';
+import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { HttpClientModule } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 import { PublicService } from '../../services/public.service';
 import { EvaluationService } from '../../services/evaluation.service';
-import { ReservationService } from '../../services/reservation.service';
 import { AuthService } from '../../services/auth.service';
 import { ServiceDto } from '../../models/service.model';
 import { Evaluation } from '../../models/evaluation.model';
-import { Reservation } from '../../models/reservation.model';
 import { environment } from '../../../environments/environment';
+
+export interface FaqItem {
+  question: string;
+  answer: string;
+  category: string;
+  isOpen: boolean;
+}
 
 @Component({
   selector: 'app-home',
@@ -24,12 +31,14 @@ import { environment } from '../../../environments/environment';
   imports: [
     CommonModule,
     RouterModule,
-    MatGridListModule,
+    FormsModule,
     MatCardModule,
     MatIconModule,
     MatButtonModule,
-    MatExpansionModule,
-    MatDividerModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatTooltipModule,
     HttpClientModule
   ],
   templateUrl: './home.component.html',
@@ -37,38 +46,91 @@ import { environment } from '../../../environments/environment';
 })
 export class Home implements OnInit, OnDestroy {
   showScrollTopBtn = false;
+  
+  // Données dynamiques
+  categories: any[] = [];
   services: ServiceDto[] = [];
+  filteredServices: ServiceDto[] = [];
   recentEvaluations: Evaluation[] = [];
-  reservations: Map<number, Reservation> = new Map();
+  
+  // États de filtrage interactif
+  selectedCategoryId: number | null = null;
+  searchQuery = '';
+  
+  // États de chargement
+  loadingServices = true;
+  loadingCategories = true;
   loadingEvaluations = true;
+  
+  // État d'authentification
   isLoggedIn = false;
   userRole: string | null = null;
   private authSubscription!: Subscription;
 
+  // FAQ interactive
+  faqItems: FaqItem[] = [
+    {
+      question: "Comment sont sélectionnés les professionnels AledhemTek ?",
+      answer: "Tous nos artisans partenaires font l'objet d'une sélection stricte : vérification de l'assurance décennale et RC Pro, contrôle des diplômes d'État, kbis, et entretiens de qualification technique.",
+      category: "Sécurité & Garantie",
+      isOpen: true
+    },
+    {
+      question: "Comment fonctionne le paiement sécurisé par séquestre ?",
+      answer: "Votre règlement est sécurisé via notre partenaire bancaire Stripe certifié PCI-DSS. Les fonds ne sont libérés au professionnel qu'après exécution complète de la prestation et validation de votre satisfaction.",
+      category: "Paiement",
+      isOpen: false
+    },
+    {
+      question: "Que se passe-t-il si un imprévu survient lors de l'intervention ?",
+      answer: "Chaque prestation réalisée via la plateforme est couverte par notre garantie d'intervention. En cas de besoin, notre support client basé en France intervient 7j/7 pour vous apporter une solution immédiate.",
+      category: "Assistance",
+      isOpen: false
+    },
+    {
+      question: "Puis-je annuler ou reporter un rendez-vous gratuitement ?",
+      answer: "Absolument. Vous pouvez modifier ou annuler votre réservation sans aucun frais jusqu'à 24 heures avant l'horaire prévu, directement depuis votre tableau de bord client.",
+      category: "Réservation",
+      isOpen: false
+    },
+    {
+      question: "Qui fournit les matériaux et pièces détachées nécessaires ?",
+      answer: "Les artisans se déplacent toujours avec leur outillage professionnel complet. Vous pouvez fournir vos propres matériaux ou confier l'achat des pièces nécessaires à l'artisan au tarif coûtant avec facture à l'appui.",
+      category: "Prestation",
+      isOpen: false
+    }
+  ];
+
+  // Images par défaut pour chaque univers métier
+  private categoryImages: Record<string, string> = {
+    'plomberie': 'https://images.unsplash.com/photo-1585704032915-c3400ca199e7?auto=format&fit=crop&w=800&q=80',
+    'electricite': 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80',
+    'peinture': 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&w=800&q=80',
+    'bricolage': 'https://images.unsplash.com/photo-1581783342308-f792dbdd27c5?auto=format&fit=crop&w=800&q=80',
+    'jardinage': 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=800&q=80',
+    'chauffage': 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=800&q=80',
+    'serrurerie': 'https://images.unsplash.com/photo-1558002038-1055907df827?auto=format&fit=crop&w=800&q=80',
+    'nettoyage': 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=800&q=80'
+  };
+
   constructor(
     private publicService: PublicService,
     private evaluationService: EvaluationService,
-    private reservationService: ReservationService,
     private authService: AuthService,
     private router: Router
   ) {}
 
   ngOnInit() {
-    // Initialiser l'état d'authentification
     this.authSubscription = this.authService.getAuthStatusListener().subscribe((isAuthenticated: boolean) => {
       this.isLoggedIn = isAuthenticated;
-      if (this.isLoggedIn) {
-        this.userRole = this.authService.getRole();
-      } else {
-        this.userRole = null;
-      }
+      this.userRole = isAuthenticated ? this.authService.getRole() : null;
     });
 
-    this.animateSections();
     window.addEventListener('scroll', this.onScroll, true);
-    setTimeout(() => this.animateSections(), 100); // Pour l'affichage initial
-    this.getAllServices();
-    this.loadRecentEvaluations();
+    
+    this.loadCategories();
+    this.loadServices();
+    this.loadFeaturedEvaluations();
   }
 
   ngOnDestroy() {
@@ -79,282 +141,304 @@ export class Home implements OnInit, OnDestroy {
   }
 
   onScroll = () => {
-    this.showScrollTopBtn = window.scrollY > 300;
-    this.animateSections();
+    this.showScrollTopBtn = window.scrollY > 400;
   };
 
   scrollToTop() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  animateSections() {
-    const sections = document.querySelectorAll('.section-animate');
-    sections.forEach((section: any) => {
-      const rect = section.getBoundingClientRect();
-      if (rect.top < window.innerHeight - 80) {
-        section.classList.add('visible');
+  scrollToServices() {
+    const el = document.getElementById('services-showcase');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+
+  // Chargement des catégories
+  loadCategories() {
+    this.loadingCategories = true;
+    this.publicService.getAllCategories().subscribe({
+      next: (cats) => {
+        this.categories = cats || [];
+        this.loadingCategories = false;
+      },
+      error: (err) => {
+        console.warn('Fallback catégories:', err);
+        this.categories = this.getDefaultCategories();
+        this.loadingCategories = false;
       }
     });
   }
 
-  getAllServices() {
+  // Chargement des services
+  loadServices() {
+    this.loadingServices = true;
     this.publicService.getAllServices().subscribe({
-      next: (res) => {
-        // Limiter à 6 services maximum pour la page d'accueil
-        const limitedServices = res.slice(0, 6);
-        this.services = limitedServices.map((service: ServiceDto) => ({
-          ...service,
-          processedImg: this.getServiceImageUrl(service)
+      next: (services) => {
+        this.services = (services || []).map((s: ServiceDto) => ({
+          ...s,
+          processedImg: this.getServiceImageUrl(s)
         }));
-        console.log('Services chargés (limités à 6):', this.services);
+        this.filteredServices = [...this.services];
+        this.loadingServices = false;
       },
-      error: (error) => {
-        console.error('Erreur lors du chargement des services:', error);
-        // Ajouter des services par défaut pour la démo
+      error: (err) => {
+        console.warn('Fallback services:', err);
         this.services = this.getDefaultServices();
+        this.filteredServices = [...this.services];
+        this.loadingServices = false;
       }
     });
   }
 
-  private getServiceImageUrl(service: ServiceDto): string {
-    // Si on a une image base64, l'utiliser
-    if (service.returnedImage) {
-      return 'data:image/jpeg;base64,' + service.returnedImage;
-    }
-    
-    // Si on a un nom de fichier dans img, construire l'URL
-    if (service.img) {
-      // Nettoyer le nom de fichier (enlever le préfixe services/ s'il existe)
-      const cleanImageName = service.img.startsWith('services/') ? service.img.substring(9) : service.img;
-      return `${environment.uploadsUrl}/services/${cleanImageName}`;
-    }
-    
-    // Image par défaut
-    return 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=800&q=80';
-  }
-
-  private getDefaultServices(): ServiceDto[] {
-    return [
-      {
-        id: 1,
-        name: 'Plomberie',
-        description: 'Réparation et installation de plomberie',
-        price: 50,
-        returnedImage: '',
-        processedImg: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=800&q=80'
-      },
-      {
-        id: 2,
-        name: 'Électricité',
-        description: 'Installation et réparation électrique',
-        price: 60,
-        returnedImage: '',
-        processedImg: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80'
-      },
-      {
-        id: 3,
-        name: 'Ménage',
-        description: 'Service de ménage à domicile',
-        price: 25,
-        returnedImage: '',
-        processedImg: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=800&q=80'
-      },
-      {
-        id: 4,
-        name: 'Jardinage',
-        description: 'Entretien de jardin et espaces verts',
-        price: 40,
-        returnedImage: '',
-        processedImg: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=800&q=80'
-      }
-    ];
-  }
-
-  onImageError(event: any) {
-    // Remplacer par une image par défaut en cas d'erreur
-    event.target.src = 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=800&q=80';
-  }
-
-  loadRecentEvaluations() {
-    // Charger les évaluations mises en avant pour la page d'accueil (endpoint public)
+  // Chargement des évaluations
+  loadFeaturedEvaluations() {
+    this.loadingEvaluations = true;
     this.evaluationService.getFeaturedEvaluationsForHome().subscribe({
-      next: (evaluations) => {
-        this.recentEvaluations = evaluations;
-        this.loadReservationDetails();
+      next: (evals) => {
+        this.recentEvaluations = evals || [];
+        this.loadingEvaluations = false;
       },
-      error: (error) => {
-        console.error('Erreur lors du chargement des évaluations:', error);
+      error: (err) => {
+        console.warn('Fallback évaluations:', err);
+        this.recentEvaluations = this.getDefaultEvaluations();
         this.loadingEvaluations = false;
       }
     });
   }
 
-  private loadReservationDetails(): void {
-    const reservationIds = [...new Set(this.recentEvaluations.map(e => e.reservationId))];
-    let loadedCount = 0;
+  // Filtrage réactif par catégorie
+  selectCategory(catId: number | null) {
+    this.selectedCategoryId = catId;
+    this.applyFilters();
+  }
 
-    if (reservationIds.length === 0) {
-      this.loadingEvaluations = false;
-      return;
-    }
+  // Recherche réactive par texte
+  onSearchChange() {
+    this.applyFilters();
+  }
 
-    reservationIds.forEach(id => {
-      this.reservationService.getReservationById(id).subscribe({
-        next: (reservation) => {
-          this.reservations.set(id, reservation);
-          loadedCount++;
-          if (loadedCount === reservationIds.length) {
-            this.loadingEvaluations = false;
-          }
-        },
-        error: (error) => {
-          console.error(`Erreur lors du chargement de la réservation ${id}:`, error);
-          loadedCount++;
-          if (loadedCount === reservationIds.length) {
-            this.loadingEvaluations = false;
-          }
-        }
-      });
+  applyFilters() {
+    const query = (this.searchQuery || '').trim().toLowerCase();
+
+    this.filteredServices = this.services.filter(s => {
+      // Filtre catégorie
+      const matchCategory = !this.selectedCategoryId || 
+        s.categoryId === this.selectedCategoryId ||
+        ((s as any).category && (s as any).category.id === this.selectedCategoryId);
+
+      // Filtre texte
+      const matchQuery = !query || 
+        (s.name && s.name.toLowerCase().includes(query)) ||
+        (s.description && s.description.toLowerCase().includes(query));
+
+      return matchCategory && matchQuery;
     });
   }
 
-  getEvaluationAverage(evaluation: Evaluation): number {
-    return (
-      evaluation.generalRating +
-      evaluation.serviceQualityRating +
-      evaluation.punctualityRating +
-      evaluation.communicationRating
-    ) / 4;
+  resetFilters() {
+    this.searchQuery = '';
+    this.selectedCategoryId = null;
+    this.filteredServices = [...this.services];
   }
 
-  getStarArray(rating: number): number[] {
-    return Array(5).fill(0).map((_, i) => i + 1);
+  // FAQ Accordion Toggle
+  toggleFaq(index: number) {
+    this.faqItems[index].isOpen = !this.faqItems[index].isOpen;
   }
 
-  getReservation(reservationId: number): Reservation | undefined {
-    return this.reservations.get(reservationId);
-  }
-
-  formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  }
-
-  // Méthodes pour la gestion dynamique des boutons
+  // Gestion des réservations
   handleReservation(serviceId: number) {
     if (this.isLoggedIn) {
-      // Si connecté, rediriger vers la page de réservation
-      this.router.navigate(['/booking', serviceId]);
+      this.router.navigate(['/client/create-reservation-with-tasks'], { 
+        queryParams: { serviceId: serviceId } 
+      });
     } else {
-      // Si non connecté, rediriger vers login
-      this.router.navigate(['/login']);
+      this.router.navigate(['/login'], { 
+        queryParams: { returnUrl: `/client/create-reservation-with-tasks?serviceId=${serviceId}` } 
+      });
     }
   }
 
   handleSignup() {
     if (this.isLoggedIn) {
-      // Si connecté, rediriger vers le dashboard approprié
       this.redirectToDashboard();
     } else {
-      // Si non connecté, rediriger vers signup
       this.router.navigate(['/register']);
     }
   }
 
   private redirectToDashboard() {
     switch (this.userRole) {
+      case 'ADMIN':
       case 'admin':
         this.router.navigate(['/admin/dashboard']);
         break;
+      case 'CLIENT':
       case 'client':
         this.router.navigate(['/client/dashboard']);
         break;
+      case 'CONSULTANT':
       case 'consultant':
         this.router.navigate(['/consultant/dashboard']);
         break;
       default:
-        this.router.navigate(['/']);
+        this.router.navigate(['/client/dashboard']);
     }
   }
 
-  getSignupButtonText(): string {
-    if (this.isLoggedIn) {
-      return 'Mon Dashboard';
+  getServiceImageUrl(service: ServiceDto): string {
+    if (service.returnedImage) {
+      return 'data:image/jpeg;base64,' + service.returnedImage;
     }
-    return 'Commencer';
-  }
-
-  getReservationButtonText(): string {
-    if (this.isLoggedIn) {
-      return 'Réserver maintenant';
+    if (service.img) {
+      const cleanImageName = service.img.startsWith('services/') ? service.img.substring(9) : service.img;
+      return `${environment.uploadsUrl}/services/${cleanImageName}`;
     }
-    return 'Se connecter pour réserver';
-  }
-
-  handleViewAllServices() {
-    if (this.isLoggedIn) {
-      // Si connecté, aller directement aux services
-      this.router.navigate(['/services']);
-    } else {
-      // Si non connecté, rediriger vers login avec redirect
-      this.router.navigate(['/login'], { queryParams: { returnUrl: '/services' } });
+    
+    // Déterminer l'image selon le nom
+    const nameLower = (service.name || '').toLowerCase();
+    for (const key of Object.keys(this.categoryImages)) {
+      if (nameLower.includes(key)) {
+        return this.categoryImages[key];
+      }
     }
+    return this.categoryImages['plomberie'];
   }
 
-  getViewAllServicesText(): string {
-    if (this.isLoggedIn) {
-      return 'Voir tous les services';
+  onImageError(event: any, service: ServiceDto) {
+    const nameLower = (service.name || '').toLowerCase();
+    for (const key of Object.keys(this.categoryImages)) {
+      if (nameLower.includes(key)) {
+        event.target.src = this.categoryImages[key];
+        return;
+      }
     }
-    return 'Se connecter pour voir tous les services';
+    event.target.src = 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=800&q=80';
   }
 
-
-
-  /**
-   * Obtenir le nom du client pour une évaluation
-   */
-  getClientName(evaluation: Evaluation): string {
-    const reservation = this.reservations.get(evaluation.reservationId);
-    return reservation?.clientName || 'Client';
+  getStarArray(rating: number): number[] {
+    return Array(5).fill(0).map((_, i) => i + 1);
   }
 
-  /**
-   * Obtenir le titre du service pour une évaluation
-   */
-  getServiceTitle(evaluation: Evaluation): string {
-    const reservation = this.reservations.get(evaluation.reservationId);
-    return reservation?.title || 'Service';
-  }
-
-  /**
-   * Obtenir le nom du consultant pour une évaluation
-   */
-  getConsultantName(evaluation: Evaluation): string {
-    const reservation = this.reservations.get(evaluation.reservationId);
-    return reservation?.consultantName || 'Consultant';
-  }
-
-  /**
-   * Générer un tableau d'étoiles pour l'affichage
-   */
-  getStarsArray(rating: number): boolean[] {
-    return Array(5).fill(false).map((_, i) => i < Math.round(rating));
-  }
-
-  /**
-   * Formater la date de l'évaluation
-   */
-  formatEvaluationDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('fr-FR', {
+  formatDate(dateString: string | undefined): string {
+    if (!dateString) return 'Récemment';
+    return new Date(dateString).toLocaleDateString('fr-FR', {
       year: 'numeric',
-      month: 'long',
+      month: 'short',
       day: 'numeric'
     });
   }
 
+  // Données de secours fiables
+  private getDefaultCategories(): any[] {
+    return [
+      { id: 1, name: 'Plomberie & Sanitaire', icon: 'plumbing' },
+      { id: 2, name: 'Électricité & Domotique', icon: 'electric_bolt' },
+      { id: 3, name: 'Peinture & Décoration', icon: 'format_paint' },
+      { id: 4, name: 'Bricolage & Menuiserie', icon: 'handyman' },
+      { id: 5, name: 'Jardinage & Extérieurs', icon: 'yard' },
+      { id: 6, name: 'Climatisation & Chauffage', icon: 'hvac' },
+      { id: 7, name: 'Serrurerie & Sécurité', icon: 'lock' },
+      { id: 8, name: 'Nettoyage & Entretien', icon: 'cleaning_services' }
+    ];
+  }
 
+  private getDefaultServices(): ServiceDto[] {
+    return [
+      {
+        id: 1,
+        name: 'Recherche & Réparation de Fuite',
+        description: 'Diagnostic précis par caméra thermique et réparation immédiate de fuite d\'eau.',
+        price: 65,
+        categoryId: 1,
+        returnedImage: '',
+        processedImg: this.categoryImages['plomberie']
+      },
+      {
+        id: 2,
+        name: 'Rénovation Tableau Électrique',
+        description: 'Mise en sécurité totale selon norme NF C 15-100 avec disjoncteurs différentiels.',
+        price: 120,
+        categoryId: 2,
+        returnedImage: '',
+        processedImg: this.categoryImages['electricite']
+      },
+      {
+        id: 3,
+        name: 'Peinture Murs & Plafonds',
+        description: 'Préparation minutieuse des supports, application de 2 couches satinées ou mates.',
+        price: 40,
+        categoryId: 3,
+        returnedImage: '',
+        processedImg: this.categoryImages['peinture']
+      },
+      {
+        id: 4,
+        name: 'Montage Meubles & Dressings',
+        description: 'Assemblage rigoureux de dressings, buffets, canapés et meubles toutes marques.',
+        price: 35,
+        categoryId: 4,
+        returnedImage: '',
+        processedImg: this.categoryImages['bricolage']
+      },
+      {
+        id: 5,
+        name: 'Tonte de Pelouse & Débroussaillage',
+        description: 'Tonte soignée avec finitions au coupe-bordure et évacuation des déchets verts.',
+        price: 45,
+        categoryId: 5,
+        returnedImage: '',
+        processedImg: this.categoryImages['jardinage']
+      },
+      {
+        id: 6,
+        name: 'Entretien & Désinfection Climatiseur',
+        description: 'Nettoyage des filtres, désinfection de l\'évaporateur et contrôle des fluides.',
+        price: 85,
+        categoryId: 6,
+        returnedImage: '',
+        processedImg: this.categoryImages['chauffage']
+      }
+    ];
+  }
+
+  private getDefaultEvaluations(): Evaluation[] {
+    return [
+      {
+        id: 1,
+        comment: "Artisan d'un professionnalisme exemplaire ! La fuite sous l'évier a été colmatée en un temps record avec un travail impeccable et de bons conseils préventifs.",
+        generalRating: 5,
+        serviceQualityRating: 5,
+        punctualityRating: 5,
+        communicationRating: 5,
+        clientId: 2,
+        reservationId: 1,
+        createdAt: '2026-02-15T12:00:00Z'
+      },
+      {
+        id: 2,
+        comment: "Remise aux normes de mon tableau électrique exécutée avec une grande rigueur. Tout est bien étiqueté, propre et sécurisé. Je recommande les yeux fermés !",
+        generalRating: 5,
+        serviceQualityRating: 5,
+        punctualityRating: 5,
+        communicationRating: 5,
+        clientId: 2,
+        reservationId: 2,
+        createdAt: '2026-02-20T18:00:00Z'
+      },
+      {
+        id: 3,
+        comment: "Magnifique résultat pour la peinture de notre chambre ! Ligne de démarcation parfaite, zéro projection et finition satinée très élégante.",
+        generalRating: 5,
+        serviceQualityRating: 5,
+        punctualityRating: 4,
+        communicationRating: 5,
+        clientId: 2,
+        reservationId: 3,
+        createdAt: '2026-02-25T14:30:00Z'
+      }
+    ];
+  }
 }

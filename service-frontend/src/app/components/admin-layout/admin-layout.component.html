@@ -1,6 +1,41 @@
-<div class="admin-container">
+<div class="admin-shell">
+  <!-- Sidebar -->
   <app-admin-sidebar></app-admin-sidebar>
-  <main class="admin-content">
-    <router-outlet></router-outlet>
-  </main>
+
+  <!-- Main Content Wrapper -->
+  <div class="admin-main-wrapper">
+    <!-- Top Command Bar (56px) -->
+    <header class="admin-command-bar">
+      <div class="command-bar-left">
+        <div class="breadcrumb-trail">
+          <span class="breadcrumb-root">AledhemTek Control</span>
+          <mat-icon class="breadcrumb-sep">chevron_right</mat-icon>
+          <span class="breadcrumb-current">{{ pageTitle }}</span>
+        </div>
+      </div>
+
+      <div class="command-bar-right">
+        <!-- Live System Status -->
+        <div class="system-status-chip">
+          <span class="status-pulse-dot"></span>
+          <span class="status-text">Dispatch Opérationnel</span>
+        </div>
+
+        <a routerLink="/client/dashboard" target="_blank" class="btn-command-link" matTooltip="Ouvrir l'Espace Client dans un nouvel onglet">
+          <mat-icon>person</mat-icon>
+          <span>Espace Client</span>
+        </a>
+
+        <a routerLink="/home" target="_blank" class="btn-command-link" matTooltip="Visiter le site public AledhemTek">
+          <mat-icon>storefront</mat-icon>
+          <span>Site Public</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Main Scrollable Content Area -->
+    <main class="admin-content-scroll">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
 </div>

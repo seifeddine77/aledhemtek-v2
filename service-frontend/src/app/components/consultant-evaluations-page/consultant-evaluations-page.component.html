@@ -1,257 +1,274 @@
-<div class="consultant-evaluations-page">
-  <!-- Header -->
-  <div class="page-header">
-    <h1>
-      <mat-icon>star</mat-icon>
-      Mes Évaluations Reçues
-    </h1>
-    <p class="subtitle">Consultez les avis et commentaires de vos clients</p>
-  </div>
+<div class="evaluations-pro-page">
+
+  <!-- Header & Cockpit -->
+  <header class="reputation-cockpit">
+    <div class="cockpit-left">
+      <div class="pro-tag">
+        <mat-icon>verified</mat-icon>
+        <span>Centre de Réputation Pro</span>
+      </div>
+      <h1 class="page-title">Mes Évaluations & Avis Clients</h1>
+      <p class="page-subtitle">Mesurez la satisfaction de vos clients et votre indice de qualité de service</p>
+    </div>
+
+    <div class="cockpit-badge-card">
+      <div class="shield-icon">
+        <mat-icon>workspace_premium</mat-icon>
+      </div>
+      <div class="badge-text">
+        <span class="badge-title">Artisan Certifié</span>
+        <span class="badge-sub">Score d'excellence AledhemTek</span>
+      </div>
+    </div>
+  </header>
 
   <!-- Loading State -->
-  <div *ngIf="loading" class="loading-container">
-    <mat-spinner></mat-spinner>
-    <p>Chargement des évaluations...</p>
+  <div *ngIf="loading" class="loading-state-card">
+    <mat-progress-spinner mode="indeterminate" diameter="48" color="primary"></mat-progress-spinner>
+    <p class="loading-text">Analyse de vos évaluations en cours...</p>
   </div>
 
-  <!-- Content -->
-  <div *ngIf="!loading" class="content">
-    <!-- Statistics Overview -->
-    <div class="stats-section">
-      <h2>Résumé de vos Évaluations</h2>
+  <!-- Content Section -->
+  <div *ngIf="!loading" class="dashboard-body">
+
+    <!-- Bento Analytics Section -->
+    <section class="analytics-bento-grid">
       
-      <div class="stats-grid">
-        <!-- Overall Rating Card -->
-        <mat-card class="stat-card main-rating">
-          <mat-card-header>
-            <mat-card-title>Note Globale</mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            <div class="rating-display">
-              <span class="rating-number">{{ stats.averageRating | number:'1.1-1' }}</span>
-              <div class="stars-container">
-                <span *ngFor="let star of getStarArray(stats.averageRating)" 
-                      class="star" 
-                      [class.filled]="star <= stats.averageRating">
-                  ★
-                </span>
-              </div>
-              <span class="rating-text">{{ getRatingText(stats.averageRating) }}</span>
-            </div>
-            <div class="total-count">
-              Sur {{ stats.totalEvaluations }} évaluation{{ stats.totalEvaluations > 1 ? 's' : '' }}
-            </div>
-          </mat-card-content>
-        </mat-card>
+      <!-- Card 1: Score Global -->
+      <div class="bento-card score-hero-card">
+        <div class="card-tag">Score Global</div>
+        
+        <div class="score-main-display">
+          <span class="score-number">{{ stats.averageRating | number:'1.1-1' }}</span>
+          <span class="score-base">/ 5.0</span>
+        </div>
 
-        <!-- Detailed Ratings -->
-        <mat-card class="stat-card">
-          <mat-card-header>
-            <mat-card-title>Détail par Catégorie</mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            <div class="category-ratings">
-              <div class="category-item">
-                <span class="category-label">Qualité Générale</span>
-                <div class="category-rating">
-                  <span class="rating-value">{{ stats.averageGeneralRating | number:'1.1-1' }}</span>
-                  <div class="mini-stars">
-                    <span *ngFor="let star of getStarArray(stats.averageGeneralRating)" 
-                          class="mini-star" 
-                          [class.filled]="star <= stats.averageGeneralRating">★</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="category-item">
-                <span class="category-label">Qualité du Service</span>
-                <div class="category-rating">
-                  <span class="rating-value">{{ stats.averageServiceQuality | number:'1.1-1' }}</span>
-                  <div class="mini-stars">
-                    <span *ngFor="let star of getStarArray(stats.averageServiceQuality)" 
-                          class="mini-star" 
-                          [class.filled]="star <= stats.averageServiceQuality">★</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="category-item">
-                <span class="category-label">Ponctualité</span>
-                <div class="category-rating">
-                  <span class="rating-value">{{ stats.averagePunctuality | number:'1.1-1' }}</span>
-                  <div class="mini-stars">
-                    <span *ngFor="let star of getStarArray(stats.averagePunctuality)" 
-                          class="mini-star" 
-                          [class.filled]="star <= stats.averagePunctuality">★</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="category-item">
-                <span class="category-label">Communication</span>
-                <div class="category-rating">
-                  <span class="rating-value">{{ stats.averageCommunication | number:'1.1-1' }}</span>
-                  <div class="mini-stars">
-                    <span *ngFor="let star of getStarArray(stats.averageCommunication)" 
-                          class="mini-star" 
-                          [class.filled]="star <= stats.averageCommunication">★</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
+        <div class="stars-row">
+          <span *ngFor="let star of getStarArray(stats.averageRating)" 
+                class="star-glyph" 
+                [class.filled]="star <= stats.averageRating">
+            ★
+          </span>
+        </div>
 
-        <!-- Rating Distribution -->
-        <mat-card class="stat-card">
-          <mat-card-header>
-            <mat-card-title>Répartition des Notes</mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            <div class="distribution-chart">
-              <div class="distribution-item">
-                <span class="distribution-label excellent">Excellent (4.5-5)</span>
-                <div class="distribution-bar">
-                  <div class="bar-fill excellent" [style.width.%]="getPercentage(stats.excellentCount)"></div>
-                </div>
-                <span class="distribution-count">{{ stats.excellentCount }}</span>
-              </div>
-              
-              <div class="distribution-item">
-                <span class="distribution-label good">Très bien (3.5-4.4)</span>
-                <div class="distribution-bar">
-                  <div class="bar-fill good" [style.width.%]="getPercentage(stats.goodCount)"></div>
-                </div>
-                <span class="distribution-count">{{ stats.goodCount }}</span>
-              </div>
-              
-              <div class="distribution-item">
-                <span class="distribution-label average">Bien (2.5-3.4)</span>
-                <div class="distribution-bar">
-                  <div class="bar-fill average" [style.width.%]="getPercentage(stats.averageCount)"></div>
-                </div>
-                <span class="distribution-count">{{ stats.averageCount }}</span>
-              </div>
-              
-              <div class="distribution-item">
-                <span class="distribution-label poor">À améliorer (1-2.4)</span>
-                <div class="distribution-bar">
-                  <div class="bar-fill poor" [style.width.%]="getPercentage(stats.poorCount)"></div>
-                </div>
-                <span class="distribution-count">{{ stats.poorCount }}</span>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
+        <div class="score-status-pill" [style.background-color]="getRatingColor(stats.averageRating) + '20'" [style.color]="getRatingColor(stats.averageRating)">
+          <mat-icon>check_circle</mat-icon>
+          <span>{{ getRatingText(stats.averageRating) }}</span>
+        </div>
+
+        <p class="score-foot-note">Basé sur {{ stats.totalEvaluations }} évaluation{{ stats.totalEvaluations > 1 ? 's' : '' }} vérifiée{{ stats.totalEvaluations > 1 ? 's' : '' }}</p>
       </div>
-    </div>
 
-    <mat-divider></mat-divider>
+      <!-- Card 2: Piliers de Qualité -->
+      <div class="bento-card pillars-card">
+        <div class="card-tag">Piliers de Performance</div>
 
-    <!-- Evaluations List -->
-    <div class="evaluations-section">
-      <h2>Toutes les Évaluations ({{ evaluations.length }})</h2>
-      
+        <div class="pillars-list">
+          
+          <!-- Pilier 1: Qualité Générale -->
+          <div class="pillar-item">
+            <div class="pillar-head">
+              <div class="pillar-name">
+                <mat-icon>star_border</mat-icon>
+                <span>Qualité générale</span>
+              </div>
+              <span class="pillar-score">{{ stats.averageGeneralRating | number:'1.1-1' }} / 5</span>
+            </div>
+            <div class="pillar-progress-track">
+              <div class="pillar-fill fill-blue" [style.width.%]="getScorePercentage(stats.averageGeneralRating)"></div>
+            </div>
+          </div>
+
+          <!-- Pilier 2: Qualité du Service -->
+          <div class="pillar-item">
+            <div class="pillar-head">
+              <div class="pillar-name">
+                <mat-icon>build_circle</mat-icon>
+                <span>Qualité du service & finitions</span>
+              </div>
+              <span class="pillar-score">{{ stats.averageServiceQuality | number:'1.1-1' }} / 5</span>
+            </div>
+            <div class="pillar-progress-track">
+              <div class="pillar-fill fill-green" [style.width.%]="getScorePercentage(stats.averageServiceQuality)"></div>
+            </div>
+          </div>
+
+          <!-- Pilier 3: Ponctualité -->
+          <div class="pillar-item">
+            <div class="pillar-head">
+              <div class="pillar-name">
+                <mat-icon>timer</mat-icon>
+                <span>Ponctualité & respect des délais</span>
+              </div>
+              <span class="pillar-score">{{ stats.averagePunctuality | number:'1.1-1' }} / 5</span>
+            </div>
+            <div class="pillar-progress-track">
+              <div class="pillar-fill fill-purple" [style.width.%]="getScorePercentage(stats.averagePunctuality)"></div>
+            </div>
+          </div>
+
+          <!-- Pilier 4: Communication -->
+          <div class="pillar-item">
+            <div class="pillar-head">
+              <div class="pillar-name">
+                <mat-icon>chat_bubble_outline</mat-icon>
+                <span>Communication & conseil client</span>
+              </div>
+              <span class="pillar-score">{{ stats.averageCommunication | number:'1.1-1' }} / 5</span>
+            </div>
+            <div class="pillar-progress-track">
+              <div class="pillar-fill fill-orange" [style.width.%]="getScorePercentage(stats.averageCommunication)"></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Card 3: Répartition des avis -->
+      <div class="bento-card distribution-card">
+        <div class="card-tag">Répartition des Notes</div>
+
+        <div class="distribution-bars-col">
+          
+          <div class="dist-row">
+            <span class="dist-tier-label">Excellent (4.5 - 5)</span>
+            <div class="dist-bar-track">
+              <div class="dist-bar-fill fill-excellent" [style.width.%]="getPercentage(stats.excellentCount)"></div>
+            </div>
+            <span class="dist-count-badge">{{ stats.excellentCount }}</span>
+          </div>
+
+          <div class="dist-row">
+            <span class="dist-tier-label">Très bien (3.5 - 4.4)</span>
+            <div class="dist-bar-track">
+              <div class="dist-bar-fill fill-good" [style.width.%]="getPercentage(stats.goodCount)"></div>
+            </div>
+            <span class="dist-count-badge">{{ stats.goodCount }}</span>
+          </div>
+
+          <div class="dist-row">
+            <span class="dist-tier-label">Bien (2.5 - 3.4)</span>
+            <div class="dist-bar-track">
+              <div class="dist-bar-fill fill-average" [style.width.%]="getPercentage(stats.averageCount)"></div>
+            </div>
+            <span class="dist-count-badge">{{ stats.averageCount }}</span>
+          </div>
+
+          <div class="dist-row">
+            <span class="dist-tier-label">À améliorer (1 - 2.4)</span>
+            <div class="dist-bar-track">
+              <div class="dist-bar-fill fill-poor" [style.width.%]="getPercentage(stats.poorCount)"></div>
+            </div>
+            <span class="dist-count-badge">{{ stats.poorCount }}</span>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Reviews Stream Section -->
+    <section class="reviews-section">
+      <div class="section-top-bar">
+        <div class="section-title-wrap">
+          <h2 class="section-title">Commentaires & Retours Clients</h2>
+          <span class="reviews-count-pill">{{ evaluations.length }} avis</span>
+        </div>
+      </div>
+
       <!-- Empty State -->
-      <div *ngIf="evaluations.length === 0" class="empty-state">
-        <mat-icon>star_border</mat-icon>
-        <h3>Aucune évaluation reçue</h3>
-        <p>Vous n'avez pas encore reçu d'évaluations de vos clients.</p>
-        <p>Les évaluations apparaîtront ici après vos premières interventions.</p>
+      <div *ngIf="evaluations.length === 0" class="empty-reviews-card">
+        <div class="empty-icon-box">
+          <mat-icon>star_border</mat-icon>
+        </div>
+        <h3 class="empty-title">Aucune évaluation enregistrée</h3>
+        <p class="empty-desc">Vos avis clients apparaîtront automatiquement ici dès que vos premières interventions seront validées et notées.</p>
       </div>
 
-      <!-- Evaluations Grid -->
-      <div *ngIf="evaluations.length > 0" class="evaluations-grid">
-        <mat-card *ngFor="let evaluation of evaluations" class="evaluation-card">
-          <mat-card-header>
-            <div class="evaluation-header">
-              <div class="client-info">
-                <mat-icon>person</mat-icon>
-                <span class="client-name">{{ getReservation(evaluation.reservationId)?.clientName || 'Client' }}</span>
+      <!-- Grid of Review Cards -->
+      <div *ngIf="evaluations.length > 0" class="reviews-grid">
+        <article *ngFor="let ev of paginatedEvaluations" class="review-pro-card">
+          
+          <!-- Card Header -->
+          <div class="review-header">
+            <div class="client-profile-chip">
+              <div class="client-avatar">
+                {{ getClientInitials(getReservation(ev.reservationId)?.clientName) }}
               </div>
-              <div class="evaluation-date">
-                {{ formatDate(evaluation.createdAt || '') }}
-              </div>
-            </div>
-          </mat-card-header>
-
-          <mat-card-content>
-            <!-- Overall Rating -->
-            <div class="overall-rating">
-              <span class="rating-label">Note globale :</span>
-              <div class="stars-display">
-                <span *ngFor="let star of getStarArray(getEvaluationAverage(evaluation))" 
-                      class="star" 
-                      [class.filled]="star <= getEvaluationAverage(evaluation)">
-                  ★
+              <div class="client-meta">
+                <span class="client-name">{{ getReservation(ev.reservationId)?.clientName || 'Client vérifié' }}</span>
+                <span class="verified-tag">
+                  <mat-icon>verified</mat-icon>
+                  Intervention vérifiée
                 </span>
-                <span class="rating-number">({{ getEvaluationAverage(evaluation) | number:'1.1-1' }})</span>
               </div>
             </div>
 
-            <!-- Detailed Ratings -->
-            <div class="detailed-ratings">
-              <div class="rating-row">
-                <span class="rating-category">Qualité générale :</span>
-                <div class="rating-stars">
-                  <span *ngFor="let star of getStarArray(evaluation.generalRating)" 
-                        class="mini-star" 
-                        [class.filled]="star <= evaluation.generalRating">★</span>
-                  <span class="rating-value">({{ evaluation.generalRating }})</span>
-                </div>
-              </div>
-              
-              <div class="rating-row">
-                <span class="rating-category">Qualité du service :</span>
-                <div class="rating-stars">
-                  <span *ngFor="let star of getStarArray(evaluation.serviceQualityRating)" 
-                        class="mini-star" 
-                        [class.filled]="star <= evaluation.serviceQualityRating">★</span>
-                  <span class="rating-value">({{ evaluation.serviceQualityRating }})</span>
-                </div>
-              </div>
-              
-              <div class="rating-row">
-                <span class="rating-category">Ponctualité :</span>
-                <div class="rating-stars">
-                  <span *ngFor="let star of getStarArray(evaluation.punctualityRating)" 
-                        class="mini-star" 
-                        [class.filled]="star <= evaluation.punctualityRating">★</span>
-                  <span class="rating-value">({{ evaluation.punctualityRating }})</span>
-                </div>
-              </div>
-              
-              <div class="rating-row">
-                <span class="rating-category">Communication :</span>
-                <div class="rating-stars">
-                  <span *ngFor="let star of getStarArray(evaluation.communicationRating)" 
-                        class="mini-star" 
-                        [class.filled]="star <= evaluation.communicationRating">★</span>
-                  <span class="rating-value">({{ evaluation.communicationRating }})</span>
-                </div>
-              </div>
-            </div>
+            <span class="review-date-pill">
+              {{ formatDate(ev.createdAt || '') }}
+            </span>
+          </div>
 
-            <!-- Comment -->
-            <div *ngIf="evaluation.comment" class="comment-section">
-              <mat-divider></mat-divider>
-              <div class="comment">
-                <mat-icon>format_quote</mat-icon>
-                <p>{{ evaluation.comment }}</p>
-              </div>
+          <!-- Overall Rating on this review -->
+          <div class="review-rating-banner">
+            <div class="stars-cluster">
+              <span *ngFor="let s of getStarArray(getEvaluationAverage(ev))" 
+                    class="star-glyph" 
+                    [class.filled]="s <= getEvaluationAverage(ev)">
+                ★
+              </span>
             </div>
+            <span class="rating-badge-pill">
+              {{ getEvaluationAverage(ev) | number:'1.1-1' }} / 5
+            </span>
+          </div>
 
-            <!-- Reservation Info -->
-            <div class="reservation-info">
-              <mat-divider></mat-divider>
-              <div class="reservation-details">
-                <mat-icon>event</mat-icon>
-                <span>Intervention du {{ formatDate(getReservation(evaluation.reservationId)?.startDate || '') }}</span>
-              </div>
+          <!-- Comment Quote -->
+          <div class="review-quote-box" *ngIf="ev.comment">
+            <mat-icon class="quote-icon">format_quote</mat-icon>
+            <p class="quote-text">{{ ev.comment }}</p>
+          </div>
+
+          <!-- Mini Ratings Grid -->
+          <div class="micro-ratings-row">
+            <div class="micro-rating-chip" matTooltip="Qualité générale">
+              <span class="chip-label">Qualité :</span>
+              <span class="chip-score">{{ ev.generalRating }}/5</span>
             </div>
-          </mat-card-content>
-        </mat-card>
+            <div class="micro-rating-chip" matTooltip="Qualité de service">
+              <span class="chip-label">Service :</span>
+              <span class="chip-score">{{ ev.serviceQualityRating }}/5</span>
+            </div>
+            <div class="micro-rating-chip" matTooltip="Ponctualité">
+              <span class="chip-label">Ponctualité :</span>
+              <span class="chip-score">{{ ev.punctualityRating }}/5</span>
+            </div>
+            <div class="micro-rating-chip" matTooltip="Communication">
+              <span class="chip-label">Comms :</span>
+              <span class="chip-score">{{ ev.communicationRating }}/5</span>
+            </div>
+          </div>
+
+          <!-- Intervention Reference -->
+          <div class="reservation-footer" *ngIf="getReservation(ev.reservationId)">
+            <mat-icon>handyman</mat-icon>
+            <span class="res-title">{{ getReservation(ev.reservationId)?.title }}</span>
+          </div>
+
+        </article>
       </div>
-    </div>
+
+      <!-- Pagination -->
+      <div class="pagination-wrap" *ngIf="evaluations.length > 0">
+        <app-pagination
+          [config]="paginationConfig"
+          (pageChange)="onPageChange($event)"
+          (pageSizeChange)="onPageSizeChange($event)">
+        </app-pagination>
+      </div>
+
+    </section>
+
   </div>
+
 </div>

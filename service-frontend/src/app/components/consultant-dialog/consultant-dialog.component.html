@@ -1,40 +1,92 @@
-<mat-card class="dialog-card">
-  <div class="dialog-header">
-    <mat-card-title>Consultant Info</mat-card-title>
-    <button mat-icon-button class="close-button" (click)="onCancel()" aria-label="Close">
+<div class="dialog-modern-container">
+  <!-- Dialog Header -->
+  <div class="dialog-modern-header">
+    <div class="dialog-modern-header-content">
+      <div class="header-icon">
+        <mat-icon>engineering</mat-icon>
+      </div>
+      <div>
+        <h2>Profil Professionnel Consultant</h2>
+        <p class="text-muted m-0" style="font-size: 0.8125rem;">Complétez vos informations d'activité pour proposer vos services</p>
+      </div>
+    </div>
+    <button mat-icon-button (click)="onCancel()" aria-label="Fermer">
       <mat-icon>close</mat-icon>
     </button>
   </div>
 
-  <mat-card-content>
-    <form (ngSubmit)="onSave()">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Company Name</mat-label>
-        <input matInput id="companyName" name="companyName" [(ngModel)]="consultantData.companyName" autocomplete="organization" required />
+  <!-- Dialog Body -->
+  <div class="dialog-modern-body">
+    <form (ngSubmit)="onSave()" #consultantForm="ngForm" class="form-grid-1">
+      
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>Nom de l'entreprise ou Raison sociale</mat-label>
+        <mat-icon matPrefix class="me-2 text-muted">business</mat-icon>
+        <input matInput id="companyName" name="companyName" [(ngModel)]="consultantData.companyName" 
+               placeholder="Ex: SARL Bati-Plomb ou Auto-entrepreneur" autocomplete="organization" required />
+        <mat-hint>Nom commercial ou raison juridique</mat-hint>
       </mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Job Title</mat-label>
-        <input matInput id="jobTitle" name="jobTitle" [(ngModel)]="consultantData.jobTitle" autocomplete="organization-title" required />
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>Spécialité / Métier principal</mat-label>
+        <mat-icon matPrefix class="me-2 text-muted">work_outline</mat-icon>
+        <input matInput id="jobTitle" name="jobTitle" [(ngModel)]="consultantData.jobTitle" 
+               placeholder="Ex: Plombier chauffagiste certifié" autocomplete="organization-title" required />
+        <mat-hint>Votre domaine d'expertise principal</mat-hint>
       </mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Years of Experience</mat-label>
-        <input matInput id="experienceYears" name="experienceYears" [(ngModel)]="consultantData.experienceYears" type="number" required />
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>Années d'expérience professionnelle</mat-label>
+        <mat-icon matPrefix class="me-2 text-muted">timeline</mat-icon>
+        <input matInput id="experienceYears" name="experienceYears" [(ngModel)]="consultantData.experienceYears" 
+               type="number" min="0" max="60" placeholder="Ex: 7" required />
+        <mat-hint>Nombre d'années de pratique dans le domaine</mat-hint>
       </mat-form-field>
 
-      <div class="file-upload mt-3">
-        <label for="resumeFile" class="form-label fw-semibold">Resume (PDF or DOCX)</label>
-        <input type="file" id="resumeFile" name="resumeFile" (change)="onFileSelected($event)" accept=".pdf,.doc,.docx" />
-        <div *ngIf="resumeFileName" class="mt-1 text-muted">
-          Selected file: <strong>{{ resumeFileName }}</strong>
+      <!-- CV / Justificatif Upload -->
+      <div class="file-upload-box">
+        <label class="form-label fw-bold mb-2 d-flex align-items-center gap-2">
+          <mat-icon class="text-primary" style="font-size: 20px; width: 20px; height: 20px;">description</mat-icon>
+          Curriculum Vitae ou Justificatif professionnel
+        </label>
+        
+        <div class="file-upload-modern" (click)="resumeInput.click()">
+          <div class="file-upload-icon">
+            <mat-icon>cloud_upload</mat-icon>
+          </div>
+          <div class="file-upload-text">
+            <strong>Cliquez ici pour sélectionner</strong> ou glissez un fichier
+            <div class="text-muted small mt-1">Formats acceptés : PDF, DOC, DOCX (Max 10 Mo)</div>
+          </div>
+        </div>
+        <input type="file" id="resumeFile" #resumeInput style="display: none" (change)="onFileSelected($event)" accept=".pdf,.doc,.docx" />
+
+        <div *ngIf="resumeFileName" class="file-upload-preview mt-2">
+          <div class="header-icon" style="width: 40px; height: 40px;">
+            <mat-icon>article</mat-icon>
+          </div>
+          <div class="file-details">
+            <div class="file-name">{{ resumeFileName }}</div>
+            <div class="file-size text-success fw-semibold">Fichier prêt pour validation</div>
+          </div>
+          <button mat-icon-button color="warn" type="button" (click)="resumeFile = null; resumeFileName = ''" matTooltip="Supprimer ce fichier">
+            <mat-icon>delete_outline</mat-icon>
+          </button>
         </div>
       </div>
 
-      <div class="dialog-actions mt-4">
-        <button mat-raised-button color="warn" type="button" (click)="onCancel()">Cancel</button>
-        <button mat-raised-button color="primary" type="submit">Save</button>
-      </div>
     </form>
-  </mat-card-content>
-</mat-card>
+  </div>
+
+  <!-- Dialog Actions -->
+  <div class="dialog-modern-actions">
+    <button mat-stroked-button type="button" (click)="onCancel()">
+      Annuler
+    </button>
+    <button mat-raised-button color="primary" type="button" (click)="onSave()">
+      <mat-icon>check</mat-icon>
+      Enregistrer mon profil
+    </button>
+  </div>
+</div>
+

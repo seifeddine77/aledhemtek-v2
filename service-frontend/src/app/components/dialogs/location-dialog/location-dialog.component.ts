@@ -4,9 +4,11 @@ import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/materia
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { LocationMapComponent } from '../../shared/location-map/location-map.component';
 import { Reservation } from '../../../models/reservation.model';
 import { CustomGeolocationPosition } from '../../../services/geolocation.service';
+import { CleanTextPipe } from '../../../pipes/clean-text.pipe';
 
 export interface LocationDialogData {
   reservation: Reservation;
@@ -21,7 +23,9 @@ export interface LocationDialogData {
     MatButtonModule,
     MatIconModule,
     MatSnackBarModule,
-    LocationMapComponent
+    MatTooltipModule,
+    LocationMapComponent,
+    CleanTextPipe
   ],
   templateUrl: './location-dialog.component.html',
   styleUrls: ['./location-dialog.component.css']
@@ -40,7 +44,7 @@ export class LocationDialogComponent {
       return {
         latitude: lat,
         longitude: lng,
-        accuracy: 10, // Valeur par défaut
+        accuracy: 10,
         address: this.data.reservation.address || undefined
       };
     }

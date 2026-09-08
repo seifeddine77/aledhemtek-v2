@@ -1,173 +1,252 @@
 <div class="consultant-management-container">
-  <mat-card class="header-card">
-    <mat-card-header>
-      <mat-card-title>
-        <mat-icon>people</mat-icon>
-        Gestion des Consultants
-      </mat-card-title>
-      <mat-card-subtitle>
-        Gérer les consultants, leurs CVs et leurs statuts d'approbation
-      </mat-card-subtitle>
-    </mat-card-header>
-  </mat-card>
-
-  <div class="loading-container" *ngIf="loading">
-    <mat-spinner></mat-spinner>
-    <p>Chargement des consultants...</p>
+  <!-- Header Bar -->
+  <div class="page-header-row">
+    <div class="header-titles">
+      <div class="title-badge indigo">
+        <mat-icon>engineering</mat-icon>
+      </div>
+      <div>
+        <h1 class="page-title">Annuaire des Artisans &amp; Consultants</h1>
+        <p class="page-subtitle">Gestion des agréments professionnels, conformité des garanties décennales et statut d'activation</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button mat-stroked-button color="primary" (click)="fetchAll()" [disabled]="loading" class="btn-refresh">
+        <mat-icon>refresh</mat-icon>
+        <span>Actualiser</span>
+      </button>
+    </div>
   </div>
 
-  <div class="table-container" *ngIf="!loading">
-    <table mat-table [dataSource]="consultants" class="mat-elevation-z8 consultant-table">
+  <!-- KPI Cards Grid -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon-wrap blue">
+        <mat-icon>groups</mat-icon>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.total }}</div>
+        <div class="stat-label">Total Artisans Inscrits</div>
+      </div>
+    </div>
 
-      <!-- ID Column -->
-      <ng-container matColumnDef="id">
-        <th mat-header-cell *matHeaderCellDef> #ID </th>
-        <td mat-cell *matCellDef="let consultant"> {{consultant.id}} </td>
-      </ng-container>
+    <div class="stat-card">
+      <div class="stat-icon-wrap green">
+        <mat-icon>verified</mat-icon>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.approved }}</div>
+        <div class="stat-label">Agréés &amp; Actifs</div>
+      </div>
+    </div>
 
-      <!-- Name Column -->
-      <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef> Nom Complet </th>
-        <td mat-cell *matCellDef="let consultant"> 
-          <div class="consultant-name">
-            <strong>{{consultant.firstName}} {{consultant.lastName}}</strong>
-          </div>
-        </td>
-      </ng-container>
+    <div class="stat-card">
+      <div class="stat-icon-wrap amber">
+        <mat-icon>pending_actions</mat-icon>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.pending }}</div>
+        <div class="stat-label">Dossiers en attente</div>
+      </div>
+    </div>
 
-      <!-- Email Column -->
-      <ng-container matColumnDef="email">
-        <th mat-header-cell *matHeaderCellDef> Email </th>
-        <td mat-cell *matCellDef="let consultant"> 
-          <a href="mailto:{{consultant.email}}" class="email-link">{{consultant.email}}</a>
-        </td>
-      </ng-container>
-
-      <!-- Profession Column -->
-      <ng-container matColumnDef="profession">
-        <th mat-header-cell *matHeaderCellDef> Profession </th>
-        <td mat-cell *matCellDef="let consultant"> {{consultant.profession || 'Non spécifiée'}} </td>
-      </ng-container>
-
-      <!-- Experience Column -->
-      <ng-container matColumnDef="experience">
-        <th mat-header-cell *matHeaderCellDef> Expérience </th>
-        <td mat-cell *matCellDef="let consultant"> 
-          <span *ngIf="consultant.exp !== null && consultant.exp !== undefined; else noExp">
-            {{consultant.exp}} ans
-          </span>
-          <ng-template #noExp>
-            <span class="no-data-text">Non spécifiée</span>
-          </ng-template>
-        </td>
-      </ng-container>
-
-      <!-- Company Column -->
-      <ng-container matColumnDef="company">
-        <th mat-header-cell *matHeaderCellDef> Entreprise </th>
-        <td mat-cell *matCellDef="let consultant">
-          <span *ngIf="consultant.companyName; else noCompany">
-            {{consultant.companyName}}
-          </span>
-          <ng-template #noCompany>
-            <span class="no-data-text">Non spécifiée</span>
-          </ng-template>
-        </td>
-      </ng-container>
-
-      <!-- Status Column -->
-      <ng-container matColumnDef="status">
-        <th mat-header-cell *matHeaderCellDef> Statut </th>
-        <td mat-cell *matCellDef="let consultant"> 
-          <mat-chip [color]="getStatusColor(consultant.status)" selected>
-            {{getStatusText(consultant.status)}}
-          </mat-chip>
-        </td>
-      </ng-container>
-
-      <!-- Resume Column -->
-      <ng-container matColumnDef="resume">
-        <th mat-header-cell *matHeaderCellDef> CV </th>
-        <td mat-cell *matCellDef="let consultant">
-          <div class="resume-actions" *ngIf="consultant.resumePath; else noResume">
-            <button
-              mat-icon-button
-              color="accent"
-              matTooltip="Voir le CV"
-              (click)="viewResume(consultant)"
-              class="resume-btn">
-              <mat-icon>visibility</mat-icon>
-            </button>
-            <button
-              mat-icon-button
-              color="primary"
-              matTooltip="Télécharger le CV"
-              (click)="downloadResume(consultant)"
-              class="resume-btn">
-              <mat-icon>download</mat-icon>
-            </button>
-          </div>
-          <ng-template #noResume>
-            <span class="no-resume">Aucun CV</span>
-          </ng-template>
-        </td>
-      </ng-container>
-
-      <!-- Actions Column -->
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef> Actions </th>
-        <td mat-cell *matCellDef="let consultant">
-          <div class="action-buttons">
-            <!-- Approve Button -->
-            <button 
-              mat-icon-button 
-              color="primary"
-              matTooltip="Approuver le consultant"
-              [disabled]="consultant.status === 'APPROVED'"
-              (click)="approve(consultant)"
-              class="action-btn approve-btn">
-              <mat-icon>check_circle</mat-icon>
-            </button>
-            
-            <!-- Reject Button -->
-            <button 
-              mat-icon-button 
-              color="warn"
-              matTooltip="Rejeter le consultant"
-              [disabled]="consultant.status === 'REJECTED'"
-              (click)="reject(consultant.id!)"
-              class="action-btn reject-btn">
-              <mat-icon>cancel</mat-icon>
-            </button>
-            
-            <!-- Delete Button -->
-            <button 
-              mat-icon-button 
-              color="warn"
-              matTooltip="Supprimer le consultant"
-              (click)="delete(consultant.id!)"
-              class="action-btn delete-btn">
-              <mat-icon>delete</mat-icon>
-            </button>
-          </div>
-        </td>
-      </ng-container>
-
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-    </table>
+    <div class="stat-card">
+      <div class="stat-icon-wrap red">
+        <mat-icon>person_off</mat-icon>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.rejected }}</div>
+        <div class="stat-label">Dossiers non retenus</div>
+      </div>
+    </div>
   </div>
 
-  <div class="no-data" *ngIf="!loading && consultants.length === 0">
-    <mat-card>
-      <mat-card-content>
-        <div class="no-data-content">
-          <mat-icon>people_outline</mat-icon>
-          <h3>Aucun consultant trouvé</h3>
-          <p>Il n'y a actuellement aucun consultant dans le système.</p>
-        </div>
-      </mat-card-content>
-    </mat-card>
+  <!-- Filters Toolbar Card -->
+  <div class="card-container mat-elevation-z1">
+    <div class="filter-toolbar">
+      <div class="search-input-box">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input 
+          type="text" 
+          [(ngModel)]="searchTerm" 
+          (ngModelChange)="applyFilter()" 
+          placeholder="Rechercher par nom, email, métier ou entreprise..." 
+          class="custom-search"
+        />
+        <button *ngIf="searchTerm" mat-icon-button (click)="searchTerm = ''; applyFilter()" class="btn-clear-search">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="status-filter-box">
+        <mat-form-field appearance="outline" class="select-field">
+          <mat-label>Filtrer par statut</mat-label>
+          <mat-select [(ngModel)]="statusFilter" (selectionChange)="applyFilter()">
+            <mat-option value="ALL">Tous les statuts</mat-option>
+            <mat-option value="APPROVED">Agréés &amp; Vérifiés</mat-option>
+            <mat-option value="PENDING">En attente d'audit</mat-option>
+            <mat-option value="REJECTED">Refusés</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="count-badge-wrap">
+        <span class="count-badge">{{ filteredConsultants.length }} artisan{{ filteredConsultants.length > 1 ? 's' : '' }}</span>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="loading">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Chargement des profils d'artisans...</p>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive" *ngIf="!loading && paginatedConsultants.length > 0">
+      <table mat-table [dataSource]="paginatedConsultants" class="consultants-table">
+
+        <!-- ID Column -->
+        <ng-container matColumnDef="id">
+          <th mat-header-cell *matHeaderCellDef> #ID </th>
+          <td mat-cell *matCellDef="let consultant">
+            <span class="id-tag">#{{ consultant.id }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Name Column -->
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef> Artisan &amp; Contact </th>
+          <td mat-cell *matCellDef="let consultant">
+            <div class="artisan-profile-cell">
+              <div class="artisan-avatar-box">
+                {{ (consultant.firstName ? consultant.firstName[0] : '') }}{{ (consultant.lastName ? consultant.lastName[0] : '') }}
+              </div>
+              <div class="artisan-info-meta">
+                <span class="artisan-full-name">{{ consultant.firstName }} {{ consultant.lastName }}</span>
+                <span class="artisan-email">{{ consultant.email }}</span>
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Profession Column -->
+        <ng-container matColumnDef="profession">
+          <th mat-header-cell *matHeaderCellDef> Corps de Métier </th>
+          <td mat-cell *matCellDef="let consultant">
+            <span class="trade-badge">
+              <mat-icon>build</mat-icon>
+              {{ (consultant.profession | cleanText) || 'Artisan Tous Corps d\'État' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Experience Column -->
+        <ng-container matColumnDef="experience">
+          <th mat-header-cell *matHeaderCellDef class="text-center"> Expérience </th>
+          <td mat-cell *matCellDef="let consultant" class="text-center">
+            <span class="experience-pill" *ngIf="consultant.exp != null">
+              {{ consultant.exp }} an{{ consultant.exp > 1 ? 's' : '' }}
+            </span>
+            <span class="text-muted" *ngIf="consultant.exp == null">-</span>
+          </td>
+        </ng-container>
+
+        <!-- Company Column -->
+        <ng-container matColumnDef="company">
+          <th mat-header-cell *matHeaderCellDef> Entreprise / SIRET </th>
+          <td mat-cell *matCellDef="let consultant">
+            <div class="company-cell">
+              <span class="company-name">{{ consultant.companyName || 'Artisan Indépendant' }}</span>
+              <span class="company-badge-verified">Décennale vérifiée</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Status Column -->
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef class="text-center"> Agrément </th>
+          <td mat-cell *matCellDef="let consultant" class="text-center">
+            <span class="status-pill" [ngClass]="consultant.status === 'APPROVED' ? 'status-completed' : (consultant.status === 'REJECTED' ? 'status-cancelled' : 'status-pending')">
+              {{ getStatusText(consultant.status) }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Resume Column -->
+        <ng-container matColumnDef="resume">
+          <th mat-header-cell *matHeaderCellDef class="text-center"> Pièces &amp; CV </th>
+          <td mat-cell *matCellDef="let consultant" class="text-center">
+            <button 
+              *ngIf="consultant.resumePath" 
+              mat-icon-button 
+              color="primary" 
+              (click)="viewResume(consultant)" 
+              matTooltip="Consulter le dossier / CV">
+              <mat-icon>description</mat-icon>
+            </button>
+            <span class="text-muted" *ngIf="!consultant.resumePath">Non joint</span>
+          </td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="text-right"> Décision </th>
+          <td mat-cell *matCellDef="let consultant" class="text-right">
+            <div class="actions-group">
+              <button 
+                mat-icon-button 
+                color="accent" 
+                (click)="openConsultantDossier(consultant)" 
+                matTooltip="Consulter le dossier d'agrément complet">
+                <mat-icon>verified_user</mat-icon>
+              </button>
+
+              <button 
+                *ngIf="consultant.status !== 'APPROVED'" 
+                mat-button 
+                color="primary" 
+                (click)="approve(consultant)" 
+                class="btn-approve-action" 
+                matTooltip="Agréer cet artisan pour intervenir sur le réseau">
+                <mat-icon>check</mat-icon>
+                <span>Agréer</span>
+              </button>
+
+              <button 
+                *ngIf="consultant.status !== 'REJECTED'" 
+                mat-button 
+                color="warn" 
+                (click)="reject(consultant)" 
+                class="btn-reject-action" 
+                matTooltip="Rejeter le dossier">
+                <mat-icon>close</mat-icon>
+                <span>Refuser</span>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="consultant-row"></tr>
+      </table>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="!loading && paginatedConsultants.length === 0">
+      <div class="empty-icon-wrap">
+        <mat-icon>person_search</mat-icon>
+      </div>
+      <h3>Aucun artisan trouvé</h3>
+      <p>Aucun professionnel ne correspond aux critères de recherche sélectionnés.</p>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-footer" *ngIf="!loading && filteredConsultants.length > 0">
+      <app-pagination 
+        [config]="paginationConfig" 
+        (pageChange)="onPageChange($event)" 
+        (pageSizeChange)="onPageSizeChange($event)">
+      </app-pagination>
+    </div>
   </div>
 </div>
-

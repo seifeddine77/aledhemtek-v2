@@ -1,113 +1,242 @@
-<div class="admin-dashboard">
-  <div class="dashboard-header">
-    <div class="header-text">
-      <h1>Dashboard Administrateur</h1>
-      <p>Supervision globale, pilotage opérationnel et gestion de la plateforme AledhemTek</p>
+<div class="dashboard-page-container">
+  <!-- Executive Overview Strip -->
+  <div class="executive-top-strip">
+    <div class="executive-titles">
+      <div class="greeting-row">
+        <span class="greeting-badge">Console de Supervision</span>
+        <span class="greeting-date">{{ todayDate | date:'fullDate':'':'fr-FR' }}</span>
+      </div>
+      <p class="executive-tagline">Pilotage en temps réel du flux des interventions, des artisans qualifiés et des prestations</p>
     </div>
-    <div class="header-badge">
-      <span class="badge-status badge-paid">Système Opérationnel</span>
+    <div class="executive-meta">
+      <div class="system-status-indicator">
+        <span class="status-pulse-dot"></span>
+        <span class="status-text">Système Opérationnel</span>
+      </div>
+      <button mat-stroked-button class="quick-action-btn" routerLink="/admin/reservations">
+        <mat-icon>assignment</mat-icon>
+        <span>Planning Missions</span>
+      </button>
     </div>
   </div>
 
-  <div class="dashboard-grid">
-    <!-- Quick Stats -->
-    <mat-card class="stats-card">
-      <mat-card-header>
-        <mat-card-title>
-          <mat-icon>analytics</mat-icon>
-          Accès Rapide
-        </mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="quick-actions">
-          <button mat-raised-button color="primary" routerLink="/admin/evaluation-stats">
-            <mat-icon>bar_chart</mat-icon>
-            Statistiques Évaluations
-          </button>
-          <button mat-raised-button color="accent" routerLink="/admin/evaluations">
-            <mat-icon>star</mat-icon>
-            Gérer Évaluations
-          </button>
-          <button mat-raised-button routerLink="/admin/reservations">
-            <mat-icon>calendar_today</mat-icon>
-            Réservations
-          </button>
-          <button mat-raised-button routerLink="/admin/employees">
-            <mat-icon>people</mat-icon>
-            Employés
-          </button>
-          <button mat-raised-button color="primary" routerLink="/admin/invoices">
-            <mat-icon>receipt</mat-icon>
-            Factures
-          </button>
-          <button mat-raised-button color="accent" routerLink="/admin/invoices/dashboard">
-            <mat-icon>analytics</mat-icon>
-            Dashboard Financier
+  <!-- Unassigned Urgent Banner (if unassignedCount > 0) -->
+  <div class="unassigned-alert-banner" *ngIf="unassignedCount > 0">
+    <div class="alert-leading">
+      <div class="alert-icon-wrap">
+        <mat-icon>notification_important</mat-icon>
+      </div>
+      <div class="alert-content">
+        <h4 class="alert-headline">{{ unassignedCount }} intervention(s) en attente d'affectation</h4>
+        <p class="alert-sub">Des demandes clients confirmées attendent la désignation d'un consultant ou artisan agréé.</p>
+      </div>
+    </div>
+    <button mat-flat-button class="alert-action-btn" routerLink="/admin/reservations">
+      <span>Dépêcher un artisan</span>
+      <mat-icon>arrow_forward</mat-icon>
+    </button>
+  </div>
+
+  <!-- KPI Executive Metrics Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon-box blue">
+        <mat-icon>calendar_month</mat-icon>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-label">Total Missions</span>
+        <span class="kpi-number">{{ totalReservations }}</span>
+        <span class="kpi-sub">Historique global</span>
+      </div>
+    </div>
+
+    <div class="kpi-card" [class.highlight-urgent]="unassignedCount > 0">
+      <div class="kpi-icon-box" [ngClass]="unassignedCount > 0 ? 'rose' : 'emerald'">
+        <mat-icon>{{ unassignedCount > 0 ? 'pending_actions' : 'check_circle' }}</mat-icon>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-label">À Affecter</span>
+        <span class="kpi-number">{{ unassignedCount }}</span>
+        <span class="kpi-sub">{{ unassignedCount > 0 ? 'Nécessite action' : 'Tout est assigné' }}</span>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon-box amber">
+        <mat-icon>engineering</mat-icon>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-label">En Cours</span>
+        <span class="kpi-number">{{ inProgressCount }}</span>
+        <span class="kpi-sub">Interventions sur site</span>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon-box indigo">
+        <mat-icon>category</mat-icon>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-label">Services Actifs</span>
+        <span class="kpi-number">{{ totalServices }}</span>
+        <span class="kpi-sub">Pôles d'intervention</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Split Layout -->
+  <div class="dashboard-split-grid">
+    
+    <!-- Left Column: Recent Missions Feed -->
+    <div class="split-col-main">
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-title-wrap">
+            <mat-icon class="section-icon">history</mat-icon>
+            <h3 class="section-title">Dernières Demandes & Interventions</h3>
+          </div>
+          <button mat-button class="see-all-btn" routerLink="/admin/reservations">
+            <span>Voir tout</span>
+            <mat-icon>chevron_right</mat-icon>
           </button>
         </div>
-      </mat-card-content>
-    </mat-card>
 
-    <!-- Notification Test Panel -->
-    <mat-card class="test-card">
-      <mat-card-header>
-        <mat-card-title>
-          <mat-icon>notifications</mat-icon>
-          Test des Notifications
-        </mat-card-title>
-        <mat-card-subtitle>Simuler des événements pour tester le système</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
+        <div class="feed-list" *ngIf="recentReservations.length > 0; else emptyReservations">
+          <div class="feed-item" *ngFor="let res of recentReservations">
+            <div class="feed-item-icon">
+              <mat-icon>handyman</mat-icon>
+            </div>
+            <div class="feed-item-content">
+              <div class="feed-item-top">
+                <span class="item-title">{{ res.title | cleanText }}</span>
+                <span class="item-status" [ngClass]="'status-' + (res.status ? res.status.toLowerCase().replace('_', '-') : 'pending')">
+                  {{ getStatusText(res.status) }}
+                </span>
+              </div>
+              <div class="feed-item-meta">
+                <span class="meta-tag client">
+                  <mat-icon>person</mat-icon>
+                  {{ res.clientName || 'Client #' + res.clientId }}
+                </span>
+                <span class="meta-tag artisan" [class.unassigned]="!res.consultantName">
+                  <mat-icon>engineering</mat-icon>
+                  {{ res.consultantName || 'Non assigné' }}
+                </span>
+                <span class="meta-tag date">
+                  <mat-icon>schedule</mat-icon>
+                  {{ formatDate(res.startDate) }}
+                </span>
+              </div>
+            </div>
+            <div class="feed-item-action">
+              <button mat-icon-button routerLink="/admin/reservations" matTooltip="Gérer la mission">
+                <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #emptyReservations>
+          <div class="empty-feed-placeholder">
+            <mat-icon>check_circle_outline</mat-icon>
+            <p>Aucune réservation en cours enregistrée.</p>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+
+    <!-- Right Column: Shortcuts & Quick Launch -->
+    <div class="split-col-side">
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-title-wrap">
+            <mat-icon class="section-icon">grid_view</mat-icon>
+            <h3 class="section-title">Modules de Gestion</h3>
+          </div>
+        </div>
+
+        <div class="modules-grid">
+          <a routerLink="/admin/reservations" class="module-card">
+            <div class="module-icon-box blue">
+              <mat-icon>assignment</mat-icon>
+            </div>
+            <div class="module-info">
+              <h4 class="module-name">Réservations</h4>
+              <p class="module-desc">Affectation & planning</p>
+            </div>
+          </a>
+
+          <a routerLink="/admin/employees" class="module-card">
+            <div class="module-icon-box indigo">
+              <mat-icon>groups</mat-icon>
+            </div>
+            <div class="module-info">
+              <h4 class="module-name">Artisans</h4>
+              <p class="module-desc">Consultants & compétences</p>
+            </div>
+          </a>
+
+          <a routerLink="/admin/services" class="module-card">
+            <div class="module-icon-box purple">
+              <mat-icon>handyman</mat-icon>
+            </div>
+            <div class="module-info">
+              <h4 class="module-name">Services</h4>
+              <p class="module-desc">Catalogue des prestations</p>
+            </div>
+          </a>
+
+          <a routerLink="/admin/tasks-management" class="module-card">
+            <div class="module-icon-box amber">
+              <mat-icon>task</mat-icon>
+            </div>
+            <div class="module-info">
+              <h4 class="module-name">Tâches & Tarifs</h4>
+              <p class="module-desc">Grille de prix & durées</p>
+            </div>
+          </a>
+
+          <a routerLink="/admin/invoices" class="module-card">
+            <div class="module-icon-box emerald">
+              <mat-icon>receipt_long</mat-icon>
+            </div>
+            <div class="module-info">
+              <h4 class="module-name">Facturation</h4>
+              <p class="module-desc">Paiements & séquestre</p>
+            </div>
+          </a>
+
+          <a routerLink="/admin/evaluations" class="module-card">
+            <div class="module-icon-box rose">
+              <mat-icon>star</mat-icon>
+            </div>
+            <div class="module-info">
+              <h4 class="module-name">Évaluations</h4>
+              <p class="module-desc">Satisfaction client & avis</p>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- Live Notification Simulation Test Box -->
+      <div class="section-card test-suite-card">
+        <div class="test-card-header">
+          <mat-icon>hub</mat-icon>
+          <span>Tests & Notifications en Temps Réel</span>
+        </div>
+        <p class="test-card-desc">Simulez des événements pour vérifier le centre de notifications et les alertes push.</p>
         <div class="test-actions">
-          <button mat-raised-button color="primary" (click)="simulateNewEvaluation()">
+          <button mat-stroked-button class="test-btn" (click)="simulateNewEvaluation()">
             <mat-icon>star_rate</mat-icon>
-            Simuler Nouvelle Évaluation
+            <span>Simuler Avis 5★</span>
           </button>
-          <button mat-raised-button color="accent" (click)="simulateSystemMessage()">
-            <mat-icon>info</mat-icon>
-            Simuler Message Système
+          <button mat-stroked-button class="test-btn" (click)="simulateSystemMessage()">
+            <mat-icon>campaign</mat-icon>
+            <span>Message Système</span>
           </button>
         </div>
-        <p class="test-description">
-          Utilisez ces boutons pour tester le système de notifications. 
-          Les notifications apparaîtront dans l'icône en haut de la sidebar.
-        </p>
-      </mat-card-content>
-    </mat-card>
+      </div>
+    </div>
 
-    <!-- System Overview -->
-    <mat-card class="overview-card">
-      <mat-card-header>
-        <mat-card-title>
-          <mat-icon>dashboard</mat-icon>
-          Aperçu du Système
-        </mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="overview-items">
-          <div class="overview-item">
-            <mat-icon>star</mat-icon>
-            <div class="item-details">
-              <h3>Système d'Évaluations</h3>
-              <p>Gestion complète des évaluations clients avec statistiques détaillées</p>
-            </div>
-          </div>
-          <div class="overview-item">
-            <mat-icon>notifications_active</mat-icon>
-            <div class="item-details">
-              <h3>Notifications en Temps Réel</h3>
-              <p>Alertes automatiques pour les nouvelles évaluations et événements système</p>
-            </div>
-          </div>
-          <div class="overview-item">
-            <mat-icon>analytics</mat-icon>
-            <div class="item-details">
-              <h3>Tableaux de Bord</h3>
-              <p>Statistiques avancées et rapports d'analyse des performances</p>
-            </div>
-          </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
   </div>
 </div>

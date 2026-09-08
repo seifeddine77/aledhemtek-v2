@@ -1,4 +1,9 @@
 <div class="invoices-container">
+  <div class="breadcrumb-strip mb-3">
+    <a routerLink="/client/dashboard" class="crumb-link">Espace Client</a>
+    <mat-icon class="crumb-sep">chevron_right</mat-icon>
+    <span class="crumb-current">Mes Factures &amp; Règlements</span>
+  </div>
   <!-- Header Section -->
   <div class="header-section">
     <mat-card class="header-card">
@@ -145,7 +150,7 @@
         </div>
 
         <div class="table-container" *ngIf="filteredInvoices.length > 0; else noInvoices">
-          <table mat-table [dataSource]="filteredInvoices" class="invoices-table">
+          <table mat-table [dataSource]="paginatedInvoices" class="invoices-table">
             
             <!-- Invoice Number Column -->
             <ng-container matColumnDef="invoiceNumber">
@@ -261,6 +266,13 @@
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
           </table>
+
+          <!-- Pagination -->
+          <app-pagination
+            [config]="paginationConfig"
+            (pageChange)="onPageChange($event)"
+            (pageSizeChange)="onPageSizeChange($event)">
+          </app-pagination>
         </div>
 
         <!-- No Invoices State -->

@@ -8,3 +8,24 @@
   flex: 1;
 }
 
+.admin-layout-wrapper {
+  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #f8fafc;
+}
+
+.admin-content-wrapper {
+  height: 100%;
+  overflow: hidden;
+}
+
+.portal-layout-wrapper {
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+.portal-content-wrapper {
+  min-height: 100vh;
+}
+

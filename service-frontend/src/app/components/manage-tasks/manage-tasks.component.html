@@ -1,55 +1,113 @@
-<div class="container">
-  <h1>Gestion des Tâches</h1>
+<div class="manage-page-container">
+  
+  <!-- Form Card -->
+  <div class="form-card-modern">
+    <div class="form-header-modern">
+      <div class="form-header-icon">
+        <mat-icon>task_alt</mat-icon>
+      </div>
+      <div class="form-header-title">
+        <h2>Créer une Nouvelle Tâche</h2>
+        <p>Définissez une tâche unitaire avec son tarif de base et le service rattaché</p>
+      </div>
+    </div>
 
-  <div class="form-card">
-    <h2>Créer une Nouvelle Tâche</h2>
-    <form [formGroup]="taskForm" (ngSubmit)="postTask()" class="task-form">
+    <form [formGroup]="taskForm" (ngSubmit)="postTask()" class="form-grid-1">
+      
+      <div class="form-grid-2">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Service Associé</mat-label>
+          <mat-icon matPrefix class="me-2 text-muted">handyman</mat-icon>
+          <mat-select id="serviceId" formControlName="serviceId" required>
+            <mat-option [value]="null" disabled>Sélectionnez un service</mat-option>
+            <mat-option *ngFor="let service of services" [value]="service.id">
+              {{ service.name }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="taskForm.get('serviceId')?.hasError('required')">
+            Le service est obligatoire
+          </mat-error>
+        </mat-form-field>
 
-      <div class="form-row">
-        <label for="serviceId">Service Associé</label>
-        <select id="serviceId" formControlName="serviceId">
-          <option [ngValue]="null" disabled>Choisissez un service</option>
-          <option *ngFor="let service of services" [value]="service.id">
-            {{ service.name }}
-          </option>
-        </select>
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Nom de la Tâche</mat-label>
+          <mat-icon matPrefix class="me-2 text-muted">assignment</mat-icon>
+          <input matInput id="name" formControlName="name" placeholder="Ex: Réparation de fuite, Pose mitigeur..." required>
+          <mat-error *ngIf="taskForm.get('name')?.hasError('required')">
+            Le nom de la tâche est obligatoire
+          </mat-error>
+        </mat-form-field>
       </div>
 
-      <div class="form-row">
-        <label for="name">Nom de la Tâche</label>
-        <input id="name" formControlName="name" placeholder="Ex: Réparation de fuite">
+      <div class="form-grid-2">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Tarif de base (€)</mat-label>
+          <mat-icon matPrefix class="me-2 text-muted">euro</mat-icon>
+          <input matInput id="price" type="number" formControlName="price" placeholder="Ex: 50.00" min="0" step="0.5" required>
+          <span matSuffix class="pe-2 text-muted fw-bold">EUR</span>
+          <mat-error *ngIf="taskForm.get('price')?.hasError('required')">
+            Le tarif est obligatoire
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Description sommaire (optionnel)</mat-label>
+          <mat-icon matPrefix class="me-2 text-muted">notes</mat-icon>
+          <textarea matInput id="description" formControlName="description" rows="1" placeholder="Détails sur l'opération..."></textarea>
+        </mat-form-field>
       </div>
 
-      <div class="form-row">
-        <label for="price">Prix</label>
-        <input id="price" type="number" formControlName="price" placeholder="Ex: 50">
-      </div>
-
-      <div class="form-row">
-        <label for="description">Description</label>
-        <textarea id="description" formControlName="description" placeholder="Décrivez la tâche..."></textarea>
-      </div>
-
-      <div class="actions">
-        <button type="submit" class="submit-btn" [disabled]="!taskForm.valid">Enregistrer la Tâche</button>
+      <div class="form-actions-modern">
+        <button mat-stroked-button type="reset">
+          Réinitialiser
+        </button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="!taskForm.valid">
+          <mat-icon>add_task</mat-icon>
+          Enregistrer la Tâche
+        </button>
       </div>
 
     </form>
   </div>
 
-  <div class="list-card">
-    <h2>Liste des Tâches</h2>
-    <div class="task-list">
-      <div *ngFor="let task of tasks" class="task-item">
-        <h3>{{ task.name }}</h3>
-        <p><strong>Service:</strong> {{ task.serviceName }}</p>
-        <p><strong>Prix:</strong> {{ task.price | currency:'EUR' }}</p>
-        <p>{{ task.description }}</p>
+  <!-- List Card -->
+  <div class="form-card-modern mt-4">
+    <div class="form-header-modern">
+      <div class="form-header-icon success">
+        <mat-icon>checklist</mat-icon>
       </div>
-      <div *ngIf="tasks.length === 0" class="no-tasks">
-        <p>Aucune tâche n'a encore été créée.</p>
+      <div class="form-header-title">
+        <h2>Catalogue des Tâches ({{ tasks.length }})</h2>
+        <p>Tâches configurées pour chaque prestation de service</p>
       </div>
     </div>
+
+    <div class="task-grid" *ngIf="tasks.length > 0; else noTasks">
+      <div *ngFor="let task of tasks" class="task-card-modern">
+        <div class="task-card-header">
+          <div class="task-title-group">
+            <h3>{{ task.name }}</h3>
+            <span class="service-badge">{{ task.serviceName || 'Service général' }}</span>
+          </div>
+          <div class="price-tag">
+            {{ task.price | currency:'EUR':'symbol':'1.2-2':'fr' }}
+          </div>
+        </div>
+        <p class="task-desc" *ngIf="task.description">{{ task.description }}</p>
+        <p class="task-desc text-muted fst-italic" *ngIf="!task.description">Aucune description détaillée.</p>
+      </div>
+    </div>
+
+    <ng-template #noTasks>
+      <div class="empty-state">
+        <div class="empty-state-icon">
+          <mat-icon>assignment_late</mat-icon>
+        </div>
+        <div class="empty-state-title">Aucune tâche enregistrée</div>
+        <div class="empty-state-desc">Utilisez le formulaire ci-dessus pour ajouter des tâches tarifées à vos services.</div>
+      </div>
+    </ng-template>
   </div>
 
 </div>
+

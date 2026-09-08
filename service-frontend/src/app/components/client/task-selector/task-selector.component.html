@@ -27,7 +27,8 @@
           <div class="selected-task-content">
             <img [src]="getImageUrl(selectedTask.value.task.imageName)" 
                  alt="{{selectedTask.value.task.name}}" 
-                 class="task-thumbnail">
+                 class="task-thumbnail"
+                 onerror="this.style.display='none'">
             
             <div class="task-details">
               <h4>{{selectedTask.value.task.name}}</h4>
@@ -104,7 +105,8 @@
               <div class="task-card-header">
                 <img [src]="getImageUrl(task.imageName)" 
                      alt="{{task.name}}" 
-                     class="task-image">
+                     class="task-image"
+                     onerror="this.style.display='none'">
                 
                 <mat-checkbox [checked]="isTaskSelected(task.id!)"
                              (change)="toggleTaskSelection(task)"

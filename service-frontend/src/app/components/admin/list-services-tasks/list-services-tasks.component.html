@@ -1,47 +1,138 @@
-<div class="container mt-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>Gestion des Services</h2>
-    <button mat-raised-button color="primary" (click)="openAddServiceDialog()">
-      <mat-icon>add</mat-icon> Ajouter un Service
-    </button>
+<div class="services-tasks-container">
+  <!-- Header -->
+  <div class="page-header-row">
+    <div class="header-titles">
+      <div class="title-badge">
+        <mat-icon>category</mat-icon>
+      </div>
+      <div>
+        <h1 class="page-title">Gestion des Services & Découpage Métier</h1>
+        <p class="page-subtitle">Arborescence hiérarchique des corps de métier et des opérations associées</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="openAddServiceDialog()" class="btn-primary-action">
+        <mat-icon>add</mat-icon>
+        <span>Nouveau Service</span>
+      </button>
+    </div>
   </div>
 
-  <div *ngIf="services.length > 0; else noServices" class="accordion" id="servicesAccordion">
-    <div *ngFor="let service of services; let i = index" class="accordion-item">
-      <h2 class="accordion-header" [id]="'heading' + i">
-        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" [attr.data-bs-target]="'#collapse' + i" aria-expanded="false" [attr.aria-controls]="'collapse' + i">
-          <strong>{{ service.name }}</strong>
-        </button>
-      </h2>
-      <div [id]="'collapse' + i" class="accordion-collapse collapse" [attr.aria-labelledby]="'heading' + i" data-bs-parent="#servicesAccordion">
-        <div class="accordion-body">
-          <p>{{ service.description }}</p>
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <h5>Tâches</h5>
-            <a [routerLink]="['/admin/tasks/new', service.id]" class="btn btn-primary btn-sm">Ajouter une Tâche</a>
+  <!-- Search & Toolbar -->
+  <div class="toolbar-card mat-elevation-z1">
+    <div class="search-input-box">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input 
+        type="text" 
+        [(ngModel)]="searchTerm" 
+        (ngModelChange)="applyFilter()" 
+        placeholder="Rechercher un service ou une prestation..." 
+        class="custom-search"
+      />
+      <button *ngIf="searchTerm" mat-icon-button (click)="searchTerm = ''; applyFilter()" class="btn-clear-search">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="toolbar-stats">
+      <span class="count-pill">{{ filteredServices.length }} service{{ filteredServices.length > 1 ? 's' : '' }}</span>
+    </div>
+  </div>
+
+  <!-- Services Cards Grid / List -->
+  <div class="services-list" *ngIf="!loading && paginatedServices.length > 0">
+    <div *ngFor="let service of paginatedServices" class="service-card mat-elevation-z1">
+      <div class="service-card-header">
+        <div class="service-meta">
+          <div class="service-icon-box">
+            <mat-icon>home_repair_service</mat-icon>
           </div>
-          <table *ngIf="service.tasks.length > 0; else noTasks" class="table table-striped">
+          <div>
+            <h3 class="service-name">{{ service.name }}</h3>
+            <p class="service-desc">{{ service.description || 'Prestations professionnelles certifiées.' }}</p>
+          </div>
+        </div>
+
+        <div class="service-header-actions">
+          <span class="tasks-count-badge">
+            <mat-icon>checklist</mat-icon>
+            {{ service.tasks ? service.tasks.length : 0 }} tâche{{ (service.tasks && service.tasks.length > 1) ? 's' : '' }}
+          </span>
+          <a [routerLink]="['/admin/tasks/new', service.id]" mat-stroked-button color="primary" class="btn-add-task-to-service">
+            <mat-icon>add</mat-icon>
+            <span>Ajouter tâche</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Nested Tasks Table -->
+      <div class="service-tasks-body">
+        <div *ngIf="service.tasks && service.tasks.length > 0; else noTasksInService" class="nested-table-wrap">
+          <table class="nested-tasks-table">
             <thead>
               <tr>
-                <th>Nom de la Tâche</th>
+                <th>Tâche</th>
                 <th>Description</th>
+                <th class="text-center">Durée</th>
+                <th class="text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let task of service.tasks">
-                <td>{{ task.name }}</td>
-                <td>{{ task.description }}</td>
+                <td class="task-name-col">
+                  <strong>{{ task.name }}</strong>
+                </td>
+                <td class="task-desc-col">
+                  {{ task.description || '-' }}
+                </td>
+                <td class="text-center">
+                  <span class="mini-duration-badge" *ngIf="task.duration">
+                    <mat-icon>schedule</mat-icon>
+                    {{ task.duration }}m
+                  </span>
+                  <span *ngIf="!task.duration" class="text-muted">-</span>
+                </td>
+                <td class="text-right">
+                  <div class="mini-actions">
+                    <button mat-icon-button color="primary" (click)="editTask(task)" matTooltip="Modifier">
+                      <mat-icon class="mini-icon">edit</mat-icon>
+                    </button>
+                    <button mat-icon-button color="warn" (click)="deleteTask(task.id)" matTooltip="Supprimer">
+                      <mat-icon class="mini-icon">delete_outline</mat-icon>
+                    </button>
+                  </div>
+                </td>
               </tr>
             </tbody>
           </table>
-          <ng-template #noTasks>
-            <p>Aucune tâche trouvée pour ce service.</p>
-          </ng-template>
         </div>
+
+        <ng-template #noTasksInService>
+          <div class="empty-service-tasks">
+            <mat-icon>info_outline</mat-icon>
+            <span>Aucune tâche n'est encore rattachée à ce service.</span>
+            <a [routerLink]="['/admin/tasks/new', service.id]" class="link-add">Créer une tâche maintenant &rarr;</a>
+          </div>
+        </ng-template>
       </div>
     </div>
   </div>
-  <ng-template #noServices>
-    <p class="text-center mt-4">Aucun service trouvé.</p>
-  </ng-template>
+
+  <!-- Global Empty State -->
+  <div *ngIf="!loading && paginatedServices.length === 0" class="global-empty-state mat-elevation-z1">
+    <div class="empty-icon-wrap">
+      <mat-icon>search_off</mat-icon>
+    </div>
+    <h3>Aucun service trouvé</h3>
+    <p>Aucun service ou prestation ne correspond à vos critères de recherche.</p>
+  </div>
+
+  <!-- Pagination Component -->
+  <div class="pagination-footer-wrap mat-elevation-z1" *ngIf="!loading && filteredServices.length > 0">
+    <app-pagination 
+      [config]="paginationConfig" 
+      (pageChange)="onPageChange($event)" 
+      (pageSizeChange)="onPageSizeChange($event)">
+    </app-pagination>
+  </div>
 </div>

@@ -11,6 +11,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { EvaluationService } from '../../services/evaluation.service';
 import { Evaluation } from '../../models/evaluation.model';
 import { Reservation } from '../../models/reservation.model';
+import { cleanText } from '../../pipes/clean-text.pipe';
 
 @Component({
   selector: 'app-evaluation-form',
@@ -43,7 +44,10 @@ export class EvaluationFormComponent implements OnInit {
     public dialogRef: MatDialogRef<EvaluationFormComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { reservation: Reservation, evaluation?: Evaluation }
   ) {
-    this.reservation = data.reservation;
+    this.reservation = {
+      ...data.reservation,
+      title: cleanText(data.reservation.title || '')
+    };
     this.existingEvaluation = data.evaluation;
   }
 
@@ -107,5 +111,16 @@ export class EvaluationFormComponent implements OnInit {
 
   getRating(field: string): number {
     return this.evaluationForm.get(field)?.value || 0;
+  }
+
+  getRatingLabel(rating: number): string {
+    switch (rating) {
+      case 5: return 'Exceptionnel (5/5)';
+      case 4: return 'Très satisfaisant (4/5)';
+      case 3: return 'Correct / Dans les attentes (3/5)';
+      case 2: return 'Moyen / Décevant (2/5)';
+      case 1: return 'Insuffisant (1/5)';
+      default: return '';
+    }
   }
 }

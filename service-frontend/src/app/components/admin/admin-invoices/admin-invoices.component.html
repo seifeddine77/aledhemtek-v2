@@ -264,13 +264,11 @@
         </table>
 
         <!-- Pagination -->
-        <mat-paginator 
-          [length]="totalElements"
-          [pageSize]="pageSize"
-          [pageSizeOptions]="[5, 10, 25, 50]"
-          (page)="onPageChange($event)"
-          showFirstLastButtons>
-        </mat-paginator>
+        <app-pagination 
+          [config]="paginationConfig" 
+          (pageChange)="onCustomPageChange($event)" 
+          (pageSizeChange)="onCustomPageSizeChange($event)">
+        </app-pagination>
       </div>
     </mat-card-content>
   </mat-card>

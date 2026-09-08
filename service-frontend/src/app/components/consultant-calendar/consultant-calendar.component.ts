@@ -9,10 +9,12 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ReservationService } from '../../services/reservation.service';
 import { AuthService } from '../../services/auth.service';
 import { Reservation, ReservationStatus } from '../../models/reservation.model';
 import { ReservationDetailsDialogComponent } from '../dialogs/reservation-details-dialog/reservation-details-dialog.component';
+import { cleanText } from '../../pipes/clean-text.pipe';
 
 @Component({
   selector: 'app-consultant-calendar',
@@ -27,7 +29,8 @@ import { ReservationDetailsDialogComponent } from '../dialogs/reservation-detail
     MatSelectModule,
     MatFormFieldModule,
     MatChipsModule,
-    MatDialogModule
+    MatDialogModule,
+    MatTooltipModule
   ],
   templateUrl: './consultant-calendar.component.html',
   styleUrls: ['./consultant-calendar.component.css']
@@ -79,7 +82,16 @@ export class ConsultantCalendarComponent implements OnInit {
       endDate.toISOString()
     ).subscribe({
       next: (reservations) => {
-        this.reservations = reservations;
+        this.reservations = (reservations || []).map(r => ({
+          ...r,
+          title: cleanText(r.title || ''),
+          description: cleanText(r.description || ''),
+          tasks: (r.tasks || []).map(t => ({
+            ...t,
+            name: cleanText(t.name || ''),
+            description: cleanText(t.description || '')
+          }))
+        }));
         this.loading = false;
       },
       error: (error) => {
@@ -96,6 +108,12 @@ export class ConsultantCalendarComponent implements OnInit {
     });
   }
 
+  goToToday(): void {
+    this.selectedDate = new Date();
+    this.generateCurrentWeek();
+    this.loadReservations();
+  }
+
   previousWeek(): void {
     this.selectedDate.setDate(this.selectedDate.getDate() - 7);
     this.generateCurrentWeek();
@@ -106,6 +124,49 @@ export class ConsultantCalendarComponent implements OnInit {
     this.selectedDate.setDate(this.selectedDate.getDate() + 7);
     this.generateCurrentWeek();
     this.loadReservations();
+  }
+
+  getWeekRangeLabel(): string {
+    if (!this.currentWeek || this.currentWeek.length < 7) return '';
+    const start = this.currentWeek[0];
+    const end = this.currentWeek[6];
+    const startFormatted = start.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+    const endFormatted = end.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+    return `${startFormatted} - ${endFormatted}`;
+  }
+
+  getClientInitials(name?: string): string {
+    if (!name) return 'CL';
+    return name
+      .trim()
+      .split(' ')
+      .filter(p => p.length > 0)
+      .map(p => p[0])
+      .join('')
+      .substring(0, 2)
+      .toUpperCase();
+  }
+
+  getStatusLabel(status: ReservationStatus): string {
+    switch (status) {
+      case ReservationStatus.PENDING: return 'En attente';
+      case ReservationStatus.ASSIGNED: return 'Assignée';
+      case ReservationStatus.IN_PROGRESS: return 'En cours';
+      case ReservationStatus.COMPLETED: return 'Terminée';
+      case ReservationStatus.CANCELLED: return 'Annulée';
+      default: return status || 'Statut';
+    }
+  }
+
+  getStatusBadgeClass(status: ReservationStatus): string {
+    switch (status) {
+      case ReservationStatus.PENDING: return 'status-pending';
+      case ReservationStatus.ASSIGNED: return 'status-assigned';
+      case ReservationStatus.IN_PROGRESS: return 'status-in-progress';
+      case ReservationStatus.COMPLETED: return 'status-completed';
+      case ReservationStatus.CANCELLED: return 'status-cancelled';
+      default: return 'status-default';
+    }
   }
 
   updateReservationStatus(reservationId: number, status: ReservationStatus): void {

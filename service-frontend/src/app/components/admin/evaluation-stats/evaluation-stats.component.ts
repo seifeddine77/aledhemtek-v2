@@ -4,6 +4,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterModule } from '@angular/router';
 import { EvaluationService } from '../../../services/evaluation.service';
 import { Evaluation } from '../../../models/evaluation.model';
@@ -17,6 +18,7 @@ import { Evaluation } from '../../../models/evaluation.model';
     MatIconModule,
     MatProgressSpinnerModule,
     MatButtonModule,
+    MatTooltipModule,
     RouterModule
   ],
   templateUrl: './evaluation-stats.component.html',
@@ -25,14 +27,16 @@ import { Evaluation } from '../../../models/evaluation.model';
 export class EvaluationStatsComponent implements OnInit {
   loading = true;
   evaluations: Evaluation[] = [];
+  recentFeedback: Evaluation[] = [];
   
   stats = {
     totalEvaluations: 0,
     averageRating: 0,
-    excellentCount: 0,
-    goodCount: 0,
-    averageCount: 0,
-    poorCount: 0,
+    fiveStarCount: 0,
+    fourStarCount: 0,
+    threeStarCount: 0,
+    twoStarCount: 0,
+    oneStarCount: 0,
     recentCount: 0,
     withCommentsCount: 0,
     averageGeneralRating: 0,
@@ -52,8 +56,11 @@ export class EvaluationStatsComponent implements OnInit {
     
     this.evaluationService.getAllEvaluations().subscribe({
       next: (evaluations) => {
-        this.evaluations = evaluations;
+        this.evaluations = evaluations || [];
         this.calculateStats();
+        this.recentFeedback = this.evaluations
+          .filter(e => e.comment && e.comment.trim().length > 0)
+          .slice(0, 3);
         this.loading = false;
       },
       error: (error) => {
@@ -66,34 +73,42 @@ export class EvaluationStatsComponent implements OnInit {
   private calculateStats(): void {
     this.stats.totalEvaluations = this.evaluations.length;
 
+    // Reset counters
+    this.stats.fiveStarCount = 0;
+    this.stats.fourStarCount = 0;
+    this.stats.threeStarCount = 0;
+    this.stats.twoStarCount = 0;
+    this.stats.oneStarCount = 0;
+
     if (this.evaluations.length === 0) return;
 
     // Calculate averages
-    const totalGeneral = this.evaluations.reduce((sum, e) => sum + e.generalRating, 0);
-    const totalServiceQuality = this.evaluations.reduce((sum, e) => sum + e.serviceQualityRating, 0);
-    const totalPunctuality = this.evaluations.reduce((sum, e) => sum + e.punctualityRating, 0);
-    const totalCommunication = this.evaluations.reduce((sum, e) => sum + e.communicationRating, 0);
+    const totalGeneral = this.evaluations.reduce((sum, e) => sum + (e.generalRating || 0), 0);
+    const totalServiceQuality = this.evaluations.reduce((sum, e) => sum + (e.serviceQualityRating || 0), 0);
+    const totalPunctuality = this.evaluations.reduce((sum, e) => sum + (e.punctualityRating || 0), 0);
+    const totalCommunication = this.evaluations.reduce((sum, e) => sum + (e.communicationRating || 0), 0);
 
-    this.stats.averageGeneralRating = totalGeneral / this.evaluations.length;
-    this.stats.averageServiceQuality = totalServiceQuality / this.evaluations.length;
-    this.stats.averagePunctuality = totalPunctuality / this.evaluations.length;
-    this.stats.averageCommunication = totalCommunication / this.evaluations.length;
+    this.stats.averageGeneralRating = Math.round((totalGeneral / this.evaluations.length) * 10) / 10;
+    this.stats.averageServiceQuality = Math.round((totalServiceQuality / this.evaluations.length) * 10) / 10;
+    this.stats.averagePunctuality = Math.round((totalPunctuality / this.evaluations.length) * 10) / 10;
+    this.stats.averageCommunication = Math.round((totalCommunication / this.evaluations.length) * 10) / 10;
 
     // Overall average
-    this.stats.averageRating = (
+    this.stats.averageRating = Math.round(((
       this.stats.averageGeneralRating +
       this.stats.averageServiceQuality +
       this.stats.averagePunctuality +
       this.stats.averageCommunication
-    ) / 4;
+    ) / 4) * 10) / 10;
 
-    // Rating distribution
+    // Star Distribution (1 to 5 stars)
     this.evaluations.forEach(evaluation => {
       const avgRating = this.getEvaluationAverage(evaluation);
-      if (avgRating >= 4.5) this.stats.excellentCount++;
-      else if (avgRating >= 3.5) this.stats.goodCount++;
-      else if (avgRating >= 2.5) this.stats.averageCount++;
-      else this.stats.poorCount++;
+      if (avgRating >= 4.5) this.stats.fiveStarCount++;
+      else if (avgRating >= 3.5) this.stats.fourStarCount++;
+      else if (avgRating >= 2.5) this.stats.threeStarCount++;
+      else if (avgRating >= 1.5) this.stats.twoStarCount++;
+      else this.stats.oneStarCount++;
     });
 
     // Recent evaluations (last 7 days)
@@ -101,7 +116,7 @@ export class EvaluationStatsComponent implements OnInit {
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     
     this.stats.recentCount = this.evaluations.filter(e => 
-      new Date(e.createdAt || '') >= sevenDaysAgo
+      e.createdAt ? new Date(e.createdAt) >= sevenDaysAgo : false
     ).length;
 
     // Evaluations with comments
@@ -112,29 +127,28 @@ export class EvaluationStatsComponent implements OnInit {
 
   getEvaluationAverage(evaluation: Evaluation): number {
     return (
-      evaluation.generalRating +
-      evaluation.serviceQualityRating +
-      evaluation.punctualityRating +
-      evaluation.communicationRating
+      (evaluation.generalRating || 0) +
+      (evaluation.serviceQualityRating || 0) +
+      (evaluation.punctualityRating || 0) +
+      (evaluation.communicationRating || 0)
     ) / 4;
   }
 
   getPercentage(count: number): number {
-    return this.stats.totalEvaluations > 0 ? (count / this.stats.totalEvaluations) * 100 : 0;
+    return this.stats.totalEvaluations > 0 ? Math.round((count / this.stats.totalEvaluations) * 100) : 0;
   }
 
-  getRatingColor(rating: number): string {
-    if (rating >= 4.5) return '#4caf50';
-    if (rating >= 3.5) return '#ff9800';
-    if (rating >= 2.5) return '#2196f3';
-    return '#f44336';
+  getStarArray(rating: number): number[] {
+    const fullStars = Math.round(rating);
+    return Array(Math.min(5, Math.max(0, fullStars))).fill(1);
   }
 
-  getRatingText(rating: number): string {
-    if (rating >= 4.5) return 'Excellent';
-    if (rating >= 3.5) return 'Très bien';
-    if (rating >= 2.5) return 'Bien';
-    if (rating >= 1.5) return 'Moyen';
-    return 'Insuffisant';
+  getEmptyStarArray(rating: number): number[] {
+    const fullStars = Math.round(rating);
+    return Array(Math.max(0, 5 - fullStars)).fill(1);
+  }
+
+  refresh(): void {
+    this.loadEvaluationStats();
   }
 }

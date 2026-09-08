@@ -31,8 +31,11 @@ import { InvoicesSimpleComponent } from './components/invoices/invoices-simple.c
 import { InvoiceCreateSimpleComponent } from './components/invoices/invoice-create/invoice-create-simple.component';
 import { InvoiceDetailComponent } from './components/invoices/invoice-detail/invoice-detail.component';
 import { InvoiceDashboardComponent } from './components/invoices/invoice-dashboard/invoice-dashboard.component';
+import { ClientLayoutComponent } from './components/client/client-layout/client-layout.component';
 import { AuthGuard } from './guards/auth.guard';
 import { AdminGuard } from './guards/admin.guard';
+import { ClientGuard } from './guards/client.guard';
+import { ConsultantGuard } from './guards/consultant.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -40,10 +43,11 @@ export const routes: Routes = [
   { path: 'register', component: RegisterComponent },
   { path: 'home', component: Home},
 
-  // Client Routes
+  // Client Routes with Dedicated Portal Layout
   {
     path: 'client',
-    canActivate: [AuthGuard],
+    component: ClientLayoutComponent,
+    canActivate: [AuthGuard, ClientGuard],
     children: [
       { path: 'dashboard', component: ClientDashboardComponent },
       { path: 'reservations', component: ClientReservationsComponent },
@@ -61,7 +65,7 @@ export const routes: Routes = [
   {
     path: 'consultant',
     component: ConsultantLayoutComponent, // Use the layout component
-    canActivate: [AuthGuard],
+    canActivate: [AuthGuard, ConsultantGuard],
     children: [
       { path: 'dashboard', component: ConsultantDashboardComponent },
       { path: 'calendar', component: ConsultantCalendarComponent },

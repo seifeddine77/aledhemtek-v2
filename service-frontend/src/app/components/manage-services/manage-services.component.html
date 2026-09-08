@@ -1,59 +1,132 @@
-<div class="container">
-  <h1>Gestion des Services</h1>
+<div class="manage-page-container">
+  
+  <!-- Form Card -->
+  <div class="form-card-modern">
+    <div class="form-header-modern">
+      <div class="form-header-icon">
+        <mat-icon>handyman</mat-icon>
+      </div>
+      <div class="form-header-title">
+        <h2>Créer un Nouveau Service</h2>
+        <p>Ajoutez une nouvelle prestation rattachée à l'une de vos catégories</p>
+      </div>
+    </div>
 
-  <div class="form-card">
-    <h2>Créer un Nouveau Service</h2>
-    <form [formGroup]="serviceForm" (ngSubmit)="postService()" class="service-form">
+    <form [formGroup]="serviceForm" (ngSubmit)="postService()" class="form-grid-1">
+      
+      <div class="form-grid-2">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Nom du Service</mat-label>
+          <mat-icon matPrefix class="me-2 text-muted">design_services</mat-icon>
+          <input matInput id="name" formControlName="name" placeholder="Ex: Rénovation salle de bain, Dépannage urgence..." required>
+          <mat-error *ngIf="serviceForm.get('name')?.hasError('required')">
+            Le nom du service est obligatoire
+          </mat-error>
+        </mat-form-field>
 
-      <div class="form-row">
-        <label for="name">Nom du Service</label>
-        <input id="name" formControlName="name" placeholder="Ex: Plomberie Générale">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Catégorie associée</mat-label>
+          <mat-icon matPrefix class="me-2 text-muted">folder_special</mat-icon>
+          <mat-select id="categoryId" formControlName="categoryId" required>
+            <mat-option [value]="null" disabled>Sélectionnez une catégorie</mat-option>
+            <mat-option *ngFor="let category of categories" [value]="category.id">
+              {{ category.name }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="serviceForm.get('categoryId')?.hasError('required')">
+            La catégorie est obligatoire
+          </mat-error>
+        </mat-form-field>
       </div>
 
-      <div class="form-row">
-        <label for="description">Description</label>
-        <textarea id="description" formControlName="description" placeholder="Décrivez le service..."></textarea>
-      </div>
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>Description détaillée du service</mat-label>
+        <mat-icon matPrefix class="me-2 text-muted">notes</mat-icon>
+        <textarea matInput id="description" formControlName="description" rows="3" 
+                  placeholder="Décrivez précisément ce que comprend cette prestation..." required></textarea>
+        <mat-error *ngIf="serviceForm.get('description')?.hasError('required')">
+          La description est obligatoire
+        </mat-error>
+      </mat-form-field>
 
-      <div class="form-row">
-        <label for="categoryId">Catégorie</label>
-        <select id="categoryId" formControlName="categoryId">
-          <option [ngValue]="null" disabled>Choisissez une catégorie</option>
-          <option *ngFor="let category of categories" [value]="category.id">
-            {{ category.name }}
-          </option>
-        </select>
-      </div>
-
-      <div class="form-row file-input-row">
-        <button type="button" class="file-btn" (click)="fileInput.click()">
-          Choisir une image
-        </button>
+      <!-- Image Upload Dropzone -->
+      <div class="file-upload-box">
+        <label class="form-label fw-bold mb-2 d-flex align-items-center gap-2">
+          <mat-icon class="text-primary" style="font-size: 20px; width: 20px; height: 20px;">image</mat-icon>
+          Photo ou bannière du service
+        </label>
+        
+        <div class="file-upload-modern" (click)="fileInput.click()">
+          <div class="file-upload-icon">
+            <mat-icon>add_photo_alternate</mat-icon>
+          </div>
+          <div class="file-upload-text">
+            <strong>Cliquez pour choisir une photo</strong> ou glissez une image
+            <div class="text-muted small mt-1">Formats recommandés : PNG, JPG, WebP</div>
+          </div>
+        </div>
         <input hidden (change)="onFileSelected($event)" #fileInput type="file" accept="image/*">
-        <span class="file-name" *ngIf="selectedFile">{{ selectedFile.name }}</span>
+
+        <!-- Image Preview -->
+        <div *ngIf="selectedFile && imagePreview" class="file-upload-preview mt-2">
+          <img [src]="imagePreview" alt="Aperçu du service" />
+          <div class="file-details">
+            <div class="file-name">{{ selectedFile.name }}</div>
+            <div class="file-size text-success fw-semibold">Photo prête pour le service</div>
+          </div>
+          <button mat-icon-button color="warn" type="button" (click)="selectedFile = null; imagePreview = null" matTooltip="Supprimer l'image">
+            <mat-icon>delete_outline</mat-icon>
+          </button>
+        </div>
       </div>
 
-      <div class="actions">
-        <button type="submit" class="submit-btn" [disabled]="!serviceForm.valid || !selectedFile">Enregistrer le Service</button>
+      <div class="form-actions-modern">
+        <button mat-stroked-button type="reset" (click)="selectedFile = null; imagePreview = null">
+          Réinitialiser
+        </button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="!serviceForm.valid || !selectedFile">
+          <mat-icon>check</mat-icon>
+          Enregistrer le Service
+        </button>
       </div>
 
     </form>
   </div>
 
-  <div class="list-card">
-    <h2>Liste des Services</h2>
-    <div class="service-list">
-      <div *ngFor="let service of services" class="service-item">
-        <img [src]="'data:image/jpeg;base64,' + service.returnedImg" alt="{{ service.name }}">
-        <div class="service-details">
+  <!-- List Card -->
+  <div class="form-card-modern mt-4">
+    <div class="form-header-modern">
+      <div class="form-header-icon success">
+        <mat-icon>miscellaneous_services</mat-icon>
+      </div>
+      <div class="form-header-title">
+        <h2>Services Existants ({{ services.length }})</h2>
+        <p>Prestations disponibles au catalogue pour les réservations clients</p>
+      </div>
+    </div>
+
+    <div class="service-grid" *ngIf="services.length > 0; else noServices">
+      <div *ngFor="let service of services" class="service-card-modern">
+        <div class="service-img-wrapper">
+          <img [src]="'data:image/jpeg;base64,' + service.returnedImg" [alt]="service.name">
+        </div>
+        <div class="service-body">
           <h3>{{ service.name }}</h3>
           <p>{{ service.description }}</p>
         </div>
       </div>
-      <div *ngIf="services.length === 0" class="no-services">
-        <p>Aucun service n'a encore été créé.</p>
-      </div>
     </div>
+
+    <ng-template #noServices>
+      <div class="empty-state">
+        <div class="empty-state-icon">
+          <mat-icon>handyman</mat-icon>
+        </div>
+        <div class="empty-state-title">Aucun service créé</div>
+        <div class="empty-state-desc">Remplissez le formulaire ci-dessus pour publier votre première offre de service.</div>
+      </div>
+    </ng-template>
   </div>
 
 </div>
+

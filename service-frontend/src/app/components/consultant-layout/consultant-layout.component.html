@@ -1,6 +1,59 @@
-<div class="layout-container">
-  <app-consultant-sidebar class="sidebar"></app-consultant-sidebar>
-  <div class="main-content">
-    <router-outlet></router-outlet>
+<div class="consultant-shell">
+  <!-- Desktop & Mobile Pro Sidebar -->
+  <app-consultant-sidebar 
+    class="consultant-sidebar-host"
+    [class.mobile-open]="mobileSidebarOpen">
+  </app-consultant-sidebar>
+
+  <!-- Mobile Overlay Backdrop -->
+  <div class="mobile-backdrop" *ngIf="mobileSidebarOpen" (click)="mobileSidebarOpen = false"></div>
+
+  <!-- Main Content Wrapper -->
+  <div class="consultant-main-wrapper">
+    <!-- Top Command Bar (56px) -->
+    <header class="consultant-command-bar">
+      <div class="command-bar-left">
+        <button class="mobile-toggle-btn d-lg-none" (click)="toggleMobileSidebar()" aria-label="Menu">
+          <mat-icon>menu</mat-icon>
+        </button>
+
+        <div class="breadcrumb-trail">
+          <span class="breadcrumb-root">Artisan Pro</span>
+          <mat-icon class="breadcrumb-sep">chevron_right</mat-icon>
+          <span class="breadcrumb-current">{{ pageTitle }}</span>
+        </div>
+      </div>
+
+      <div class="command-bar-right">
+        <!-- Local Time Indicator -->
+        <div class="time-indicator-chip d-none d-sm-inline-flex">
+          <mat-icon>schedule</mat-icon>
+          <span>{{ currentTime }}</span>
+        </div>
+
+        <!-- Live Network Dispatch Status -->
+        <div class="dispatch-status-chip">
+          <span class="pulse-beacon-dot"></span>
+          <span class="dispatch-text">Dispatch Opérationnel</span>
+        </div>
+
+        <!-- Quick Link to Client Portal -->
+        <a routerLink="/client/dashboard" target="_blank" class="btn-command-link d-none d-md-inline-flex" matTooltip="Ouvrir le portail client">
+          <mat-icon>person</mat-icon>
+          <span>Espace Client</span>
+        </a>
+
+        <!-- Quick Link to Public Site -->
+        <a routerLink="/home" target="_blank" class="btn-command-link d-none d-md-inline-flex" matTooltip="Visiter le site public">
+          <mat-icon>storefront</mat-icon>
+          <span>Site Public</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Main Scrollable Content Area -->
+    <main class="consultant-content-scroll">
+      <router-outlet></router-outlet>
+    </main>
   </div>
 </div>

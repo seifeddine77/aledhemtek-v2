@@ -5,6 +5,7 @@ import com.aledhemtek.interfaces.RateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -42,6 +43,7 @@ public class RateController {
      * Créer un nouveau tarif
      */
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RateDto> createRate(@RequestBody RateDto rateDto) {
         RateDto createdRate = rateService.createRate(rateDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdRate);
@@ -51,6 +53,7 @@ public class RateController {
      * Mettre à jour un tarif
      */
     @PutMapping("/{rateId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RateDto> updateRate(
             @PathVariable Long rateId,
             @RequestBody RateDto rateDto) {
@@ -65,6 +68,7 @@ public class RateController {
      * Supprimer un tarif
      */
     @DeleteMapping("/{rateId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteRate(@PathVariable Long rateId) {
         rateService.deleteRate(rateId);
         return ResponseEntity.noContent().build();
