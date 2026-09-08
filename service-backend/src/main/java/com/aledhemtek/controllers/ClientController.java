@@ -32,6 +32,7 @@ public class ClientController {
         this.invoiceService = invoiceService;
     }
     @GetMapping("get-all-clients")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getAllClients() {
         try {
             List<ClientDTO> clients = clientService.getAllClients();
@@ -44,15 +45,21 @@ public class ClientController {
     }
 
     @GetMapping("get-client/{id}")
-    public ResponseEntity<?> getClientById(@PathVariable Long id) {
+    @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
+    public ResponseEntity<?> getClientById(@PathVariable Long id, org.springframework.security.core.Authentication authentication) {
         try {
             ClientDTO client = clientService.getClientById(id);
-            if (client != null) {
-                return ResponseEntity.ok(client);
-            } else {
+            if (client == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(Map.of("error", "Client not found"));
             }
+            boolean isAdmin = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ADMIN"));
+            if (!isAdmin && !authentication.getName().equalsIgnoreCase(client.getEmail())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "Access denied - You can only access your own profile"));
+            }
+            return ResponseEntity.ok(client);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -61,15 +68,22 @@ public class ClientController {
     }
     //update Profile
     @PutMapping("update-client/{id}")
-    public ResponseEntity<?> updateClient(@PathVariable Long id, @RequestBody ClientDTO dto) {
+    @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
+    public ResponseEntity<?> updateClient(@PathVariable Long id, @RequestBody ClientDTO dto, org.springframework.security.core.Authentication authentication) {
         try {
-            ClientDTO updated = clientService.updateClient(id, dto);
-            if (updated != null) {
-                return ResponseEntity.ok(updated);
-            } else {
+            ClientDTO existing = clientService.getClientById(id);
+            if (existing == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(Map.of("error", "Client not found"));
             }
+            boolean isAdmin = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ADMIN"));
+            if (!isAdmin && !authentication.getName().equalsIgnoreCase(existing.getEmail())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "Access denied - You can only update your own profile"));
+            }
+            ClientDTO updated = clientService.updateClient(id, dto);
+            return ResponseEntity.ok(updated);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

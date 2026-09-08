@@ -21,8 +21,22 @@ public class JwtUtil {
     private final long expiration = 1000 * 60 * 60 * 10; // 10 hours
 
     public JwtUtil(@Value("${jwt.secret}") String secret) {
-        byte[] decodedKey = Base64.getDecoder().decode(secret);
-        this.secretKey = Keys.hmacShaKeyFor(decodedKey);
+        byte[] keyBytes;
+        try {
+            keyBytes = Base64.getDecoder().decode(secret.trim());
+            if (keyBytes.length < 32) {
+                java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
+                keyBytes = md.digest(secret.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            }
+        } catch (Exception e) {
+            try {
+                java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
+                keyBytes = md.digest(secret.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            } catch (Exception ex) {
+                throw new RuntimeException("Could not initialize JWT secret key", ex);
+            }
+        }
+        this.secretKey = Keys.hmacShaKeyFor(keyBytes);
     }
 
     public String generateToken(UserDetails userDetails) {

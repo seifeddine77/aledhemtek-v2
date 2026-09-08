@@ -28,7 +28,6 @@ import java.util.*;
  */
 @RestController
 @RequestMapping("/api/admin/invoices")
-@CrossOrigin(origins = "*")
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminInvoiceController {
 

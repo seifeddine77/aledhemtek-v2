@@ -72,13 +72,26 @@ public class ConsultantController {
     public ResponseEntity<Resource> getResume(@PathVariable String filename, 
                                             @RequestParam(value = "download", defaultValue = "false") boolean download) {
         try {
-            // Chemin corrigé pour pointer vers le bon dossier uploads
-            Path file = Paths.get(System.getProperty("user.dir"), "service-backend", "uploads", "resumes").resolve(filename).normalize();
+            // Nettoyer le nom de fichier contre le path traversal
+            if (filename == null || filename.contains("..") || filename.contains("/") || filename.contains("\\")) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            // Déterminer le dossier de base des CVs
+            Path baseDir = Paths.get(System.getProperty("user.dir"), "uploads", "resumes").toAbsolutePath().normalize();
+            if (!Files.exists(baseDir)) {
+                // Fallback si lancé depuis la racine du repo
+                baseDir = Paths.get(System.getProperty("user.dir"), "service-backend", "uploads", "resumes").toAbsolutePath().normalize();
+            }
+
+            Path file = baseDir.resolve(filename).normalize().toAbsolutePath();
             
-            // Debug: afficher le chemin exact
-            System.out.println("[ConsultantController] Tentative d'accès au fichier: " + file.toAbsolutePath());
-            System.out.println("[ConsultantController] Le fichier existe: " + Files.exists(file));
-            
+            // Vérification stricte anti-Path-Traversal
+            if (!file.startsWith(baseDir)) {
+                System.err.println("[SECURITY] Tentative de Path Traversal détectée pour le fichier: " + filename);
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+
             Resource resource = new UrlResource(file.toUri());
 
             if (resource.exists() && resource.isReadable()) {
@@ -90,26 +103,18 @@ public class ConsultantController {
                     contentType = "application/pdf"; // fallback
                 }
                 
-                System.out.println("[ConsultantController] Fichier trouvé et accessible, content-type: " + contentType);
-                System.out.println("[ConsultantController] Mode download: " + download);
-                
-                // Déterminer le Content-Disposition selon le mode
                 String disposition = download ? "attachment" : "inline";
                 
                 return ResponseEntity.ok()
                         .contentType(MediaType.parseMediaType(contentType))
                         .header(HttpHeaders.CONTENT_DISPOSITION, disposition + "; filename=\"" + resource.getFilename() + "\"")
-                        .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
                         .body(resource);
             } else {
-                System.out.println("[ConsultantController] Fichier non trouvé ou non accessible");
                 return ResponseEntity.notFound().build();
             }
         } catch (MalformedURLException e) {
-            System.out.println("[ConsultantController] Erreur MalformedURLException: " + e.getMessage());
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            System.out.println("[ConsultantController] Erreur générale: " + e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
     }

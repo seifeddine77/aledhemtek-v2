@@ -42,7 +42,13 @@ public class AuthService {
         if (userRepository.existsByEmail(signupRequest.getEmail())) {
             return false;
         }
-        String roleName = signupRequest.getUserRole().toUpperCase();
+        if (signupRequest.getUserRole() == null) {
+            throw new IllegalArgumentException("User role is required");
+        }
+        String roleName = signupRequest.getUserRole().trim().toUpperCase();
+        if ("ADMIN".equals(roleName)) {
+            throw new org.springframework.security.access.AccessDeniedException("Public registration of ADMIN role is forbidden");
+        }
         Role userRole = roleRepository.findByName(roleName).orElse(null);
         if (userRole == null) {
             throw new RuntimeException(roleName + " role not found. Please seed roles in the database.");
@@ -68,16 +74,6 @@ public class AuthService {
                 consultant.setPhone(signupRequest.getPhone());
                 consultant.setRoles(Collections.singletonList(userRole));
                 consultantRepository.save(consultant);
-                return true;
-            case "ADMIN":
-                com.aledhemtek.model.User admin = new com.aledhemtek.model.User();
-                admin.setEmail(signupRequest.getEmail());
-                admin.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
-                admin.setFirstName(signupRequest.getFirstname());
-                admin.setLastName(signupRequest.getLastname());
-                admin.setPhone(signupRequest.getPhone());
-                admin.setRoles(Collections.singletonList(userRole));
-                userRepository.save(admin);
                 return true;
             default:
                 throw new IllegalArgumentException("Invalid user role: " + signupRequest.getUserRole());

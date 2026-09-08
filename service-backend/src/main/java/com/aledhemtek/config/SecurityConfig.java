@@ -40,7 +40,20 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/public/**", "/api/invoices/public/**", "/api/consultants/create-consultant", "/api/clients/save-client", "/uploads/**", "/api/consultants/uploads/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers(
+                                "/actuator/health",
+                                "/actuator/info",
+                                "/api/auth/**",
+                                "/api/public/**",
+                                "/api/invoices/public/**",
+                                "/api/consultants/create-consultant",
+                                "/api/clients/save-client",
+                                "/uploads/**",
+                                "/api/consultants/uploads/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/consultants/approve", "/api/consultants/reject", "/api/consultants/get-all").hasRole("ADMIN")
                         .anyRequest().authenticated()
@@ -65,13 +78,16 @@ public class SecurityConfig {
         return new JwtAuthenticationFilter(jwtUtil, userDetailsService);
     }
 
-    // Supprimé FilterRegistrationBean car il causait des conflits avec les ressources statiques
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:4200")); // allow Angular
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        String envOrigins = System.getenv("CORS_ALLOWED_ORIGINS");
+        if (envOrigins != null && !envOrigins.isBlank()) {
+            configuration.setAllowedOrigins(List.of(envOrigins.split(",")));
+        } else {
+            configuration.setAllowedOrigins(List.of("http://localhost:4200", "http://localhost", "http://127.0.0.1:4200"));
+        }
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 
