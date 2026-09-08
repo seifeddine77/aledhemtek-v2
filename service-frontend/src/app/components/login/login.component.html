@@ -1,49 +1,69 @@
 <div class="login-wrapper">
   <div class="login-container">
 
-    <!-- Welcome Panel -->
+    <!-- Welcome Branded Panel -->
     <div class="login-welcome-panel">
+      <div class="welcome-badge">
+        <mat-icon>verified</mat-icon>
+        <span>Espace Sécurisé</span>
+      </div>
       <div class="welcome-content">
-        <h1>Welcome to Aledhemtek</h1>
-        <p>Your one-stop solution for reliable home services. Log in to manage your bookings and connect with professionals.</p>
+        <h1>Bienvenue sur <br><span class="brand-accent">AledhemTek</span></h1>
+        <p>Accédez à votre espace pour piloter vos interventions, réserver des artisans qualifiés et suivre vos factures en toute simplicité.</p>
+      </div>
+      <div class="welcome-features">
+        <div class="feature-item">
+          <mat-icon>bolt</mat-icon>
+          <span>Interventions rapides</span>
+        </div>
+        <div class="feature-item">
+          <mat-icon>shield</mat-icon>
+          <span>Transactions certifiées</span>
+        </div>
       </div>
     </div>
 
     <!-- Form Panel -->
     <div class="login-form-panel">
       <div class="form-header">
-        <h2>Welcome Back!</h2>
-        <p>Please enter your details to sign in.</p>
+        <h2>Connexion</h2>
+        <p>Entrez vos identifiants pour vous connecter à votre compte.</p>
       </div>
 
-      <form (ngSubmit)="onLogin()" #loginForm="ngForm">
-        <mat-form-field appearance="outline" class="w-100 mb-3 input-group">
-          <mat-label>Email</mat-label>
-          <input matInput type="email" name="email" [(ngModel)]="credentials.email" required>
-          <span class="material-icons input-icon">mail_outline</span>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="w-100 mb-3 input-group">
-          <mat-label>Password</mat-label>
-          <input matInput type="password" name="password" [(ngModel)]="credentials.password" required>
-          <span class="material-icons input-icon">lock_outline</span>
-        </mat-form-field>
-
-        <div *ngIf="errorMessage" class="error-message text-center">
-          {{ errorMessage }}
+      <form (ngSubmit)="onLogin()" #loginForm="ngForm" class="auth-form">
+        <!-- Error Alert -->
+        <div *ngIf="errorMessage" class="error-alert">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ errorMessage }}</span>
         </div>
 
-        <button mat-raised-button color="primary" class="login-button mt-3" [disabled]="isLoading">
-          <span *ngIf="!isLoading">Login</span>
-          <mat-progress-spinner *ngIf="isLoading" diameter="20" mode="indeterminate"></mat-progress-spinner>
+        <mat-form-field appearance="outline" class="w-100 mb-3">
+          <mat-label>Adresse Email</mat-label>
+          <mat-icon matPrefix class="form-icon">mail_outline</mat-icon>
+          <input matInput type="email" name="email" [(ngModel)]="credentials.email" placeholder="nom@exemple.com" required autocomplete="email">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-100 mb-3">
+          <mat-label>Mot de passe</mat-label>
+          <mat-icon matPrefix class="form-icon">lock_outline</mat-icon>
+          <input matInput [type]="hidePassword ? 'password' : 'text'" name="password" [(ngModel)]="credentials.password" required autocomplete="current-password">
+          <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword" [attr.aria-label]="'Afficher mot de passe'">
+            <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" class="login-button mt-3" [disabled]="isLoading || !loginForm.form.valid">
+          <span *ngIf="!isLoading">Se connecter</span>
+          <mat-progress-spinner *ngIf="isLoading" diameter="22" mode="indeterminate"></mat-progress-spinner>
         </button>
 
         <div class="signup-link">
-          <span>Don't have an account? </span>
-          <a routerLink="/register">Register here</a>
+          <span>Vous n'avez pas encore de compte ? </span>
+          <a routerLink="/register">Inscrivez-vous ici</a>
         </div>
       </form>
     </div>
 
   </div>
 </div>
+

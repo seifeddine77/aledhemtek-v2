@@ -9,6 +9,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatIconModule } from '@angular/material/icon';
+
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -20,7 +22,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatIconModule
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
@@ -30,16 +33,24 @@ export class LoginComponent {
     email :'',
     password : ''
   };
-  isLoading: any;
+  isLoading = false;
+  hidePassword = true;
   errorMessage = '';
 
   constructor(private authService: AuthService, private router: Router) {}
+
   onLogin(): void {
+    if (!this.credentials.email || !this.credentials.password) return;
+    this.isLoading = true;
+    this.errorMessage = '';
+
     this.authService.login(this.credentials.email, this.credentials.password).subscribe({
       next: () => {
+        this.isLoading = false;
       },
       error: err => {
-        this.errorMessage = 'Login failed. Please check your credentials.';
+        this.isLoading = false;
+        this.errorMessage = 'Identifiants invalides. Veuillez vérifier votre email et mot de passe.';
         console.error(err);
       }
     });

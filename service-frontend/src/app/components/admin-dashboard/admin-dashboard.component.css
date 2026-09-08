@@ -1,210 +1,190 @@
 .admin-dashboard {
-  padding: 24px;
-  background-color: #f5f5f5;
-  min-height: 100vh;
+  padding: 0;
+  max-width: 1300px;
+  margin: 0 auto;
 }
 
 .dashboard-header {
-  text-align: center;
-  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--color-border, #e2e8f0);
 }
 
 .dashboard-header h1 {
-  color: #333;
-  font-size: 32px;
-  font-weight: 600;
-  margin: 0 0 8px 0;
+  color: var(--color-text-primary, #0f172a);
+  font-size: 1.875rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.375rem 0;
 }
 
 .dashboard-header p {
-  color: #666;
-  font-size: 16px;
+  color: var(--color-text-secondary, #64748b);
+  font-size: 0.95rem;
   margin: 0;
 }
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 1.5rem;
 }
 
 /* Card Styles */
 mat-card {
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-radius: var(--radius-lg, 14px) !important;
+  background-color: var(--color-surface, #ffffff) !important;
+  border: 1px solid var(--color-border, #e2e8f0) !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: transform var(--transition-normal, 250ms ease), box-shadow var(--transition-normal, 250ms ease) !important;
+  padding: 1.25rem 1.5rem !important;
 }
 
 mat-card:hover {
+  box-shadow: var(--shadow-md) !important;
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
 }
 
 mat-card-header {
-  margin-bottom: 16px;
+  margin-bottom: 1.25rem;
+  padding: 0 !important;
 }
 
 mat-card-title {
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: #333;
-  font-size: 18px;
-  font-weight: 600;
+  gap: 0.625rem;
+  color: var(--color-text-primary, #0f172a);
+  font-size: 1.125rem !important;
+  font-weight: 700 !important;
+}
+
+mat-card-title mat-icon {
+  color: var(--color-primary, #2563eb);
 }
 
 mat-card-subtitle {
-  color: #666;
-  font-size: 14px;
-  margin-top: 4px;
+  color: var(--color-text-secondary, #64748b);
+  font-size: 0.8125rem;
+  margin-top: 0.25rem;
 }
 
 /* Quick Actions */
 .quick-actions {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.875rem;
 }
 
 .quick-actions button {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  font-weight: 500;
-  border-radius: 8px;
-  min-height: 48px;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  border-radius: var(--radius-md, 8px) !important;
+  font-size: 0.875rem;
+  min-height: 44px;
 }
 
 .quick-actions button mat-icon {
-  font-size: 20px;
-  width: 20px;
-  height: 20px;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
 }
 
 /* Test Actions */
 .test-actions {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .test-actions button {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
+  gap: 0.625rem;
+  padding: 0.625rem 1rem;
   font-weight: 500;
-  border-radius: 8px;
+  border-radius: var(--radius-md, 8px) !important;
   justify-content: flex-start;
 }
 
 .test-description {
-  font-size: 14px;
-  color: #666;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary, #64748b);
   line-height: 1.5;
   margin: 0;
-  padding: 16px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  border-left: 4px solid #2196f3;
+  padding: 0.875rem 1rem;
+  background-color: var(--color-bg, #f8fafc);
+  border-radius: var(--radius-md, 8px);
+  border-left: 3px solid var(--color-primary, #2563eb);
 }
 
 /* Overview Items */
 .overview-items {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 0.875rem;
 }
 
 .overview-item {
   display: flex;
   align-items: flex-start;
-  gap: 16px;
-  padding: 16px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  transition: background-color 0.2s ease;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: var(--color-bg, #f8fafc);
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-border-subtle, #f1f5f9);
+  transition: all var(--transition-fast, 150ms ease);
 }
 
 .overview-item:hover {
-  background-color: #e9ecef;
+  background-color: #ffffff;
+  border-color: var(--color-border, #e2e8f0);
+  box-shadow: var(--shadow-xs);
 }
 
 .overview-item mat-icon {
-  color: #2196f3;
-  font-size: 32px;
-  width: 32px;
-  height: 32px;
-  margin-top: 4px;
+  color: var(--color-primary, #2563eb);
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  margin-top: 2px;
 }
 
 .item-details h3 {
-  margin: 0 0 8px 0;
-  color: #333;
-  font-size: 16px;
+  margin: 0 0 0.25rem 0;
+  color: var(--color-text-primary, #0f172a);
+  font-size: 0.9375rem;
   font-weight: 600;
 }
 
 .item-details p {
   margin: 0;
-  color: #666;
-  font-size: 14px;
-  line-height: 1.5;
+  color: var(--color-text-secondary, #64748b);
+  font-size: 0.8125rem;
+  line-height: 1.4;
 }
 
-/* Card Specific Styles */
-.stats-card {
-  border-left: 4px solid #2196f3;
-}
-
-.test-card {
-  border-left: 4px solid #ff9800;
-}
-
-.overview-card {
-  border-left: 4px solid #4caf50;
-}
-
-/* Responsive Design */
+/* Responsive */
 @media (max-width: 768px) {
-  .admin-dashboard {
-    padding: 16px;
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
   }
   
   .dashboard-grid {
     grid-template-columns: 1fr;
-    gap: 16px;
-  }
-  
-  .dashboard-header h1 {
-    font-size: 24px;
   }
   
   .quick-actions {
     grid-template-columns: 1fr;
-    gap: 12px;
   }
-  
-  .quick-actions button {
-    min-height: 44px;
-    padding: 10px 14px;
-  }
-  
-  .test-actions button {
-    padding: 10px 14px;
-  }
-  
-  .overview-item {
-    padding: 12px;
-  }
-  
-  .overview-item mat-icon {
-    font-size: 28px;
-    width: 28px;
-    height: 28px;
-  }
-}
+}

@@ -5,6 +5,8 @@ import { CommonModule } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatDividerModule } from '@angular/material/divider';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -16,7 +18,9 @@ import { Subscription } from 'rxjs';
     RouterLinkActive,
     MatToolbarModule,
     MatButtonModule,
-    MatIconModule
+    MatIconModule,
+    MatMenuModule,
+    MatDividerModule
   ],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.css'
@@ -24,6 +28,7 @@ import { Subscription } from 'rxjs';
 export class NavbarComponent implements OnInit, OnDestroy {
   isLoggedIn = false;
   userRole: string | null = null;
+  isMobileMenuOpen = false;
   private authSubscription!: Subscription;
 
   constructor(private router: Router, private authService: AuthService) {}
@@ -52,7 +57,16 @@ export class NavbarComponent implements OnInit, OnDestroy {
     }
   }
 
+  toggleMobileMenu(): void {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
+
+  closeMobileMenu(): void {
+    this.isMobileMenuOpen = false;
+  }
+
   logout(): void {
+    this.closeMobileMenu();
     this.authService.logout();
     this.router.navigate(['/login']);
   }

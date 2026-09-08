@@ -1,12 +1,64 @@
 <footer class="site-footer">
-  <div class="container">
-    <div class="left">
-      <span class="brand">Aledhemtek © {{year}}</span>
+  <div class="footer-top">
+    <div class="footer-container">
+      <div class="footer-grid">
+        <!-- Brand Column -->
+        <div class="footer-col brand-col">
+          <div class="footer-brand">
+            <span class="brand-name">Aledhem<span class="brand-highlight">Tek</span></span>
+          </div>
+          <p class="brand-desc">
+            La plateforme de référence pour des prestations de rénovation et services à domicile certifiés, rapides et transparents.
+          </p>
+          <div class="footer-trust-badge">
+            <i class="fas fa-shield-alt"></i>
+            <span>Paiement sécurisé &amp; Satisfaction garantie</span>
+          </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="footer-col">
+          <h4 class="col-title">Navigation</h4>
+          <ul class="footer-links">
+            <li><a routerLink="/home">Accueil</a></li>
+            <li><a routerLink="/login">Espace Client</a></li>
+            <li><a routerLink="/register">Devenir Client</a></li>
+          </ul>
+        </div>
+
+        <!-- Services -->
+        <div class="footer-col">
+          <h4 class="col-title">Services</h4>
+          <ul class="footer-links">
+            <li><a routerLink="/home">Plomberie &amp; Sanitaire</a></li>
+            <li><a routerLink="/home">Électricité &amp; Énergie</a></li>
+            <li><a routerLink="/home">Peinture &amp; Rénovation</a></li>
+            <li><a routerLink="/home">Menuiserie &amp; Montage</a></li>
+          </ul>
+        </div>
+
+        <!-- Contact & Support -->
+        <div class="footer-col">
+          <h4 class="col-title">Assistance</h4>
+          <ul class="footer-links contact-info">
+            <li><i class="fas fa-envelope"></i> contact&#64;aledhemtek.com</li>
+            <li><i class="fas fa-phone-alt"></i> +216 71 000 000</li>
+            <li><i class="fas fa-clock"></i> 7j/7 de 8h à 20h</li>
+          </ul>
+        </div>
+      </div>
     </div>
-    <div class="right">
-      <a routerLink="/about">About</a>
-      <a routerLink="/contact">Contact</a>
-      <a href="https://www.linkedin.com" target="_blank" rel="noopener">LinkedIn</a>
+  </div>
+
+  <div class="footer-bottom">
+    <div class="footer-container bottom-inner">
+      <p class="copyright">&copy; {{year}} AledhemTek. Tous droits réservés.</p>
+      <div class="social-links">
+        <a href="https://linkedin.com" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+        <a href="https://facebook.com" target="_blank" rel="noopener" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+        <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+      </div>
     </div>
   </div>
 </footer>
+

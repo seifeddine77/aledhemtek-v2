@@ -1,12 +1,31 @@
 <div class="sidebar-container">
-  <h3>Menu Consultant</h3>
+  <div class="sidebar-header">
+    <span class="header-tag"><i class="fas fa-hard-hat"></i> Espace Consultant</span>
+  </div>
   <ul class="nav-list">
     <li>
-      <a routerLink="/consultant/dashboard" routerLinkActive="active-link">Tableau de bord</a>
+      <a routerLink="/consultant/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+        <i class="fas fa-chart-pie"></i>
+        <span>Tableau de bord</span>
+      </a>
     </li>
     <li>
-      <a routerLink="/consultant/calendar" routerLinkActive="active-link">Mon Calendrier</a>
+      <a routerLink="/consultant/calendar" routerLinkActive="active">
+        <i class="fas fa-calendar-alt"></i>
+        <span>Mon Calendrier</span>
+      </a>
     </li>
-    <!-- D'autres liens peuvent être ajoutés ici -->
+    <li>
+      <a routerLink="/consultant/tasks" routerLinkActive="active">
+        <i class="fas fa-tasks"></i>
+        <span>Mes Interventions</span>
+      </a>
+    </li>
+    <li>
+      <a routerLink="/consultant/evaluations" routerLinkActive="active">
+        <i class="fas fa-star"></i>
+        <span>Mes Évaluations</span>
+      </a>
+    </li>
   </ul>
 </div>
