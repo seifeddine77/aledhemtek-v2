@@ -2,19 +2,21 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ConsultantInterface } from '../models/consultant-interface';
+import { environment } from '../../environments/environment';
+
 @Injectable({
   providedIn: 'root'
 })
 export class ConsultantService {
 
-  private baseUrl = 'http://localhost:8080/api/consultants';
+  private baseUrl = `${environment.apiUrl}/consultants`;
   constructor(private http: HttpClient) {}
   getAll(): Observable<ConsultantInterface[]> {
     return this.http.get<ConsultantInterface[]>(`${this.baseUrl}/get-all`);
   }
 
   getById(id: number): Observable<ConsultantInterface> {
-    return this.http.get<ConsultantInterface>(`${this.baseUrl}/get-salarie/${id}`);
+    return this.http.get<ConsultantInterface>(`${this.baseUrl}/get-consultant/${id}`);
   }
 
   update(id: number, dto: ConsultantInterface): Observable<ConsultantInterface> {

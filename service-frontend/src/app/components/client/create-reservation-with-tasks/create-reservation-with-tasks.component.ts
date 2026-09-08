@@ -21,6 +21,7 @@ import { TaskSelectorComponent, SelectedTask } from '../task-selector/task-selec
 import { LocationMapComponent } from '../../shared/location-map/location-map.component';
 import { Reservation, ReservationStatus } from '../../../models/reservation.model';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-create-reservation-with-tasks',
@@ -91,7 +92,7 @@ export class CreateReservationWithTasksComponent implements OnInit {
     
     if (userId && userRole === 'client') {
       // Charger les informations du client connecté depuis le backend
-      this.http.get<any>(`http://localhost:8080/api/clients/${userId}`).subscribe({
+      this.http.get<any>(`${environment.apiUrl}/clients/${userId}`).subscribe({
         next: (client: any) => {
           this.currentUser = {
             id: client.id,
@@ -218,7 +219,7 @@ export class CreateReservationWithTasksComponent implements OnInit {
 
     const reservationData = this.buildReservationData();
 
-    this.reservationService.createReservationPublic(reservationData).subscribe({
+    this.reservationService.createReservationWithTaskIds(reservationData).subscribe({
       next: (response) => {
         this.snackBar.open('Réservation créée avec succès!', 'Fermer', {
           duration: 3000,

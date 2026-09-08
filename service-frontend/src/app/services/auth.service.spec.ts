@@ -6,11 +6,12 @@ import {ClientInterface} from '../models/client-interface';
 import {SalarieInterface} from '../models/salarie-interface';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {LoginResponse} from '../models/login-response';
+import { environment } from '../../environments/environment';
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private baseUrl = 'http://localhost:8080/api/auth';
+  private baseUrl = `${environment.apiUrl}/auth`;
   constructor(private http: HttpClient) { }
   login(email: string, password: string): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.baseUrl}/login`, { email, password })

@@ -13,6 +13,7 @@ import { AdminService } from '../../../services/admin.service';
 import { ReservationService } from '../../../services/reservation.service';
 import { PriceValidationService } from '../../../services/price-validation.service';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
 
 export interface SelectedTask {
   task: TaskDto;
@@ -67,7 +68,7 @@ export class TaskSelectorComponent implements OnInit {
 
   loadServices(): void {
     // Utiliser l'endpoint public pour les services
-    this.http.get<any[]>('http://localhost:8080/api/public/services').subscribe({
+    this.http.get<any[]>(`${environment.apiUrl}/public/services`).subscribe({
       next: (services: any[]) => {
         this.services = services;
         console.log('Services chargés:', services);
@@ -84,7 +85,7 @@ export class TaskSelectorComponent implements OnInit {
 
   loadTasksForService(serviceId: number): void {
     // Utiliser l'endpoint public pour les tâches
-    this.http.get<TaskDto[]>(`http://localhost:8080/api/public/tasks/service/${serviceId}`).subscribe({
+    this.http.get<TaskDto[]>(`${environment.apiUrl}/public/tasks/service/${serviceId}`).subscribe({
       next: (tasks: TaskDto[]) => {
         this.tasksByService[serviceId] = tasks;
         console.log(`Tâches chargées pour le service ${serviceId}:`, tasks);
@@ -260,7 +261,7 @@ export class TaskSelectorComponent implements OnInit {
     if (imageName) {
       // Enlever le préfixe 'tasks/' s'il existe déjà (pour compatibilité avec anciennes données)
       const cleanImageName = imageName.startsWith('tasks/') ? imageName.substring(6) : imageName;
-      return `http://localhost:8080/uploads/tasks/${cleanImageName}`;
+      return `${environment.uploadsUrl}/tasks/${cleanImageName}`;
     }
     return 'assets/images/default-task.png';
   }

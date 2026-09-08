@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, interval } from 'rxjs';
 import { switchMap, catchError } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 export interface NotificationItem {
   id: string;
@@ -17,7 +18,7 @@ export interface NotificationItem {
   providedIn: 'root'
 })
 export class NotificationService {
-  private apiUrl = 'http://localhost:8080/api/notifications';
+  private apiUrl = `${environment.apiUrl}/notifications`;
   
   private notificationsSubject = new BehaviorSubject<NotificationItem[]>([]);
   public notifications$ = this.notificationsSubject.asObservable();

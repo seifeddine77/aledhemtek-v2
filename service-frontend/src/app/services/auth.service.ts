@@ -7,11 +7,12 @@ import { ConsultantInterface } from '../models/consultant-interface';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {LoginResponse} from '../models/login-response';
 import {Router} from '@angular/router';
+import { environment } from '../../environments/environment';
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private baseUrl = 'http://localhost:8080/api';
+  private baseUrl = environment.apiUrl;
   private authStatusListener = new BehaviorSubject<boolean>(this.isLoggedIn());
 
   constructor(private http: HttpClient, private router: Router) { }

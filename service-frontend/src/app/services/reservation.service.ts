@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Reservation, ReservationStatus } from '../models/reservation.model';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ReservationService {
-  private apiUrl = 'http://localhost:8080/api/reservations';
+  private apiUrl = `${environment.apiUrl}/reservations`;
 
   constructor(private http: HttpClient) { }
 
@@ -87,22 +88,20 @@ export class ReservationService {
 
   // Méthode publique pour calculer les prix (sans authentification)
   calculateTasksPricePublic(taskIds: number[]): Observable<any> {
-    return this.http.post<any>('http://localhost:8080/api/public/calculate-price', { taskIds });
+    return this.http.post<any>(`${environment.apiUrl}/public/calculate-price`, { taskIds });
   }
 
   // Méthode publique pour calculer les prix avec quantités (sans authentification)
   calculateTasksPricePublicWithQuantities(taskIds: number[], taskQuantities: { [key: string]: number }): Observable<any> {
-    return this.http.post<any>('http://localhost:8080/api/public/calculate-price', { 
+    return this.http.post<any>(`${environment.apiUrl}/public/calculate-price`, { 
       taskIds, 
       taskQuantities 
     });
   }
 
-  // Méthode publique pour créer une réservation (sans authentification)
-  createReservationPublic(reservationData: any): Observable<string> {
-    return this.http.post('http://localhost:8080/api/public/create-reservation', reservationData, {
-      responseType: 'text' // Spécifier que la réponse est du texte brut
-    });
+  // Méthode pour créer une réservation (fallback)
+  createReservationPublic(reservationData: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/with-task-ids`, reservationData);
   }
 
   // Méthodes pour gérer les tâches d'une réservation

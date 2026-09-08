@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ImageService {
-  private readonly baseUrl = 'http://localhost:8080/uploads';
+  private readonly baseUrl = environment.uploadsUrl;
   private readonly defaultImages = {
     task: 'assets/images/default-task.png',
     service: 'assets/images/default-service.png',

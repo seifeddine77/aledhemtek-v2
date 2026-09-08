@@ -15,6 +15,7 @@ import { TaskService, TaskDto, RateDto, MaterialDto } from '../../../services/ta
 import { AdminService } from '../../../services/admin.service';
 import { RateDialogComponent } from '../rate-dialog/rate-dialog.component';
 import { MaterialDialogComponent } from '../material-dialog/material-dialog.component';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-task-edit-dialog',
@@ -289,7 +290,7 @@ export class TaskEditDialogComponent implements OnInit {
   }
 
   getImageUrl(imageName: string): string {
-    return `http://localhost:8080/uploads/tasks/${imageName}`;
+    return `${environment.uploadsUrl}/tasks/${imageName}`;
   }
 
   onSave(): void {

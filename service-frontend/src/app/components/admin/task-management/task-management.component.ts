@@ -19,6 +19,7 @@ import { AdminService } from '../../../services/admin.service';
 import { TaskEditDialogComponent } from '../task-edit-dialog/task-edit-dialog.component';
 import { RouterModule } from '@angular/router';
 import { PaginationComponent, PaginationConfig } from '../../shared/pagination/pagination.component';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-task-management',
@@ -256,7 +257,7 @@ export class TaskManagementComponent implements OnInit {
     if (imageName) {
       // Enlever le préfixe 'tasks/' s'il existe déjà (pour compatibilité avec anciennes données)
       const cleanImageName = imageName.startsWith('tasks/') ? imageName.substring(6) : imageName;
-      return `http://localhost:8080/uploads/tasks/${cleanImageName}`;
+      return `${environment.uploadsUrl}/tasks/${cleanImageName}`;
     }
     return 'assets/images/default-task.png';
   }

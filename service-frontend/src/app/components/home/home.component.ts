@@ -16,6 +16,7 @@ import { AuthService } from '../../services/auth.service';
 import { ServiceDto } from '../../models/service.model';
 import { Evaluation } from '../../models/evaluation.model';
 import { Reservation } from '../../models/reservation.model';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-home',
@@ -125,7 +126,7 @@ export class Home implements OnInit, OnDestroy {
     if (service.img) {
       // Nettoyer le nom de fichier (enlever le préfixe services/ s'il existe)
       const cleanImageName = service.img.startsWith('services/') ? service.img.substring(9) : service.img;
-      return `http://localhost:8080/uploads/services/${cleanImageName}`;
+      return `${environment.uploadsUrl}/services/${cleanImageName}`;
     }
     
     // Image par défaut

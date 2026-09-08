@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface AdminInvoice {
   id: number;
@@ -85,7 +86,7 @@ export interface InvoiceResponse {
   providedIn: 'root'
 })
 export class AdminInvoiceService {
-  private apiUrl = 'http://localhost:8080/api/admin/invoices';
+  private apiUrl = `${environment.apiUrl}/admin/invoices`;
 
   constructor(private http: HttpClient) {}
 
