@@ -100,7 +100,38 @@ public class AledhemtekApplication implements CommandLineRunner {
             Client savedClient = userRepository.save(client);
             System.out.println("Client de test créé avec ID: " + savedClient.getId());
         }
-        
+
+        // Créer un consultant de test
+        if (userRepository.findByEmail("consultant@test.com").isEmpty()) {
+            Consultant consultant = new Consultant();
+            consultant.setFirstName("Consultant");
+            consultant.setLastName("Pro");
+            consultant.setEmail("consultant@test.com");
+            consultant.setPassword(new BCryptPasswordEncoder().encode("consultant123"));
+            consultant.setPhone("987654321");
+            consultant.setAddress("456 Avenue des Artisans");
+            consultant.setCity("Tunis");
+            consultant.setCountry("Tunisie");
+            consultant.setZip(1000);
+            consultant.setProfession("Plombier Certifié");
+            consultant.setExp(5);
+            consultant.setStatus(com.aledhemtek.enums.AccountStatus.APPROVED);
+            consultant.setEnabled(true);
+            consultant.setAccountNonExpired(true);
+            consultant.setAccountNonLocked(true);
+            consultant.setCredentialsNonExpired(true);
+
+            Role consultantRole = roleRepository.findByName("CONSULTANT").orElse(null);
+            if (consultantRole != null) {
+                List<Role> consultantRoles = new ArrayList<>();
+                consultantRoles.add(consultantRole);
+                consultant.setRoles(consultantRoles);
+            }
+
+            Consultant savedConsultant = userRepository.save(consultant);
+            System.out.println("Consultant de test créé avec ID: " + savedConsultant.getId());
+        }
+
         // Seed test data
         seedTestData();
         

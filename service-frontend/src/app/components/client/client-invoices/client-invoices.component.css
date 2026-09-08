@@ -10,21 +10,36 @@
 }
 
 .header-card {
-  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
-  color: white;
+  background: var(--color-surface, #ffffff);
+  color: var(--color-text-primary, #0f172a);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: var(--radius-lg, 14px) !important;
+  box-shadow: var(--shadow-sm) !important;
 }
 
-.header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
+.title-section h1 {
+  margin: 0;
+  font-size: 1.625rem;
+  font-weight: 800;
+  color: var(--color-text-primary, #0f172a);
 }
 
-.title-section {
+.subtitle {
+  margin: 4px 0 0 0;
+  color: var(--color-text-secondary, #64748b);
+  font-size: 0.875rem;
+}
+
+.header-icon {
+  font-size: 32px;
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
-  gap: 16px;
+  justify-content: center;
+  background: var(--primary-50, #eff6ff);
+  color: var(--color-primary, #2563eb);
+  border-radius: var(--radius-md, 10px);
 }
 
 .header-icon {
