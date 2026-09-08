@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM node:18-alpine AS build
+FROM node:20-alpine AS build
 WORKDIR /app
 
 # Copy package files
@@ -22,7 +22,7 @@ WORKDIR /usr/share/nginx/html
 RUN rm -rf ./*
 
 # Copy built app from build stage
-COPY --from=build /app/dist/alaa-dhemtk-front-v2 .
+COPY --from=build /app/dist/alaa-dhemtk-front-v2/browser .
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf

@@ -22,6 +22,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import com.aledhemtek.config.StorageProperties;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,11 +30,13 @@ public class ConsultantServiceImpl implements ConsultantInterface {
     private final ConsultantRepository consultantRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final StorageProperties storageProperties;
 
-    public ConsultantServiceImpl(ConsultantRepository consultantRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
+    public ConsultantServiceImpl(ConsultantRepository consultantRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder, StorageProperties storageProperties) {
         this.consultantRepository = consultantRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
+        this.storageProperties = storageProperties;
     }
 
     private ConsultantDTO mapToDTO(Consultant c) {
@@ -97,7 +100,7 @@ public class ConsultantServiceImpl implements ConsultantInterface {
             if (dto.getProfilePicFile() != null && !dto.getProfilePicFile().isEmpty()) {
                 MultipartFile profilePic = dto.getProfilePicFile();
                 String profileName = UUID.randomUUID() + "_" + profilePic.getOriginalFilename();
-                Path profilePath = Paths.get(System.getProperty("user.dir"), "service-backend", "uploads", "profile-pictures");
+                Path profilePath = storageProperties.getResolvedRootPath().resolve("profile-pictures");
                 Files.createDirectories(profilePath);
                 profilePic.transferTo(profilePath.resolve(profileName).toFile());
                 consultant.setProfilePic(profileName);
@@ -107,7 +110,7 @@ public class ConsultantServiceImpl implements ConsultantInterface {
             if (dto.getResume() != null && !dto.getResume().isEmpty()) {
                 MultipartFile resumeFile = dto.getResume();
                 String resumeName = UUID.randomUUID() + "_" + resumeFile.getOriginalFilename();
-                Path resumePath = Paths.get(System.getProperty("user.dir"), "service-backend", "uploads", "resumes");
+                Path resumePath = storageProperties.getResolvedRootPath().resolve("resumes");
                 Files.createDirectories(resumePath);
                 resumeFile.transferTo(resumePath.resolve(resumeName).toFile());
                 consultant.setResumePath(resumeName);

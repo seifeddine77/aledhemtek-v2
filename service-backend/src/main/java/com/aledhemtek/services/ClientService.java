@@ -17,6 +17,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import com.aledhemtek.config.StorageProperties;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -26,11 +27,13 @@ public class ClientService implements ClientInterface {
     private final ClientRepository clientRepository;
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
+    private final StorageProperties storageProperties;
     
-    public ClientService(ClientRepository clientRepository, PasswordEncoder passwordEncoder, RoleRepository roleRepository) {
+    public ClientService(ClientRepository clientRepository, PasswordEncoder passwordEncoder, RoleRepository roleRepository, StorageProperties storageProperties) {
         this.clientRepository = clientRepository;
         this.passwordEncoder = passwordEncoder;
         this.roleRepository = roleRepository;
+        this.storageProperties = storageProperties;
     }
     private ClientDTO mapToDTO(Client clt) {
         ClientDTO dto = new ClientDTO();
@@ -113,7 +116,7 @@ public class ClientService implements ClientInterface {
 
             if (file != null && !file.isEmpty()) {
                 String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-                                Path uploadPath = Paths.get(System.getProperty("user.dir"), "service-backend", "uploads", "profile-pictures");
+                Path uploadPath = storageProperties.getResolvedRootPath().resolve("profile-pictures");
 
                 Files.createDirectories(uploadPath);
                 file.transferTo(uploadPath.resolve(fileName).toFile());

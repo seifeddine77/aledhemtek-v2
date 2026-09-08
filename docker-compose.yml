@@ -50,6 +50,9 @@ services:
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
       PAYPAL_CLIENT_ID: ${PAYPAL_CLIENT_ID}
       PAYPAL_CLIENT_SECRET: ${PAYPAL_CLIENT_SECRET}
+      STORAGE_ROOT_DIR: /app/uploads
+      STORAGE_SERVICE_DIR: /app/uploads
+      INVOICE_PDF_DIRECTORY: /app/invoices
     ports:
       - "8080:8080"
     volumes:

@@ -1,5 +1,6 @@
 package com.aledhemtek.controllers;
 
+import com.aledhemtek.config.StorageProperties;
 import com.aledhemtek.dto.ConsultantDTO;
 import com.aledhemtek.enums.AccountStatus;
 import com.aledhemtek.services.ConsultantServiceImpl;
@@ -26,9 +27,11 @@ import java.util.Map;
 @RequestMapping("/api/consultants")
 public class ConsultantController {
     private final ConsultantServiceImpl consultantService;
+    private final StorageProperties storageProperties;
 
-    public ConsultantController(ConsultantServiceImpl consultantService) {
+    public ConsultantController(ConsultantServiceImpl consultantService, StorageProperties storageProperties) {
         this.consultantService = consultantService;
+        this.storageProperties = storageProperties;
     }
 
     @GetMapping("/get-all")
@@ -78,11 +81,7 @@ public class ConsultantController {
             }
 
             // Déterminer le dossier de base des CVs
-            Path baseDir = Paths.get(System.getProperty("user.dir"), "uploads", "resumes").toAbsolutePath().normalize();
-            if (!Files.exists(baseDir)) {
-                // Fallback si lancé depuis la racine du repo
-                baseDir = Paths.get(System.getProperty("user.dir"), "service-backend", "uploads", "resumes").toAbsolutePath().normalize();
-            }
+            Path baseDir = storageProperties.getResolvedRootPath().resolve("resumes").toAbsolutePath().normalize();
 
             Path file = baseDir.resolve(filename).normalize().toAbsolutePath();
             

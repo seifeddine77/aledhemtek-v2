@@ -30,7 +30,7 @@ public class StorageServiceImpl implements StorageService {
     public void init() {
         try {
             // Initialiser le répertoire racine pour les services, tâches, catégories
-            serviceRootLocation = Paths.get(storageProperties.getServiceDir()).toAbsolutePath().normalize();
+            serviceRootLocation = storageProperties.getResolvedRootPath();
             Files.createDirectories(serviceRootLocation);
         } catch (IOException e) {
             throw new RuntimeException("Could not initialize storage location for services", e);
