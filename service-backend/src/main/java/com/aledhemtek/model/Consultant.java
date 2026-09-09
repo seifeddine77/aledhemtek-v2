@@ -73,4 +73,29 @@ public class Consultant extends User {
         dto.setInsuranceDocPath(getInsuranceDocPath());
         return dto;
     }
+
+    public String getProfession() { return profession; }
+    public void setProfession(String profession) { this.profession = profession; }
+    public Integer getExp() { return exp; }
+    public void setExp(Integer exp) { this.exp = exp; }
+    public String getCompanyName() { return companyName; }
+    public void setCompanyName(String companyName) { this.companyName = companyName; }
+    public String getResumePath() { return resumePath; }
+    public void setResumePath(String resumePath) { this.resumePath = resumePath; }
+    public AccountStatus getStatus() { return status; }
+    public void setStatus(AccountStatus status) { this.status = status; }
+    public String getSiret() { return siret; }
+    public void setSiret(String siret) { this.siret = siret; }
+    public String getInsuranceProvider() { return insuranceProvider; }
+    public void setInsuranceProvider(String insuranceProvider) { this.insuranceProvider = insuranceProvider; }
+    public String getInsurancePolicyNumber() { return insurancePolicyNumber; }
+    public void setInsurancePolicyNumber(String insurancePolicyNumber) { this.insurancePolicyNumber = insurancePolicyNumber; }
+    public java.util.Date getInsuranceExpiryDate() { return insuranceExpiryDate; }
+    public void setInsuranceExpiryDate(java.util.Date insuranceExpiryDate) { this.insuranceExpiryDate = insuranceExpiryDate; }
+    public Integer getInterventionRadiusKm() { return interventionRadiusKm; }
+    public void setInterventionRadiusKm(Integer interventionRadiusKm) { this.interventionRadiusKm = interventionRadiusKm; }
+    public String getSkills() { return skills; }
+    public void setSkills(String skills) { this.skills = skills; }
+    public String getInsuranceDocPath() { return insuranceDocPath; }
+    public void setInsuranceDocPath(String insuranceDocPath) { this.insuranceDocPath = insuranceDocPath; }
 }

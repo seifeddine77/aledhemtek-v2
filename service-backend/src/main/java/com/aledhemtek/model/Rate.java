@@ -37,4 +37,15 @@ public class Rate {
         dto.setEndDate(endDate);
         return dto;
     }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public Double getPrice() { return price; }
+    public void setPrice(Double price) { this.price = price; }
+    public LocalDate getStartDate() { return startDate; }
+    public void setStartDate(LocalDate startDate) { this.startDate = startDate; }
+    public LocalDate getEndDate() { return endDate; }
+    public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
+    public Task getTask() { return task; }
+    public void setTask(Task task) { this.task = task; }
 }

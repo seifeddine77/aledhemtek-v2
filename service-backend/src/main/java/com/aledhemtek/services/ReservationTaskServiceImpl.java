@@ -225,8 +225,9 @@ public class ReservationTaskServiceImpl implements ReservationTaskService {
                     reservationTask.setTask(catalogTask);
                     
                     String taskIdStr = taskId.toString();
-                    int quantity = (taskQuantities != null && taskQuantities.containsKey(taskIdStr)) 
+                    int rawQty = (taskQuantities != null && taskQuantities.containsKey(taskIdStr)) 
                             ? taskQuantities.get(taskIdStr) : 1;
+                    int quantity = Math.max(1, Math.min(100, rawQty));
                     reservationTask.setQuantity(quantity);
                     
                     // Calculer le prix unitaire (logique simplifiée)
@@ -262,14 +263,15 @@ public class ReservationTaskServiceImpl implements ReservationTaskService {
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Task not found in reservation"));
         
-        reservationTask.setQuantity(quantity);
+        int safeQuantity = (quantity != null && quantity > 0) ? Math.min(quantity, 100) : 1;
+        reservationTask.setQuantity(safeQuantity);
         reservationTask.calculateTotalPrice();
         
         reservation.setUpdatedAt(LocalDateTime.now());
         reservationRepository.save(reservation);
         
         TaskDto taskDto = reservationTask.getTask().getTaskDto();
-        taskDto.setQuantity(quantity);
+        taskDto.setQuantity(safeQuantity);
         return taskDto;
     }
 }

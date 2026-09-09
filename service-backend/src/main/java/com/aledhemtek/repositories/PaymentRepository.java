@@ -68,6 +68,17 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
      * Find payments by transaction ID
      */
     Optional<Payment> findByTransactionId(String transactionId);
+
+    /**
+     * Find payment by idempotency key
+     */
+    Optional<Payment> findByIdempotencyKey(String idempotencyKey);
+
+    /**
+     * Find all payments for a specific client ordered by date descending
+     */
+    @Query("SELECT p FROM Payment p WHERE p.invoice.reservation.client.id = :clientId ORDER BY p.paymentDate DESC")
+    List<Payment> findByClientIdOrderByPaymentDateDesc(@Param("clientId") Long clientId);
     
     /**
      * Calculate total payments for invoice

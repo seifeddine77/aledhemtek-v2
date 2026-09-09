@@ -41,4 +41,17 @@ public class ReservationTask {
             this.totalPrice = unitPrice * quantity;
         }
     }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public Reservation getReservation() { return reservation; }
+    public void setReservation(Reservation reservation) { this.reservation = reservation; }
+    public Task getTask() { return task; }
+    public void setTask(Task task) { this.task = task; }
+    public Integer getQuantity() { return quantity; }
+    public void setQuantity(Integer quantity) { this.quantity = quantity; }
+    public Double getUnitPrice() { return unitPrice; }
+    public void setUnitPrice(Double unitPrice) { this.unitPrice = unitPrice; }
+    public Double getTotalPrice() { return totalPrice; }
+    public void setTotalPrice(Double totalPrice) { this.totalPrice = totalPrice; }
 }

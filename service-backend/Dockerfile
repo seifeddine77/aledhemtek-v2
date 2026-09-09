@@ -1,16 +1,4 @@
-# Stage 1: Build
-FROM maven:3.8.6-eclipse-temurin-17 AS build
-WORKDIR /app
-
-# Copy pom.xml and download dependencies
-COPY pom.xml .
-RUN mvn dependency:go-offline
-
-# Copy source code and build
-COPY src ./src
-RUN mvn clean package -DskipTests
-
-# Stage 2: Runtime
+# Runtime image using pre-compiled jar
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
@@ -21,8 +9,8 @@ RUN addgroup -S spring && adduser -S spring -G spring \
 
 USER spring:spring
 
-# Copy jar from build stage
-COPY --from=build /app/target/*.jar app.jar
+# Copy jar from target
+COPY target/*.jar app.jar
 
 # Expose port
 EXPOSE 8080

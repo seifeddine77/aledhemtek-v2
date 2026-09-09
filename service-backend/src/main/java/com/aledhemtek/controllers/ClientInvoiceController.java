@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/client")
@@ -38,6 +39,9 @@ public class ClientInvoiceController {
     
     @Autowired
     private PaymentRepository paymentRepository;
+
+    @Autowired
+    private com.aledhemtek.services.PaymentProcessingService paymentProcessingService;
 
     /**
      * Get current client's invoices (simplified version)
@@ -334,15 +338,18 @@ public class ClientInvoiceController {
 
     @PostMapping("/payments/process")
     @PreAuthorize("hasRole('CLIENT')")
-    public ResponseEntity<?> processPayment(@RequestBody Map<String, Object> paymentRequest) {
+    public ResponseEntity<?> processPayment(
+            @RequestBody Map<String, Object> paymentRequest,
+            @RequestHeader(value = "Idempotency-Key", required = false) String headerIdempotencyKey) {
         try {
             Long invoiceId = Long.valueOf(paymentRequest.get("invoiceId").toString());
             Double amount = Double.valueOf(paymentRequest.get("amount").toString());
-            String paymentMethod = paymentRequest.get("paymentMethod").toString();
-            String status = paymentRequest.getOrDefault("status", "PENDING").toString();
+            String paymentMethodStr = paymentRequest.getOrDefault("paymentMethod", "STRIPE").toString().toUpperCase();
             String notes = paymentRequest.getOrDefault("notes", "").toString();
+            String idempotencyKey = paymentRequest.containsKey("idempotencyKey") ?
+                    paymentRequest.get("idempotencyKey").toString() : headerIdempotencyKey;
             
-            // Vérifier que la facture appartient au client connecté
+            // 1. Vérifier existence de la facture
             Optional<Invoice> invoiceOpt = invoiceService.getInvoiceById(invoiceId);
             if (invoiceOpt.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -350,77 +357,63 @@ public class ClientInvoiceController {
             }
             
             Invoice invoice = invoiceOpt.get();
-            // Vérifier l'authentification via Spring Security
+
+            // 2. Vérifier que la facture appartient bien au client connecté (Anti-IDOR)
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            String currentUserEmail = auth.getName();
-            
-            // Vérifier que l'email correspond au client de la facture
-            if (!currentUserEmail.equals(invoice.getReservation().getClient().getEmail())) {
+            String currentUserEmail = auth != null ? auth.getName() : null;
+            if (invoice.getReservation() == null || invoice.getReservation().getClient() == null ||
+                currentUserEmail == null || !currentUserEmail.equalsIgnoreCase(invoice.getReservation().getClient().getEmail())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(Map.of("success", false, "message", "Accès non autorisé"));
+                        .body(Map.of("success", false, "message", "Accès non autorisé à cette facture"));
             }
             
-            // Créer le paiement
-            Payment payment = new Payment();
-            payment.setInvoice(invoice);
-            payment.setAmount(amount);
-            
-            // Convertir la méthode de paiement
-            Payment.PaymentMethod method;
-            switch (paymentMethod.toLowerCase()) {
-                case "cash":
-                    method = Payment.PaymentMethod.CASH;
+            // 3. Déléguer au service sécurisé selon la méthode de paiement
+            Payment payment;
+            switch (paymentMethodStr) {
+                case "STRIPE":
+                case "CREDIT_CARD":
+                    String token = paymentRequest.containsKey("stripeToken") ? 
+                            paymentRequest.get("stripeToken").toString() : "tok_visa";
+                    payment = paymentProcessingService.processCreditCardPayment(invoice, amount, token, idempotencyKey);
                     break;
-                case "check":
-                    method = Payment.PaymentMethod.CHECK;
+                case "PAYPAL":
+                    String paypalId = paymentRequest.containsKey("paypalPaymentId") ? 
+                            paymentRequest.get("paypalPaymentId").toString() : "PAYID-" + UUID.randomUUID().toString().substring(0, 8);
+                    payment = paymentProcessingService.processPayPalPayment(invoice, amount, paypalId, idempotencyKey);
                     break;
-                case "stripe":
-                    method = Payment.PaymentMethod.STRIPE;
+                case "BANK_TRANSFER":
+                    String ref = paymentRequest.containsKey("transferReference") ? 
+                            paymentRequest.get("transferReference").toString() : "VIR-" + System.currentTimeMillis();
+                    payment = paymentProcessingService.processBankTransferPayment(invoice, amount, ref, idempotencyKey);
                     break;
-                case "paypal":
-                    method = Payment.PaymentMethod.PAYPAL;
-                    break;
-                case "bank_transfer":
-                    method = Payment.PaymentMethod.BANK_TRANSFER;
+                case "CASH":
+                    payment = paymentProcessingService.processCashPayment(invoice, amount, notes, idempotencyKey);
                     break;
                 default:
-                    method = Payment.PaymentMethod.OTHER;
+                    payment = paymentProcessingService.addPaymentToInvoice(
+                        invoiceId, amount, Payment.PaymentMethod.OTHER, "manual_" + System.currentTimeMillis(), notes, idempotencyKey);
             }
-            payment.setPaymentMethod(method);
-            
-            payment.setPaymentDate(LocalDateTime.now());
-            
-            // Convertir le statut
-            Payment.PaymentStatus paymentStatus;
-            if ("PENDING_VALIDATION".equals(status)) {
-                paymentStatus = Payment.PaymentStatus.PENDING;
-            } else {
-                paymentStatus = Payment.PaymentStatus.PENDING;
-            }
-            payment.setStatus(paymentStatus);
-            payment.setNotes(notes);
-            
-            // Générer la référence de paiement
-            payment.generatePaymentReference();
-            
-            // Sauvegarder le paiement en base de données
-            Payment savedPayment = paymentRepository.save(payment);
-            
-            // Log pour le suivi
-            System.out.println("Paiement créé avec succès: " + savedPayment.getPaymentReference() + 
-                             " pour la facture: " + invoice.getInvoiceNumber());
             
             Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Paiement traité avec succès");
-            response.put("paymentId", savedPayment.getId());
+            response.put("success", payment.getStatus() == Payment.PaymentStatus.VALIDATED || payment.getStatus() == Payment.PaymentStatus.PENDING);
+            response.put("message", payment.getStatus() == Payment.PaymentStatus.VALIDATED ? 
+                    "Paiement validé avec succès !" : "Paiement enregistré en attente de validation");
+            response.put("paymentId", payment.getId());
+            response.put("paymentReference", payment.getPaymentReference());
+            response.put("transactionId", payment.getTransactionId());
+            response.put("status", payment.getStatus().toString());
+            response.put("invoiceStatus", invoice.getStatus().toString());
+            response.put("remainingAmount", invoice.getRemainingAmount());
             
             return ResponseEntity.ok(response);
             
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("success", false, "message", e.getMessage()));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("success", false, "message", "Erreur lors du traitement du paiement"));
+                    .body(Map.of("success", false, "message", "Erreur lors du traitement du paiement: " + e.getMessage()));
         }
     }
 }

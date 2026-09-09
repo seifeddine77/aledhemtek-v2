@@ -19,8 +19,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
-@Slf4j
 public class AiDocumentService {
+
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AiDocumentService.class);
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final RestTemplate restTemplate = new RestTemplate();

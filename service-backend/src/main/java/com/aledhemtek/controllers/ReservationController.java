@@ -28,14 +28,20 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/reservations")
-@RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:4200")
-@Slf4j
 public class ReservationController {
+
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ReservationController.class);
 
     private final ReservationService reservationService;
     private final TaskRepository taskRepository;
     private final AutoInvoiceService autoInvoiceService;
+
+    public ReservationController(ReservationService reservationService, TaskRepository taskRepository, AutoInvoiceService autoInvoiceService) {
+        this.reservationService = reservationService;
+        this.taskRepository = taskRepository;
+        this.autoInvoiceService = autoInvoiceService;
+    }
 
     private boolean isAdmin(Authentication authentication) {
         if (authentication == null) return false;

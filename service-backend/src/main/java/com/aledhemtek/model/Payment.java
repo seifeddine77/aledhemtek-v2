@@ -32,6 +32,12 @@ public class Payment {
     @Column(name = "transaction_id")
     private String transactionId;
     
+    @Column(name = "idempotency_key", unique = true)
+    private String idempotencyKey;
+
+    @Column(name = "currency", length = 10)
+    private String currency = "EUR";
+
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
     
@@ -116,6 +122,30 @@ public class Payment {
      */
     public void markAsFailed() {
         this.status = PaymentStatus.FAILED;
+        this.updatedAt = LocalDateTime.now();
+    }
+    
+    public boolean canBeRefunded() {
+        return this.status == PaymentStatus.VALIDATED;
+    }
+
+    public boolean canBeCancelled() {
+        return this.status == PaymentStatus.PENDING || this.status == PaymentStatus.PROCESSING;
+    }
+
+    public void markAsRefunded(String refundNotes) {
+        this.status = PaymentStatus.REFUNDED;
+        if (refundNotes != null && !refundNotes.isBlank()) {
+            this.notes = (this.notes != null ? this.notes + " | " : "") + "Remboursé: " + refundNotes;
+        }
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void markAsCancelled(String reason) {
+        this.status = PaymentStatus.CANCELLED;
+        if (reason != null && !reason.isBlank()) {
+            this.notes = (this.notes != null ? this.notes + " | " : "") + "Annulé: " + reason;
+        }
         this.updatedAt = LocalDateTime.now();
     }
     
@@ -206,5 +236,21 @@ public class Payment {
     
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getIdempotencyKey() {
+        return idempotencyKey;
+    }
+
+    public void setIdempotencyKey(String idempotencyKey) {
+        this.idempotencyKey = idempotencyKey;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(String currency) {
+        this.currency = currency;
     }
 }

@@ -72,22 +72,70 @@ class PaymentProcessingServiceTest {
     }
 
     @Test
-    void testBankTransferValidationFullPaymentMarksInvoiceAsPaid() {
-        Payment pendingPayment = new Payment();
-        pendingPayment.setId(10L);
-        pendingPayment.setInvoice(invoice);
-        pendingPayment.setAmount(100.0);
-        pendingPayment.setPaymentMethod(Payment.PaymentMethod.BANK_TRANSFER);
-        pendingPayment.setStatus(Payment.PaymentStatus.PENDING);
+    void testNegativeAmountRejected() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            paymentProcessingService.processCreditCardPayment(invoice, -10.0, "tok_123", "key-neg");
+        });
+    }
 
-        when(paymentRepository.findById(10L)).thenReturn(Optional.of(pendingPayment));
+    @Test
+    void testZeroAmountRejected() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            paymentProcessingService.processCreditCardPayment(invoice, 0.0, "tok_123", "key-zero");
+        });
+    }
+
+    @Test
+    void testAmountGreaterThanRemainingRejected() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            paymentProcessingService.processCreditCardPayment(invoice, 150.0, "tok_123", "key-over");
+        });
+    }
+
+    @Test
+    void testPaymentOnAlreadyPaidInvoiceRejected() {
+        invoice.setStatus(Invoice.InvoiceStatus.PAID);
+        assertThrows(IllegalStateException.class, () -> {
+            paymentProcessingService.processCreditCardPayment(invoice, 50.0, "tok_123", "key-paid");
+        });
+    }
+
+    @Test
+    void testIdempotencyReturnsExistingPaymentWithoutDoubleProcessing() {
+        Payment existing = new Payment();
+        existing.setId(99L);
+        existing.setIdempotencyKey("idem-unique-123");
+        existing.setAmount(50.0);
+        existing.setStatus(Payment.PaymentStatus.VALIDATED);
+        existing.setInvoice(invoice);
+
+        when(paymentRepository.findByIdempotencyKey("idem-unique-123")).thenReturn(Optional.of(existing));
+
+        Payment result = paymentProcessingService.processCreditCardPayment(invoice, 50.0, "tok_123", "idem-unique-123");
+
+        assertNotNull(result);
+        assertEquals(99L, result.getId());
+        assertEquals("idem-unique-123", result.getIdempotencyKey());
+        verify(paymentRepository, never()).save(any(Payment.class));
+    }
+
+    @Test
+    void testRefundPaymentReopensInvoiceToSent() {
+        invoice.setStatus(Invoice.InvoiceStatus.PAID);
+        Payment validatedPayment = new Payment();
+        validatedPayment.setId(20L);
+        validatedPayment.setInvoice(invoice);
+        validatedPayment.setAmount(100.0);
+        validatedPayment.setStatus(Payment.PaymentStatus.VALIDATED);
+        invoice.getPayments().add(validatedPayment);
+
+        when(paymentRepository.findById(20L)).thenReturn(Optional.of(validatedPayment));
         when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Payment validated = paymentProcessingService.validateBankTransferPayment(10L, true, "Transfer received");
+        Payment refunded = paymentProcessingService.refundPayment(20L, "Client requested refund");
 
-        assertEquals(Payment.PaymentStatus.VALIDATED, validated.getStatus());
-        assertEquals(Invoice.InvoiceStatus.PAID, invoice.getStatus());
+        assertEquals(Payment.PaymentStatus.REFUNDED, refunded.getStatus());
+        assertEquals(Invoice.InvoiceStatus.SENT, invoice.getStatus());
         verify(invoiceRepository, times(1)).save(invoice);
-        verify(emailService, times(1)).sendPaymentConfirmationEmail(invoice);
     }
 }

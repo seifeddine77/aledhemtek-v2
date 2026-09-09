@@ -51,6 +51,7 @@ public class SecurityConfig {
                                 "/api/clients/save-client",
                                 "/uploads/**",
                                 "/api/consultants/uploads/**",
+                                "/api/payments/webhook",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",

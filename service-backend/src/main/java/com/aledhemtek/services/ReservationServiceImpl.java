@@ -55,7 +55,9 @@ public class ReservationServiceImpl implements ReservationService {
                     ReservationTask reservationTask = new ReservationTask();
                     reservationTask.setReservation(reservation);
                     reservationTask.setTask(catalogTask); // Référence vers la tâche du catalogue
-                    reservationTask.setQuantity(taskDto.getQuantity() != null ? taskDto.getQuantity() : 1);
+                    int validQuantity = (taskDto.getQuantity() != null && taskDto.getQuantity() > 0) 
+                            ? Math.min(taskDto.getQuantity(), 100) : 1;
+                    reservationTask.setQuantity(validQuantity);
                     
                     // Calculer le prix unitaire actuel de la tâche
                     double unitPrice = getTaskCurrentPrice(catalogTask);
@@ -100,7 +102,9 @@ public class ReservationServiceImpl implements ReservationService {
                     ReservationTask reservationTask = new ReservationTask();
                     reservationTask.setReservation(reservation);
                     reservationTask.setTask(catalogTask);
-                    reservationTask.setQuantity(taskDto.getQuantity() != null ? taskDto.getQuantity() : 1);
+                    int validQuantity = (taskDto.getQuantity() != null && taskDto.getQuantity() > 0) 
+                            ? Math.min(taskDto.getQuantity(), 100) : 1;
+                    reservationTask.setQuantity(validQuantity);
                     double unitPrice = getTaskCurrentPrice(catalogTask);
                     reservationTask.setUnitPrice(unitPrice);
                     reservationTask.calculateTotalPrice();

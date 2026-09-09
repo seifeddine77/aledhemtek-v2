@@ -1,16 +1,21 @@
 package com.aledhemtek.controllers;
 
+import com.aledhemtek.config.CustomUserDetails;
 import com.aledhemtek.dto.TaskDto;
 import com.aledhemtek.dto.TaskManagementRequest;
 import com.aledhemtek.interfaces.ReservationTaskService;
+import com.aledhemtek.model.Reservation;
+import com.aledhemtek.repositories.ReservationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/reservations/{reservationId}/tasks")
@@ -20,19 +25,67 @@ public class ReservationTaskController {
     @Autowired
     private ReservationTaskService reservationTaskService;
 
+    @Autowired
+    private ReservationRepository reservationRepository;
+
+    /**
+     * Vérifie les droits d'accès à la réservation pour prévenir les failles IDOR.
+     * @return null si l'accès est autorisé, ou un ResponseEntity d'erreur approprié (401, 403, 404).
+     */
+    private ResponseEntity<?> checkReservationAccess(Long reservationId, Authentication authentication, boolean allowConsultant) {
+        if (authentication == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Authentification requise"));
+        }
+
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        if (isAdmin) {
+            return null; // Admin a accès à tout
+        }
+
+        Long currentUserId = null;
+        if (authentication.getPrincipal() instanceof CustomUserDetails) {
+            currentUserId = ((CustomUserDetails) authentication.getPrincipal()).getUser().getId();
+        }
+        if (currentUserId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Utilisateur non identifié"));
+        }
+
+        Optional<Reservation> resOpt = reservationRepository.findById(reservationId);
+        if (resOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Réservation introuvable"));
+        }
+        Reservation res = resOpt.get();
+
+        boolean isClient = res.getClient() != null && res.getClient().getId().equals(currentUserId);
+        if (isClient) {
+            return null;
+        }
+
+        if (allowConsultant && res.getConsultant() != null && res.getConsultant().getId().equals(currentUserId)) {
+            return null;
+        }
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Accès non autorisé à cette réservation"));
+    }
+
     /**
      * Ajouter une tâche à une réservation
      */
     @PostMapping
     @PreAuthorize("hasRole('CLIENT') or hasRole('ADMIN')")
-    public ResponseEntity<TaskDto> addTaskToReservation(
+    public ResponseEntity<?> addTaskToReservation(
             @PathVariable Long reservationId,
-            @RequestBody TaskDto taskDto) {
+            @RequestBody TaskDto taskDto,
+            Authentication authentication) {
+        ResponseEntity<?> accessError = checkReservationAccess(reservationId, authentication, false);
+        if (accessError != null) return accessError;
+
         try {
             TaskDto addedTask = reservationTaskService.addTaskToReservation(reservationId, taskDto);
             return ResponseEntity.status(HttpStatus.CREATED).body(addedTask);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         }
     }
 
@@ -41,14 +94,18 @@ public class ReservationTaskController {
      */
     @PostMapping("/batch")
     @PreAuthorize("hasRole('CLIENT') or hasRole('ADMIN')")
-    public ResponseEntity<List<TaskDto>> addTasksToReservation(
+    public ResponseEntity<?> addTasksToReservation(
             @PathVariable Long reservationId,
-            @RequestBody List<TaskDto> taskDtos) {
+            @RequestBody List<TaskDto> taskDtos,
+            Authentication authentication) {
+        ResponseEntity<?> accessError = checkReservationAccess(reservationId, authentication, false);
+        if (accessError != null) return accessError;
+
         try {
             List<TaskDto> addedTasks = reservationTaskService.addTasksToReservation(reservationId, taskDtos);
             return ResponseEntity.status(HttpStatus.CREATED).body(addedTasks);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         }
     }
 
@@ -57,12 +114,17 @@ public class ReservationTaskController {
      */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT') or hasRole('CONSULTANT')")
-    public ResponseEntity<List<TaskDto>> getReservationTasks(@PathVariable Long reservationId) {
+    public ResponseEntity<?> getReservationTasks(
+            @PathVariable Long reservationId,
+            Authentication authentication) {
+        ResponseEntity<?> accessError = checkReservationAccess(reservationId, authentication, true);
+        if (accessError != null) return accessError;
+
         try {
             List<TaskDto> tasks = reservationTaskService.getReservationTasks(reservationId);
             return ResponseEntity.ok(tasks);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         }
     }
 
@@ -71,15 +133,19 @@ public class ReservationTaskController {
      */
     @PutMapping("/{taskId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CONSULTANT')")
-    public ResponseEntity<TaskDto> updateReservationTask(
+    public ResponseEntity<?> updateReservationTask(
             @PathVariable Long reservationId,
             @PathVariable Long taskId,
-            @RequestBody TaskDto taskDto) {
+            @RequestBody TaskDto taskDto,
+            Authentication authentication) {
+        ResponseEntity<?> accessError = checkReservationAccess(reservationId, authentication, true);
+        if (accessError != null) return accessError;
+
         try {
             TaskDto updatedTask = reservationTaskService.updateReservationTask(reservationId, taskId, taskDto);
             return ResponseEntity.ok(updatedTask);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         }
     }
 
@@ -88,14 +154,18 @@ public class ReservationTaskController {
      */
     @DeleteMapping("/{taskId}")
     @PreAuthorize("hasRole('CLIENT') or hasRole('ADMIN')")
-    public ResponseEntity<Void> removeTaskFromReservation(
+    public ResponseEntity<?> removeTaskFromReservation(
             @PathVariable Long reservationId,
-            @PathVariable Long taskId) {
+            @PathVariable Long taskId,
+            Authentication authentication) {
+        ResponseEntity<?> accessError = checkReservationAccess(reservationId, authentication, false);
+        if (accessError != null) return accessError;
+
         try {
             reservationTaskService.removeTaskFromReservation(reservationId, taskId);
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         }
     }
 
@@ -104,12 +174,17 @@ public class ReservationTaskController {
      */
     @GetMapping("/total-price")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT') or hasRole('CONSULTANT')")
-    public ResponseEntity<Double> calculateReservationTotalPrice(@PathVariable Long reservationId) {
+    public ResponseEntity<?> calculateReservationTotalPrice(
+            @PathVariable Long reservationId,
+            Authentication authentication) {
+        ResponseEntity<?> accessError = checkReservationAccess(reservationId, authentication, true);
+        if (accessError != null) return accessError;
+
         try {
             Double totalPrice = reservationTaskService.calculateReservationTotalPrice(reservationId);
             return ResponseEntity.ok(totalPrice);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         }
     }
 
@@ -118,12 +193,17 @@ public class ReservationTaskController {
      */
     @GetMapping("/total-duration")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT') or hasRole('CONSULTANT')")
-    public ResponseEntity<Integer> calculateReservationTotalDuration(@PathVariable Long reservationId) {
+    public ResponseEntity<?> calculateReservationTotalDuration(
+            @PathVariable Long reservationId,
+            Authentication authentication) {
+        ResponseEntity<?> accessError = checkReservationAccess(reservationId, authentication, true);
+        if (accessError != null) return accessError;
+
         try {
             Integer totalDuration = reservationTaskService.calculateReservationTotalDuration(reservationId);
             return ResponseEntity.ok(totalDuration);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         }
     }
 
@@ -132,14 +212,18 @@ public class ReservationTaskController {
      */
     @PutMapping("/{taskId}/complete")
     @PreAuthorize("hasRole('CONSULTANT') or hasRole('ADMIN')")
-    public ResponseEntity<TaskDto> markTaskAsCompleted(
+    public ResponseEntity<?> markTaskAsCompleted(
             @PathVariable Long reservationId,
-            @PathVariable Long taskId) {
+            @PathVariable Long taskId,
+            Authentication authentication) {
+        ResponseEntity<?> accessError = checkReservationAccess(reservationId, authentication, true);
+        if (accessError != null) return accessError;
+
         try {
             TaskDto completedTask = reservationTaskService.markTaskAsCompleted(reservationId, taskId);
             return ResponseEntity.ok(completedTask);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         }
     }
 
@@ -148,12 +232,17 @@ public class ReservationTaskController {
      */
     @GetMapping("/pending")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT') or hasRole('CONSULTANT')")
-    public ResponseEntity<List<TaskDto>> getPendingTasks(@PathVariable Long reservationId) {
+    public ResponseEntity<?> getPendingTasks(
+            @PathVariable Long reservationId,
+            Authentication authentication) {
+        ResponseEntity<?> accessError = checkReservationAccess(reservationId, authentication, true);
+        if (accessError != null) return accessError;
+
         try {
             List<TaskDto> pendingTasks = reservationTaskService.getPendingTasks(reservationId);
             return ResponseEntity.ok(pendingTasks);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         }
     }
 
@@ -162,12 +251,17 @@ public class ReservationTaskController {
      */
     @GetMapping("/completed")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT') or hasRole('CONSULTANT')")
-    public ResponseEntity<List<TaskDto>> getCompletedTasks(@PathVariable Long reservationId) {
+    public ResponseEntity<?> getCompletedTasks(
+            @PathVariable Long reservationId,
+            Authentication authentication) {
+        ResponseEntity<?> accessError = checkReservationAccess(reservationId, authentication, true);
+        if (accessError != null) return accessError;
+
         try {
             List<TaskDto> completedTasks = reservationTaskService.getCompletedTasks(reservationId);
             return ResponseEntity.ok(completedTasks);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         }
     }
 
@@ -175,16 +269,20 @@ public class ReservationTaskController {
      * Ajouter des tâches avec quantités à une réservation
      */
     @PostMapping("/with-quantities")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<TaskDto>> addTasksWithQuantities(
+    @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
+    public ResponseEntity<?> addTasksWithQuantities(
             @PathVariable Long reservationId,
-            @RequestBody TaskManagementRequest request) {
+            @RequestBody TaskManagementRequest request,
+            Authentication authentication) {
+        ResponseEntity<?> accessError = checkReservationAccess(reservationId, authentication, false);
+        if (accessError != null) return accessError;
+
         try {
             List<TaskDto> addedTasks = reservationTaskService.addTasksWithQuantitiesToReservation(
                     reservationId, request.getTaskIds(), request.getTaskQuantities());
             return ResponseEntity.status(HttpStatus.CREATED).body(addedTasks);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         }
     }
 
@@ -192,21 +290,25 @@ public class ReservationTaskController {
      * Mettre à jour la quantité d'une tâche dans une réservation
      */
     @PutMapping("/{taskId}/quantity")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<TaskDto> updateTaskQuantity(
+    @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
+    public ResponseEntity<?> updateTaskQuantity(
             @PathVariable Long reservationId,
             @PathVariable Long taskId,
-            @RequestBody Map<String, Integer> request) {
+            @RequestBody Map<String, Integer> request,
+            Authentication authentication) {
+        ResponseEntity<?> accessError = checkReservationAccess(reservationId, authentication, false);
+        if (accessError != null) return accessError;
+
         try {
             Integer quantity = request.get("quantity");
             if (quantity == null || quantity < 1) {
-                return ResponseEntity.badRequest().build();
+                return ResponseEntity.badRequest().body(Map.of("error", "La quantité doit être supérieure ou égale à 1"));
             }
             
             TaskDto updatedTask = reservationTaskService.updateTaskQuantity(reservationId, taskId, quantity);
             return ResponseEntity.ok(updatedTask);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         }
     }
 }

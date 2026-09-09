@@ -29,4 +29,13 @@ public class Material {
         dto.setQuantity(quantity);
         return dto;
     }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public int getQuantity() { return quantity; }
+    public void setQuantity(int quantity) { this.quantity = quantity; }
+    public Task getTask() { return task; }
+    public void setTask(Task task) { this.task = task; }
 }

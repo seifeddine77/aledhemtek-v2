@@ -43,6 +43,9 @@ public class InvoiceController {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private com.aledhemtek.services.PaymentProcessingService paymentProcessingService;
     
     /**
      * Create a new invoice
@@ -241,12 +244,33 @@ public class InvoiceController {
      */
     @PostMapping("/{id}/payments")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
-    public ResponseEntity<Invoice> addPaymentToInvoice(@PathVariable Long id, @RequestBody Payment payment) {
+    public ResponseEntity<?> addPaymentToInvoice(@PathVariable Long id, @RequestBody Payment payment) {
         try {
-            Invoice updatedInvoice = invoiceService.addPaymentToInvoice(id, payment);
-            return ResponseEntity.ok(updatedInvoice);
+            paymentProcessingService.addPaymentToInvoice(
+                id,
+                payment.getAmount(),
+                payment.getPaymentMethod(),
+                payment.getTransactionId(),
+                payment.getNotes(),
+                payment.getIdempotencyKey()
+            );
+            return ResponseEntity.ok(invoiceService.getInvoiceById(id).orElse(null));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Delete payment from invoice
+     */
+    @DeleteMapping("/payments/{paymentId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deletePayment(@PathVariable Long paymentId) {
+        try {
+            paymentProcessingService.deletePayment(paymentId);
+            return ResponseEntity.ok(Map.of("success", true, "message", "Payment deleted successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         }
     }
     
@@ -557,4 +581,49 @@ public class InvoiceController {
         }
     }
 
+    /**
+     * Add payment to invoice (Used by frontend PaymentDialogComponent)
+     */
+    @PostMapping("/{invoiceId}/payments")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
+    public ResponseEntity<?> addPaymentToInvoice(
+            @PathVariable Long invoiceId,
+            @RequestBody Map<String, Object> request,
+            @RequestHeader(value = "Idempotency-Key", required = false) String headerIdempotencyKey,
+            org.springframework.security.core.Authentication authentication) {
+        try {
+            Optional<Invoice> invoiceOpt = invoiceService.getInvoiceById(invoiceId);
+            if (invoiceOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Facture introuvable"));
+            }
+            Invoice invoice = invoiceOpt.get();
+            boolean isAdmin = authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().contains("ADMIN"));
+            if (!isAdmin) {
+                String email = authentication.getName();
+                if (invoice.getReservation() == null || invoice.getReservation().getClient() == null ||
+                    !email.equalsIgnoreCase(invoice.getReservation().getClient().getEmail())) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Accès refusé"));
+                }
+            }
+
+            Double amount = Double.valueOf(request.get("amount").toString());
+            String methodStr = request.getOrDefault("paymentMethod", "CASH").toString().toUpperCase();
+            Payment.PaymentMethod method = Payment.PaymentMethod.valueOf(methodStr);
+            String transactionId = request.containsKey("transactionId") && request.get("transactionId") != null ? 
+                    request.get("transactionId").toString() : null;
+            String notes = request.containsKey("notes") && request.get("notes") != null ? 
+                    request.get("notes").toString() : null;
+            String idempotencyKey = request.containsKey("idempotencyKey") && request.get("idempotencyKey") != null ? 
+                    request.get("idempotencyKey").toString() : headerIdempotencyKey;
+
+            Payment payment = paymentProcessingService.addPaymentToInvoice(
+                    invoiceId, amount, method, transactionId, notes, idempotencyKey);
+            return ResponseEntity.status(HttpStatus.CREATED).body(payment);
+
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
+        }
+    }
 }
