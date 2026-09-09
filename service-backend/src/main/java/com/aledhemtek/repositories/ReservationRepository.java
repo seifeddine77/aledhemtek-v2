@@ -49,4 +49,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     @Query("SELECT r FROM Reservation r WHERE r.status = 'COMPLETED' " +
            "AND r.id NOT IN (SELECT i.reservation.id FROM Invoice i WHERE i.reservation IS NOT NULL)")
     List<Reservation> findCompletedReservationsWithoutInvoices();
+
+    @Query("SELECT DISTINCT r FROM Reservation r LEFT JOIN FETCH r.reservationTasks rt LEFT JOIN FETCH rt.task WHERE r.id = :id")
+    java.util.Optional<Reservation> findByIdWithTasks(@Param("id") Long id);
 }

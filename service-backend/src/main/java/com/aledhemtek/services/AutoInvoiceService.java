@@ -41,7 +41,7 @@ public class AutoInvoiceService {
             return pdf;
         } catch (Exception e) {
             logger.error("Failed to generate PDF for invoice {}: {}", invoice.getInvoiceNumber(), e.getMessage());
-            throw new RuntimeException("Failed to generate PDF in AutoInvoiceService for invoice " + invoice.getId(), e); // Return empty byte array on failure
+            return new byte[0]; // Return empty byte array on failure so invoice is preserved
         }
     }
 
@@ -63,12 +63,13 @@ public class AutoInvoiceService {
     /**
      * Generate invoice automatically when reservation is completed
      */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public void generateInvoiceForCompletedReservation(Long reservationId) {
         System.out.println("[DEBUG] AutoInvoiceService.generateInvoiceForCompletedReservation called for reservation: " + reservationId);
         try {
-            Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new RuntimeException("Reservation not found"));
+            Reservation reservation = reservationRepository.findByIdWithTasks(reservationId)
+                .orElseGet(() -> reservationRepository.findById(reservationId)
+                    .orElseThrow(() -> new RuntimeException("Reservation not found")));
             
             System.out.println("[DEBUG] Found reservation with status: " + reservation.getStatus());
             
@@ -110,7 +111,9 @@ public class AutoInvoiceService {
                 byte[] pdf = generateInvoicePDF(savedInvoice);
                 
                 // Send email to client with PDF attachment
-                sendInvoiceToClient(savedInvoice, pdf);
+                if (pdf != null && pdf.length > 0) {
+                    sendInvoiceToClient(savedInvoice, pdf);
+                }
 
                 
                 logger.info("Auto-generated invoice {} for completed reservation {}", 

@@ -87,15 +87,27 @@ public class PaymentProcessingService {
      * Met à jour le statut de la facture si le solde restant dû est atteint.
      */
     private void updateInvoiceStatusIfFullyPaid(Invoice invoice, Payment validatedPayment) {
-        if (invoice == null) return;
-        if (validatedPayment != null && !invoice.getPayments().contains(validatedPayment)) {
+        if (invoice == null || invoice.getId() == null) return;
+        if (validatedPayment != null && invoice.getPayments() != null && !invoice.getPayments().contains(validatedPayment)) {
             invoice.getPayments().add(validatedPayment);
         }
-        Double remaining = invoice.getRemainingAmount();
-        if (remaining != null && remaining <= 0.01) {
+        List<Payment> dbPayments = paymentRepository.findByInvoiceId(invoice.getId());
+        List<Payment> paymentsToConsider = (dbPayments != null && !dbPayments.isEmpty()) ? dbPayments : invoice.getPayments();
+        
+        double paidAmount = 0.0;
+        if (paymentsToConsider != null) {
+            paidAmount = paymentsToConsider.stream()
+                    .filter(p -> p != null && p.getStatus() == Payment.PaymentStatus.VALIDATED && p.getAmount() != null)
+                    .mapToDouble(Payment::getAmount)
+                    .sum();
+        }
+        Double total = invoice.getTotalAmount() != null ? invoice.getTotalAmount() : 0.0;
+        Double remaining = Math.max(0.0, total - paidAmount);
+        if (remaining <= 0.01) {
             invoice.setStatus(Invoice.InvoiceStatus.PAID);
             invoiceRepository.save(invoice);
-            logger.info("Facture {} soldée : statut mis à jour vers PAID", invoice.getInvoiceNumber());
+            logger.info("Facture {} soldée : statut mis à jour vers PAID (Total: {} €, Réglé: {} €)", 
+                invoice.getInvoiceNumber(), total, paidAmount);
         }
     }
 
@@ -103,12 +115,24 @@ public class PaymentProcessingService {
      * Réajuste le statut de la facture lors d'un remboursement ou d'une annulation.
      */
     private void updateInvoiceStatusOnRefundOrCancel(Invoice invoice) {
-        if (invoice == null) return;
-        Double remaining = invoice.getRemainingAmount();
-        if (remaining != null && remaining > 0.01 && invoice.getStatus() == Invoice.InvoiceStatus.PAID) {
+        if (invoice == null || invoice.getId() == null) return;
+        List<Payment> dbPayments = paymentRepository.findByInvoiceId(invoice.getId());
+        List<Payment> paymentsToConsider = (dbPayments != null && !dbPayments.isEmpty()) ? dbPayments : invoice.getPayments();
+        
+        double paidAmount = 0.0;
+        if (paymentsToConsider != null) {
+            paidAmount = paymentsToConsider.stream()
+                    .filter(p -> p != null && p.getStatus() == Payment.PaymentStatus.VALIDATED && p.getAmount() != null)
+                    .mapToDouble(Payment::getAmount)
+                    .sum();
+        }
+        Double total = invoice.getTotalAmount() != null ? invoice.getTotalAmount() : 0.0;
+        Double remaining = Math.max(0.0, total - paidAmount);
+        if (remaining > 0.01 && invoice.getStatus() == Invoice.InvoiceStatus.PAID) {
             invoice.setStatus(Invoice.InvoiceStatus.SENT);
             invoiceRepository.save(invoice);
-            logger.info("Facture {} réajustée vers le statut SENT suite au remboursement/annulation", invoice.getInvoiceNumber());
+            logger.info("Facture {} réajustée vers le statut SENT suite au remboursement/annulation (Reste: {} €)", 
+                invoice.getInvoiceNumber(), remaining);
         }
     }
     
@@ -117,12 +141,12 @@ public class PaymentProcessingService {
      */
     @Transactional
     public Payment processCreditCardPayment(Invoice invoice, Double amount, String stripeToken, String idempotencyKey) {
-        validatePaymentPreconditions(invoice, amount);
-
-        Optional<Payment> idempotentPayment = checkExistingIdempotentPayment(idempotencyKey, invoice.getId());
+        Optional<Payment> idempotentPayment = checkExistingIdempotentPayment(idempotencyKey, invoice != null ? invoice.getId() : null);
         if (idempotentPayment.isPresent()) {
             return idempotentPayment.get();
         }
+
+        validatePaymentPreconditions(invoice, amount);
 
         try {
             Payment payment = new Payment();
@@ -140,7 +164,6 @@ public class PaymentProcessingService {
                 payment.setTransactionId("stripe_ch_" + UUID.randomUUID().toString().replace("-", "").substring(0, 16));
                 payment.setNotes("Paiement carte bancaire validé via Stripe");
                 logger.info("Paiement CB validé pour la facture: {} - Montant: {} €", invoice.getInvoiceNumber(), amount);
-                updateInvoiceStatusIfFullyPaid(invoice, payment);
             } else {
                 payment.setStatus(Payment.PaymentStatus.FAILED);
                 payment.setTransactionId("stripe_fail_" + UUID.randomUUID().toString().replace("-", "").substring(0, 12));
@@ -150,7 +173,8 @@ public class PaymentProcessingService {
             
             Payment savedPayment = paymentRepository.save(payment);
             
-            if (payment.getStatus() == Payment.PaymentStatus.VALIDATED) {
+            if (savedPayment.getStatus() == Payment.PaymentStatus.VALIDATED) {
+                updateInvoiceStatusIfFullyPaid(invoice, savedPayment);
                 try {
                     emailService.sendPaymentConfirmationEmail(invoice);
                 } catch (Exception e) {
@@ -179,12 +203,12 @@ public class PaymentProcessingService {
      */
     @Transactional
     public Payment processPayPalPayment(Invoice invoice, Double amount, String paypalPaymentId, String idempotencyKey) {
-        validatePaymentPreconditions(invoice, amount);
-
-        Optional<Payment> idempotentPayment = checkExistingIdempotentPayment(idempotencyKey, invoice.getId());
+        Optional<Payment> idempotentPayment = checkExistingIdempotentPayment(idempotencyKey, invoice != null ? invoice.getId() : null);
         if (idempotentPayment.isPresent()) {
             return idempotentPayment.get();
         }
+
+        validatePaymentPreconditions(invoice, amount);
 
         try {
             Payment payment = new Payment();
@@ -202,7 +226,6 @@ public class PaymentProcessingService {
                 payment.setTransactionId("paypal_order_" + (paypalPaymentId != null ? paypalPaymentId : UUID.randomUUID().toString().substring(0, 12)));
                 payment.setNotes("Paiement PayPal capturé avec succès");
                 logger.info("Paiement PayPal validé pour la facture: {} - Montant: {} €", invoice.getInvoiceNumber(), amount);
-                updateInvoiceStatusIfFullyPaid(invoice, payment);
             } else {
                 payment.setStatus(Payment.PaymentStatus.FAILED);
                 payment.setTransactionId("paypal_err_" + UUID.randomUUID().toString().substring(0, 10));
@@ -212,7 +235,8 @@ public class PaymentProcessingService {
             
             Payment savedPayment = paymentRepository.save(payment);
             
-            if (payment.getStatus() == Payment.PaymentStatus.VALIDATED) {
+            if (savedPayment.getStatus() == Payment.PaymentStatus.VALIDATED) {
+                updateInvoiceStatusIfFullyPaid(invoice, savedPayment);
                 try {
                     emailService.sendPaymentConfirmationEmail(invoice);
                 } catch (Exception e) {
@@ -238,12 +262,12 @@ public class PaymentProcessingService {
      */
     @Transactional
     public Payment processBankTransferPayment(Invoice invoice, Double amount, String transferReference, String idempotencyKey) {
-        validatePaymentPreconditions(invoice, amount);
-
-        Optional<Payment> idempotentPayment = checkExistingIdempotentPayment(idempotencyKey, invoice.getId());
+        Optional<Payment> idempotentPayment = checkExistingIdempotentPayment(idempotencyKey, invoice != null ? invoice.getId() : null);
         if (idempotentPayment.isPresent()) {
             return idempotentPayment.get();
         }
+
+        validatePaymentPreconditions(invoice, amount);
 
         try {
             Payment payment = new Payment();
@@ -278,12 +302,12 @@ public class PaymentProcessingService {
      */
     @Transactional
     public Payment processCashPayment(Invoice invoice, Double amount, String notes, String idempotencyKey) {
-        validatePaymentPreconditions(invoice, amount);
-
-        Optional<Payment> idempotentPayment = checkExistingIdempotentPayment(idempotencyKey, invoice.getId());
+        Optional<Payment> idempotentPayment = checkExistingIdempotentPayment(idempotencyKey, invoice != null ? invoice.getId() : null);
         if (idempotentPayment.isPresent()) {
             return idempotentPayment.get();
         }
+
+        validatePaymentPreconditions(invoice, amount);
 
         try {
             Payment payment = new Payment();
@@ -296,9 +320,9 @@ public class PaymentProcessingService {
             payment.setStatus(Payment.PaymentStatus.VALIDATED);
             payment.setNotes(notes != null && !notes.isBlank() ? notes : "Paiement en espèces remis en mains propres");
             payment.setCurrency("EUR");
-            updateInvoiceStatusIfFullyPaid(invoice, payment);
             
             Payment savedPayment = paymentRepository.save(payment);
+            updateInvoiceStatusIfFullyPaid(invoice, savedPayment);
             logger.info("Paiement en espèces enregistré pour la facture: {} - Montant: {} €", invoice.getInvoiceNumber(), amount);
             
             try {
@@ -451,12 +475,12 @@ public class PaymentProcessingService {
         Invoice invoice = invoiceRepository.findById(invoiceId)
             .orElseThrow(() -> new NoSuchElementException("Facture introuvable avec l'ID: " + invoiceId));
 
-        validatePaymentPreconditions(invoice, amount);
-
         Optional<Payment> idempotent = checkExistingIdempotentPayment(idempotencyKey, invoiceId);
         if (idempotent.isPresent()) {
             return idempotent.get();
         }
+
+        validatePaymentPreconditions(invoice, amount);
 
         Payment payment = new Payment();
         payment.setInvoice(invoice);
@@ -471,12 +495,14 @@ public class PaymentProcessingService {
         // Statut initial : si CB / Cash ➔ VALIDATED, si Virement / Chèque ➔ PENDING
         if (method == Payment.PaymentMethod.CASH || method == Payment.PaymentMethod.CREDIT_CARD || method == Payment.PaymentMethod.STRIPE) {
             payment.setStatus(Payment.PaymentStatus.VALIDATED);
-            updateInvoiceStatusIfFullyPaid(invoice, payment);
         } else {
             payment.setStatus(Payment.PaymentStatus.PENDING);
         }
 
         Payment savedPayment = paymentRepository.save(payment);
+        if (savedPayment.getStatus() == Payment.PaymentStatus.VALIDATED) {
+            updateInvoiceStatusIfFullyPaid(invoice, savedPayment);
+        }
         logger.info("Paiement ID {} ajouté à la facture {}", savedPayment.getId(), invoice.getInvoiceNumber());
         return savedPayment;
     }

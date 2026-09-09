@@ -82,6 +82,15 @@ public class InvoicePDFService {
         }
     }
     
+    private String escapeXml(String s) {
+        if (s == null) return "";
+        return s.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&apos;");
+    }
+
     /**
      * Generate HTML content for invoice (can be converted to PDF)
      */
@@ -92,7 +101,7 @@ public class InvoicePDFService {
         html.append("<html>");
         html.append("<head>");
         html.append("<meta charset='UTF-8'/>");
-        html.append("<title>Invoice ").append(invoice.getInvoiceNumber()).append("</title>");
+        html.append("<title>Invoice ").append(escapeXml(invoice.getInvoiceNumber())).append("</title>");
         html.append("<style>");
         html.append(getInvoiceCSS());
         html.append("</style>");
@@ -102,14 +111,14 @@ public class InvoicePDFService {
         // Header
         html.append("<div class='header'>");
         html.append("<h1>ALEDHEMTEK</h1>");
-        html.append("<p> Services à domicile</p>");
+        html.append("<p>Services à domicile</p>");
         html.append("</div>");
         
         // Invoice details
         html.append("<div class='invoice-details'>");
-        html.append("<h2>Facture N° ").append(invoice.getInvoiceNumber()).append("</h2>");
-        html.append("<p><strong>Date d'émission:</strong> ").append(invoice.getIssueDate().format(DATE_FORMATTER)).append("</p>");
-        html.append("<p><strong>Date d'échéance:</strong> ").append(invoice.getDueDate().format(DATE_FORMATTER)).append("</p>");
+        html.append("<h2>Facture N° ").append(escapeXml(invoice.getInvoiceNumber())).append("</h2>");
+        html.append("<p><strong>Date d'émission:</strong> ").append(invoice.getIssueDate() != null ? invoice.getIssueDate().format(DATE_FORMATTER) : "").append("</p>");
+        html.append("<p><strong>Date d'échéance:</strong> ").append(invoice.getDueDate() != null ? invoice.getDueDate().format(DATE_FORMATTER) : "").append("</p>");
         html.append("<p><strong>Statut:</strong> ").append(getStatusInFrench(invoice.getStatus())).append("</p>");
         html.append("</div>");
         
@@ -117,10 +126,10 @@ public class InvoicePDFService {
         if (invoice.getReservation() != null && invoice.getReservation().getClient() != null) {
             html.append("<div class='client-info'>");
             html.append("<h3>Facturé à:</h3>");
-            html.append("<p>").append(invoice.getReservation().getClient().getFirstName())
-                .append(" ").append(invoice.getReservation().getClient().getLastName()).append("</p>");
-            html.append("<p>").append(invoice.getReservation().getClient().getEmail()).append("</p>");
-            html.append("<p>").append(invoice.getReservation().getClient().getPhone()).append("</p>");
+            html.append("<p>").append(escapeXml(invoice.getReservation().getClient().getFirstName()))
+                .append(" ").append(escapeXml(invoice.getReservation().getClient().getLastName())).append("</p>");
+            html.append("<p>").append(escapeXml(invoice.getReservation().getClient().getEmail())).append("</p>");
+            html.append("<p>").append(escapeXml(invoice.getReservation().getClient().getPhone())).append("</p>");
             html.append("</div>");
         }
         
@@ -137,14 +146,16 @@ public class InvoicePDFService {
         html.append("</thead>");
         html.append("<tbody>");
         
-        for (InvoiceItem item : invoice.getInvoiceItems()) {
-            html.append("<tr>");
-            html.append("<td>").append(item.getDesignation()).append("</td>");
-            html.append("<td>").append(item.getDescription() != null ? item.getDescription() : "").append("</td>");
-            html.append("<td>").append(item.getQuantity()).append("</td>");
-            html.append("<td>").append(String.format("%.2f €", item.getUnitPrice())).append("</td>");
-            html.append("<td>").append(String.format("%.2f €", item.getTotal())).append("</td>");
-            html.append("</tr>");
+        if (invoice.getInvoiceItems() != null) {
+            for (InvoiceItem item : invoice.getInvoiceItems()) {
+                html.append("<tr>");
+                html.append("<td>").append(escapeXml(item.getDesignation())).append("</td>");
+                html.append("<td>").append(escapeXml(item.getDescription())).append("</td>");
+                html.append("<td>").append(item.getQuantity()).append("</td>");
+                html.append("<td>").append(String.format("%.2f €", item.getUnitPrice() != null ? item.getUnitPrice() : 0.0)).append("</td>");
+                html.append("<td>").append(String.format("%.2f €", item.getTotal() != null ? item.getTotal() : 0.0)).append("</td>");
+                html.append("</tr>");
+            }
         }
         
         html.append("</tbody>");
@@ -152,16 +163,16 @@ public class InvoicePDFService {
         
         // Totals
         html.append("<div class='totals'>");
-        html.append("<p><strong>Montant HT:</strong> ").append(String.format("%.2f €", invoice.getAmountExclTax())).append("</p>");
-        html.append("<p><strong>TVA (").append(invoice.getTaxRate()).append("%):</strong> ").append(String.format("%.2f €", invoice.getTaxAmount())).append("</p>");
-        html.append("<p class='total'><strong>Montant Total TTC:</strong> ").append(String.format("%.2f €", invoice.getTotalAmount())).append("</p>");
+        html.append("<p><strong>Montant HT:</strong> ").append(String.format("%.2f €", invoice.getAmountExclTax() != null ? invoice.getAmountExclTax() : 0.0)).append("</p>");
+        html.append("<p><strong>TVA (").append(invoice.getTaxRate() != null ? invoice.getTaxRate() : 20.0).append("%):</strong> ").append(String.format("%.2f €", invoice.getTaxAmount() != null ? invoice.getTaxAmount() : 0.0)).append("</p>");
+        html.append("<p class='total'><strong>Montant Total TTC:</strong> ").append(String.format("%.2f €", invoice.getTotalAmount() != null ? invoice.getTotalAmount() : 0.0)).append("</p>");
         html.append("</div>");
         
         // Notes
         if (invoice.getNotes() != null && !invoice.getNotes().trim().isEmpty()) {
             html.append("<div class='notes'>");
             html.append("<h3>Notes:</h3>");
-            html.append("<p>").append(invoice.getNotes()).append("</p>");
+            html.append("<p>").append(escapeXml(invoice.getNotes())).append("</p>");
             html.append("</div>");
         }
         

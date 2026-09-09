@@ -284,6 +284,9 @@ public class ReservationServiceImpl implements ReservationService {
         reservation.setUpdatedAt(LocalDateTime.now());
         
         Reservation updatedReservation = reservationRepository.save(reservation);
+        if (updatedReservation == null) {
+            updatedReservation = reservation;
+        }
         
         // Déclencher la génération automatique de facture si la réservation passe à COMPLETED
         if (status == Reservation.ReservationStatus.COMPLETED && oldStatus != Reservation.ReservationStatus.COMPLETED) {
