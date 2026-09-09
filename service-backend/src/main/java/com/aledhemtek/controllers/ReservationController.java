@@ -50,6 +50,24 @@ public class ReservationController {
         return null;
     }
 
+    private LocalDateTime parseDateTime(String dateStr) {
+        if (dateStr == null || dateStr.isBlank()) return null;
+        try {
+            if (dateStr.endsWith("Z")) {
+                return java.time.Instant.parse(dateStr).atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
+            }
+            if (dateStr.contains("+")) {
+                return java.time.OffsetDateTime.parse(dateStr).toLocalDateTime();
+            }
+            return LocalDateTime.parse(dateStr);
+        } catch (Exception e) {
+            if (dateStr.length() >= 19) {
+                return LocalDateTime.parse(dateStr.substring(0, 19));
+            }
+            throw new IllegalArgumentException("Invalid date format: " + dateStr);
+        }
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('CLIENT') or hasRole('ADMIN')")
     public ResponseEntity<ReservationDto> createReservation(@RequestBody ReservationDto reservationDto, Authentication authentication) {
@@ -112,12 +130,30 @@ public class ReservationController {
             ReservationDto reservationDto = new ReservationDto();
             reservationDto.setTitle(title);
             reservationDto.setDescription(description);
-            reservationDto.setStartDate(LocalDateTime.parse(startDate));
-            reservationDto.setEndDate(LocalDateTime.parse(endDate));
+            reservationDto.setStartDate(parseDateTime(startDate));
+            reservationDto.setEndDate(parseDateTime(endDate));
             reservationDto.setStatus(reservationStatus);
             reservationDto.setAssigned(assigned != null ? assigned : false);
             reservationDto.setClientId(clientId);
             reservationDto.setTasks(tasks);
+            if (requestData.get("housingType") != null) {
+                reservationDto.setHousingType(requestData.get("housingType").toString());
+            }
+            if (requestData.get("urgency") != null) {
+                reservationDto.setUrgency(requestData.get("urgency").toString());
+            }
+            if (requestData.get("buildingDetails") != null) {
+                reservationDto.setBuildingDetails(requestData.get("buildingDetails").toString());
+            }
+            if (requestData.get("address") != null) {
+                reservationDto.setAddress(requestData.get("address").toString());
+            }
+            if (requestData.get("latitude") != null) {
+                reservationDto.setLatitude(Double.valueOf(requestData.get("latitude").toString()));
+            }
+            if (requestData.get("longitude") != null) {
+                reservationDto.setLongitude(Double.valueOf(requestData.get("longitude").toString()));
+            }
             
             ReservationDto createdReservation = reservationService.createReservation(reservationDto);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdReservation);

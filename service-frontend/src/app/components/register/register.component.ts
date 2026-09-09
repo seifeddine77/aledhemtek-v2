@@ -165,8 +165,8 @@ export class RegisterComponent implements OnInit {
 
   openConsultantDialog(): void {
     const dialogRef = this.dialog.open(ConsultantDialogComponent, {
-      width: '520px',
-      maxWidth: '92vw',
+      width: '780px',
+      maxWidth: '95vw',
       disableClose: false,
     });
 

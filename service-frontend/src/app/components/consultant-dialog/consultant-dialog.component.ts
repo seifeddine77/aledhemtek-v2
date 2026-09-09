@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -14,6 +15,8 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { cleanText } from '../../pipes/clean-text.pipe';
 import { AiService } from '../../services/ai.service';
 
+export type LegalStatusType = 'AUTO_ENTREPRENEUR' | 'SARL' | 'SAS' | 'EURL' | 'EI';
+
 @Component({
   selector: 'app-consultant-dialog',
   standalone: true,
@@ -22,6 +25,7 @@ import { AiService } from '../../services/ai.service';
     FormsModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     MatButtonModule,
     MatCardModule,
     MatIconModule,
@@ -34,17 +38,31 @@ import { AiService } from '../../services/ai.service';
   styleUrls: ['./consultant-dialog.component.css']
 })
 export class ConsultantDialogComponent {
+  // Navigation du Wizard : 1 = Entreprise & IA, 2 = Métier & Compétences, 3 = Assurances & Validation
+  currentStep = 1;
+  readonly totalSteps = 3;
+
   consultantData = {
     companyName: '',
+    legalStatus: 'AUTO_ENTREPRENEUR' as LegalStatusType,
     jobTitle: '',
     experienceYears: 5,
     siret: '',
     interventionRadiusKm: 25,
     skills: '',
-    insuranceProvider: '',
+    certifications: '',
+    insuranceProvider: 'SMABTP',
     insurancePolicyNumber: '',
     insuranceExpiryDate: ''
   };
+
+  // Liste des statuts juridiques
+  legalStatuses = [
+    { value: 'AUTO_ENTREPRENEUR', label: 'Micro-Entreprise / Auto-Entrepreneur (Franchise TVA)' },
+    { value: 'SARL', label: 'SARL / EURL (Société à Responsabilité Limitée)' },
+    { value: 'SAS', label: 'SAS / SASU (Société par Actions Simplifiée)' },
+    { value: 'EI', label: 'Entreprise Individuelle (Régime Réel)' }
+  ];
 
   // Liste des spécialités courantes
   availableSkills: string[] = [
@@ -62,6 +80,18 @@ export class ConsultantDialogComponent {
     'Pompe à chaleur (PAC)'
   ];
   selectedSkills: Set<string> = new Set();
+
+  // Liste des labels & certifications officielles BTP
+  availableCertifications: string[] = [
+    'Qualibat RGE',
+    'Professionnel du Gaz (PG)',
+    'Habilitation Électrique B1V / BR',
+    'QualiPAC',
+    'QualiSol',
+    'CAP / BEP Métier',
+    'RGE Éco-Artisan'
+  ];
+  selectedCertifications: Set<string> = new Set();
 
   resumeFile: File | null = null;
   resumeFileName: string = '';
@@ -85,6 +115,49 @@ export class ConsultantDialogComponent {
     private aiService: AiService
   ) {}
 
+  // ================= NAVIGATION DU WIZARD =================
+  goToStep(step: number): void {
+    if (step < 1 || step > this.totalSteps) return;
+    if (step > this.currentStep && !this.validateStep(this.currentStep)) {
+      return;
+    }
+    this.currentStep = step;
+  }
+
+  nextStep(): void {
+    if (this.validateStep(this.currentStep)) {
+      if (this.currentStep < this.totalSteps) {
+        this.currentStep++;
+      }
+    }
+  }
+
+  prevStep(): void {
+    if (this.currentStep > 1) {
+      this.currentStep--;
+    }
+  }
+
+  validateStep(step: number): boolean {
+    if (step === 1) {
+      if (!this.consultantData.companyName.trim()) {
+        this.snackBar.open('Veuillez renseigner le nom de votre entreprise.', 'Fermer', { duration: 3000 });
+        return false;
+      }
+      if (!this.resumeFile) {
+        this.snackBar.open('Veuillez joindre votre CV ou extrait Kbis.', 'Fermer', { duration: 3000 });
+        return false;
+      }
+    } else if (step === 2) {
+      if (!this.consultantData.jobTitle.trim()) {
+        this.snackBar.open('Veuillez indiquer votre spécialité ou métier principal.', 'Fermer', { duration: 3000 });
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // ================= GESTION DES FICHIERS =================
   onFileSelected(event: any): void {
     const file = event.target.files[0];
     if (file) {
@@ -102,6 +175,7 @@ export class ConsultantDialogComponent {
     }
   }
 
+  // ================= SKILLS & CERTIFICATIONS =================
   toggleSkill(skill: string): void {
     if (this.selectedSkills.has(skill)) {
       this.selectedSkills.delete(skill);
@@ -115,13 +189,24 @@ export class ConsultantDialogComponent {
     return this.selectedSkills.has(skill);
   }
 
+  toggleCertification(cert: string): void {
+    if (this.selectedCertifications.has(cert)) {
+      this.selectedCertifications.delete(cert);
+    } else {
+      this.selectedCertifications.add(cert);
+    }
+    this.consultantData.certifications = Array.from(this.selectedCertifications).join(', ');
+  }
+
+  isCertificationSelected(cert: string): boolean {
+    return this.selectedCertifications.has(cert);
+  }
+
   private syncSkillsText(): void {
     this.consultantData.skills = Array.from(this.selectedSkills).join(', ');
   }
 
-  /**
-   * Analyse automatique du CV ou document d'artisan par le moteur IA / OCR
-   */
+  // ================= IA & OCR SCAN =================
   analyzeWithAi(): void {
     if (!this.resumeFile) {
       this.snackBar.open('Veuillez d\'abord sélectionner un CV ou extrait Kbis (PDF ou Document).', 'Fermer', {
@@ -138,7 +223,20 @@ export class ConsultantDialogComponent {
         this.aiAnalyzed = true;
         this.aiConfidence = Math.round((res.confidenceScore || 0.85) * 100);
 
-        if (res.companyName) this.consultantData.companyName = res.companyName;
+        if (res.companyName) {
+          this.consultantData.companyName = res.companyName;
+          // Détection automatique du statut juridique
+          const upperComp = res.companyName.toUpperCase();
+          if (upperComp.includes('SARL') || upperComp.includes('EURL')) {
+            this.consultantData.legalStatus = 'SARL';
+          } else if (upperComp.includes('SAS') || upperComp.includes('SASU')) {
+            this.consultantData.legalStatus = 'SAS';
+          } else if (upperComp.includes('EI') || upperComp.includes('INDIVIDUELLE')) {
+            this.consultantData.legalStatus = 'EI';
+          } else {
+            this.consultantData.legalStatus = 'AUTO_ENTREPRENEUR';
+          }
+        }
         if (res.profession) this.consultantData.jobTitle = res.profession;
         if (res.exp) this.consultantData.experienceYears = res.exp;
         if (res.siret) {
@@ -160,8 +258,18 @@ export class ConsultantDialogComponent {
           this.syncSkillsText();
         }
 
+        if (res.certifications && res.certifications.length > 0) {
+          res.certifications.forEach(c => {
+            this.selectedCertifications.add(c);
+            if (!this.availableCertifications.includes(c)) {
+              this.availableCertifications.push(c);
+            }
+          });
+          this.consultantData.certifications = Array.from(this.selectedCertifications).join(', ');
+        }
+
         this.snackBar.open(
-          `✨ Profil analysé avec succès par l'IA (${this.aiConfidence}% de confiance) ! Les champs ont été pré-remplis.`,
+          `✨ Profil analysé avec succès (${this.aiConfidence}% de confiance) ! Les 3 étapes ont été pré-remplies.`,
           'Super',
           { duration: 5500, panelClass: ['modern-snackbar'] }
         );
@@ -178,9 +286,7 @@ export class ConsultantDialogComponent {
     });
   }
 
-  /**
-   * Vérification en temps réel du SIRET (format et somme de contrôle Luhn)
-   */
+  // ================= VÉRIFICATION SIRET =================
   checkSiret(): void {
     const raw = (this.consultantData.siret || '').replace(/\s+/g, '');
     if (!raw) {
@@ -228,9 +334,14 @@ export class ConsultantDialogComponent {
       return;
     }
 
+    const allSkills = Array.from(this.selectedSkills);
+    if (this.selectedCertifications.size > 0) {
+      allSkills.push(...Array.from(this.selectedCertifications));
+    }
+
     const result = {
       ...this.consultantData,
-      skills: this.consultantData.skills || Array.from(this.selectedSkills).join(', '),
+      skills: allSkills.join(', '),
       resume: this.resumeFile,
       insuranceDoc: this.insuranceDocFile
     };

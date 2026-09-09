@@ -1,183 +1,275 @@
-<div class="dialog-modern-container">
-  <!-- Dialog Header -->
-  <div class="dialog-modern-header">
-    <div class="dialog-modern-header-content">
-      <div class="header-icon">
+<div class="wizard-dialog-container">
+  <!-- Header Principal -->
+  <div class="wizard-header">
+    <div class="wizard-header-info">
+      <div class="header-icon-badge">
         <mat-icon>engineering</mat-icon>
       </div>
       <div>
         <h2>Dossier Professionnel Artisan &amp; Consultant</h2>
-        <div class="d-flex align-items-center gap-2 mt-1">
-          <span class="badge-legal-compliance">
-            <mat-icon style="font-size: 14px; width: 14px; height: 14px;">verified</mat-icon>
-            Conformité Légale &amp; RNE
-          </span>
-          <span class="badge-insurance">
-            <mat-icon style="font-size: 14px; width: 14px; height: 14px;">shield</mat-icon>
-            Garantie Décennale
-          </span>
-        </div>
+        <p class="text-muted m-0">Complétez vos agréments pour proposer vos services sur AledhemTek</p>
       </div>
     </div>
-    <button mat-icon-button (click)="onCancel()" aria-label="Fermer">
+    <button mat-icon-button (click)="onCancel()" aria-label="Fermer" class="close-btn">
       <mat-icon>close</mat-icon>
     </button>
   </div>
 
-  <!-- Dialog Body -->
-  <div class="dialog-modern-body">
-
-    <!-- 🌟 SECTION IA & OCR : Auto-remplissage Magique -->
-    <div class="ai-magic-card">
-      <div class="ai-magic-header">
-        <div class="ai-sparkle-icon">
-          <mat-icon>auto_awesome</mat-icon>
-        </div>
-        <div class="ai-magic-title">
-          <h3>Pré-remplissage Magique par IA &amp; OCR</h3>
-          <p>Déposez votre CV ou Kbis : notre IA extrait instantanément vos coordonnées, SIRET, métier et compétences !</p>
-        </div>
+  <!-- Stepper Visual Indicator -->
+  <div class="wizard-stepper-bar">
+    <div class="step-indicator" [class.active]="currentStep === 1" [class.completed]="currentStep > 1" (click)="goToStep(1)">
+      <div class="step-circle">
+        <mat-icon *ngIf="currentStep > 1">check</mat-icon>
+        <span *ngIf="currentStep <= 1">1</span>
       </div>
-
-      <div class="ai-upload-row">
-        <div class="file-upload-modern-mini" (click)="resumeInput.click()">
-          <mat-icon class="upload-mini-icon">cloud_upload</mat-icon>
-          <div class="upload-mini-text">
-            <span *ngIf="!resumeFileName"><strong>Sélectionner un CV / Kbis</strong> (PDF, DOCX)</span>
-            <span *ngIf="resumeFileName" class="text-success fw-bold">📄 {{ resumeFileName }}</span>
-          </div>
-        </div>
-        <input type="file" id="resumeFile" #resumeInput style="display: none" (change)="onFileSelected($event)" accept=".pdf,.doc,.docx,.txt" />
-
-        <button mat-raised-button color="accent" type="button" class="btn-ai-scan"
-                (click)="analyzeWithAi()" [disabled]="!resumeFile || isAnalyzingCv">
-          <mat-icon *ngIf="!isAnalyzingCv">psychology</mat-icon>
-          <mat-icon *ngIf="isAnalyzingCv" class="spinning-icon">sync</mat-icon>
-          <span *ngIf="!isAnalyzingCv">Scanner par IA</span>
-          <span *ngIf="isAnalyzingCv">Analyse en cours...</span>
-        </button>
-      </div>
-
-      <!-- Barre de progression IA -->
-      <mat-progress-bar *ngIf="isAnalyzingCv" mode="indeterminate" class="mt-2 ai-progress"></mat-progress-bar>
-
-      <!-- Badge de succès IA -->
-      <div *ngIf="aiAnalyzed" class="ai-success-banner mt-2">
-        <mat-icon class="text-success">check_circle</mat-icon>
-        <span>Profil extrait avec succès (Indice de confiance : <strong>{{ aiConfidence }}%</strong>). Vous pouvez ajuster les champs ci-dessous.</span>
+      <div class="step-meta">
+        <span class="step-number">Étape 1</span>
+        <span class="step-label">Entreprise &amp; IA</span>
       </div>
     </div>
 
-    <form (ngSubmit)="onSave()" #consultantForm="ngForm" class="form-sections-container">
+    <div class="step-line" [class.active]="currentStep > 1"></div>
 
-      <!-- SECTION 1 : IDENTITÉ JURIDIQUE & MÉTIER -->
-      <div class="form-section-card">
-        <div class="section-title">
-          <mat-icon>business</mat-icon>
-          <span>Entreprise &amp; Métier</span>
+    <div class="step-indicator" [class.active]="currentStep === 2" [class.completed]="currentStep > 2" (click)="goToStep(2)">
+      <div class="step-circle">
+        <mat-icon *ngIf="currentStep > 2">check</mat-icon>
+        <span *ngIf="currentStep <= 2">2</span>
+      </div>
+      <div class="step-meta">
+        <span class="step-number">Étape 2</span>
+        <span class="step-label">Métier &amp; Compétences</span>
+      </div>
+    </div>
+
+    <div class="step-line" [class.active]="currentStep > 2"></div>
+
+    <div class="step-indicator" [class.active]="currentStep === 3" (click)="goToStep(3)">
+      <div class="step-circle">
+        <span>3</span>
+      </div>
+      <div class="step-meta">
+        <span class="step-number">Étape 3</span>
+        <span class="step-label">Garanties &amp; Décennale</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenu du Step Dynamique -->
+  <div class="wizard-body">
+
+    <!-- =================================================== -->
+    <!-- ÉTAPE 1 : SCAN IA & IDENTITÉ DE L'ENTREPRISE -->
+    <!-- =================================================== -->
+    <div *ngIf="currentStep === 1" class="wizard-step-content fade-in">
+      
+      <!-- Carte IA Fast-Track -->
+      <div class="ai-magic-card">
+        <div class="ai-magic-header">
+          <div class="ai-sparkle-icon">
+            <mat-icon>auto_awesome</mat-icon>
+          </div>
+          <div class="ai-magic-title">
+            <h3>Gain de temps : Pré-remplissage Magique par IA</h3>
+            <p>Glissez votre CV ou extrait Kbis : l'IA extrait instantanément vos informations et remplit les 3 étapes !</p>
+          </div>
         </div>
 
-        <div class="row g-2">
+        <div class="ai-upload-row">
+          <div class="file-upload-modern-mini" (click)="resumeInput.click()">
+            <mat-icon class="upload-mini-icon">cloud_upload</mat-icon>
+            <div class="upload-mini-text">
+              <span *ngIf="!resumeFileName"><strong>Sélectionner un CV / Kbis</strong> (PDF, DOCX)</span>
+              <span *ngIf="resumeFileName" class="text-success fw-bold">📄 {{ resumeFileName }}</span>
+            </div>
+          </div>
+          <input type="file" id="resumeFile" #resumeInput style="display: none" (change)="onFileSelected($event)" accept=".pdf,.doc,.docx,.txt" />
+
+          <button mat-raised-button color="accent" type="button" class="btn-ai-scan"
+                  (click)="analyzeWithAi()" [disabled]="!resumeFile || isAnalyzingCv">
+            <mat-icon *ngIf="!isAnalyzingCv">psychology</mat-icon>
+            <mat-icon *ngIf="isAnalyzingCv" class="spinning-icon">sync</mat-icon>
+            <span *ngIf="!isAnalyzingCv">Scanner par IA</span>
+            <span *ngIf="isAnalyzingCv">Extraction...</span>
+          </button>
+        </div>
+
+        <mat-progress-bar *ngIf="isAnalyzingCv" mode="indeterminate" class="mt-2 ai-progress"></mat-progress-bar>
+
+        <div *ngIf="aiAnalyzed" class="ai-success-banner mt-2">
+          <mat-icon class="text-success">check_circle</mat-icon>
+          <span>Profil extrait avec succès (Confiance : <strong>{{ aiConfidence }}%</strong>). Les champs ont été pré-remplis !</span>
+        </div>
+      </div>
+
+      <!-- Formulaire Entreprise -->
+      <div class="step-form-block">
+        <h4 class="block-title">
+          <mat-icon>business</mat-icon>
+          Identité Juridique &amp; Entreprise
+        </h4>
+
+        <div class="row g-3">
           <div class="col-md-7">
             <mat-form-field appearance="outline" class="w-100">
-              <mat-label>Nom de l'entreprise ou Raison sociale</mat-label>
+              <mat-label>Nom de l'entreprise ou Raison sociale *</mat-label>
               <mat-icon matPrefix class="me-2 text-muted">store</mat-icon>
-              <input matInput id="companyName" name="companyName" [(ngModel)]="consultantData.companyName" 
+              <input matInput [(ngModel)]="consultantData.companyName" 
                      placeholder="Ex: SARL Bâti-Plomb Pro" autocomplete="organization" required />
+              <mat-hint>Nom commercial sous lequel vous exercez</mat-hint>
             </mat-form-field>
           </div>
 
           <div class="col-md-5">
             <mat-form-field appearance="outline" class="w-100">
-              <mat-label>Numéro SIRET (14 chiffres)</mat-label>
-              <mat-icon matPrefix class="me-2 text-muted">pin</mat-icon>
-              <input matInput id="siret" name="siret" [(ngModel)]="consultantData.siret" 
-                     (blur)="checkSiret()" (keyup.enter)="checkSiret()"
-                     placeholder="Ex: 823 456 789 00012" maxlength="17" />
-              <mat-icon matSuffix *ngIf="siretStatus === 'valid'" class="text-success" matTooltip="SIRET valide">check_circle</mat-icon>
-              <mat-icon matSuffix *ngIf="siretStatus === 'invalid'" class="text-danger" matTooltip="SIRET invalide">error</mat-icon>
-              <mat-hint *ngIf="siretMessage" [class.text-success]="siretStatus === 'valid'" [class.text-danger]="siretStatus === 'invalid'">
-                {{ siretMessage }}
-              </mat-hint>
+              <mat-label>Statut Juridique *</mat-label>
+              <mat-select [(ngModel)]="consultantData.legalStatus">
+                <mat-option *ngFor="let status of legalStatuses" [value]="status.value">
+                  {{ status.label }}
+                </mat-option>
+              </mat-select>
+              <mat-hint>Régime fiscal et TVA</mat-hint>
             </mat-form-field>
           </div>
         </div>
 
-        <div class="row g-2 mt-1">
+        <div class="row g-3 mt-1">
+          <div class="col-md-7">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Numéro SIRET (14 chiffres)</mat-label>
+              <mat-icon matPrefix class="me-2 text-muted">pin</mat-icon>
+              <input matInput [(ngModel)]="consultantData.siret" 
+                     (blur)="checkSiret()" (keyup.enter)="checkSiret()"
+                     placeholder="Ex: 732 829 320 00074" maxlength="17" />
+              <mat-icon matSuffix *ngIf="siretStatus === 'valid'" class="text-success">check_circle</mat-icon>
+              <mat-icon matSuffix *ngIf="siretStatus === 'invalid'" class="text-danger">error</mat-icon>
+              <mat-hint *ngIf="siretMessage" [class.text-success]="siretStatus === 'valid'" [class.text-danger]="siretStatus === 'invalid'">
+                {{ siretMessage }}
+              </mat-hint>
+              <mat-hint *ngIf="!siretMessage">Immatriculation au Registre National des Entreprises (RNE)</mat-hint>
+            </mat-form-field>
+          </div>
+
+          <div class="col-md-5">
+            <div class="info-callout">
+              <mat-icon color="primary">verified</mat-icon>
+              <div>
+                <strong>Lutte anti-fraude</strong>
+                <p class="m-0 small text-muted">Vérification de conformité légale URSSAF &amp; RNE.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- =================================================== -->
+    <!-- ÉTAPE 2 : MÉTIER, ZONE & COMPÉTENCES -->
+    <!-- =================================================== -->
+    <div *ngIf="currentStep === 2" class="wizard-step-content fade-in">
+      
+      <div class="step-form-block">
+        <h4 class="block-title">
+          <mat-icon>handyman</mat-icon>
+          Activité &amp; Zone d'Intervention
+        </h4>
+
+        <div class="row g-3">
           <div class="col-md-8">
             <mat-form-field appearance="outline" class="w-100">
-              <mat-label>Spécialité / Métier principal</mat-label>
-              <mat-icon matPrefix class="me-2 text-muted">handyman</mat-icon>
-              <input matInput id="jobTitle" name="jobTitle" [(ngModel)]="consultantData.jobTitle" 
+              <mat-label>Spécialité / Métier principal *</mat-label>
+              <mat-icon matPrefix class="me-2 text-muted">work_outline</mat-icon>
+              <input matInput [(ngModel)]="consultantData.jobTitle" 
                      placeholder="Ex: Plombier Chauffagiste Certifié" autocomplete="organization-title" required />
             </mat-form-field>
           </div>
 
           <div class="col-md-4">
             <mat-form-field appearance="outline" class="w-100">
-              <mat-label>Années d'expérience</mat-label>
+              <mat-label>Années d'expérience *</mat-label>
               <mat-icon matPrefix class="me-2 text-muted">history_edu</mat-icon>
-              <input matInput id="experienceYears" name="experienceYears" [(ngModel)]="consultantData.experienceYears" 
+              <input matInput [(ngModel)]="consultantData.experienceYears" 
                      type="number" min="0" max="60" placeholder="Ex: 8" required />
+              <span matSuffix class="pe-2 text-muted">ans</span>
             </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Rayon d'intervention -->
+        <div class="row g-3 mt-1 align-items-center">
+          <div class="col-md-6">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Rayon d'action (km)</mat-label>
+              <mat-icon matPrefix class="me-2 text-muted">near_me</mat-icon>
+              <input matInput [(ngModel)]="consultantData.interventionRadiusKm" type="number" min="5" max="150" />
+              <span matSuffix class="pe-2 text-muted">km</span>
+              <mat-hint>Distance maximale pour vos déplacements</mat-hint>
+            </mat-form-field>
+          </div>
+          <div class="col-md-6">
+            <div class="radius-badge-box">
+              <mat-icon color="primary">radar</mat-icon>
+              <span>Vous recevrez les demandes dans un rayon de <strong>{{ consultantData.interventionRadiusKm || 25 }} km</strong></span>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- SECTION 2 : ZONE GÉOGRAPHIQUE & COMPÉTENCES -->
-      <div class="form-section-card">
-        <div class="section-title">
-          <mat-icon>near_me</mat-icon>
-          <span>Périmètre d'Intervention &amp; Compétences</span>
-        </div>
-
-        <div class="row g-2 align-items-center mb-2">
-          <div class="col-md-6">
-            <mat-form-field appearance="outline" class="w-100">
-              <mat-label>Rayon d'intervention (km)</mat-label>
-              <mat-icon matPrefix class="me-2 text-muted">explore</mat-icon>
-              <input matInput id="interventionRadiusKm" name="interventionRadiusKm" 
-                     [(ngModel)]="consultantData.interventionRadiusKm" type="number" min="5" max="150" />
-              <span matSuffix class="pe-2 text-muted">km</span>
-              <mat-hint>Distance maximale de déplacement depuis votre atelier</mat-hint>
-            </mat-form-field>
-          </div>
-          <div class="col-md-6">
-            <div class="radius-info-badge">
-              <mat-icon color="primary">radar</mat-icon>
-              <span>Vous recevrez les demandes de chantiers dans un rayon de <strong>{{ consultantData.interventionRadiusKm || 25 }} km</strong></span>
-            </div>
-          </div>
-        </div>
-
-        <label class="form-label fw-semibold small text-muted d-block mb-1">
-          Sélectionnez vos spécialités et domaines de compétence :
-        </label>
-        <div class="skills-chips-wrapper">
+      <!-- Spécialités et Certifications -->
+      <div class="step-form-block mt-3">
+        <h4 class="block-title">
+          <mat-icon>category</mat-icon>
+          Spécialités &amp; Compétences Clés
+        </h4>
+        <p class="small text-muted mb-2">Cliquez sur vos domaines d'intervention pour recevoir les réservations ciblées :</p>
+        
+        <div class="chips-container mb-3">
           <button type="button" *ngFor="let skill of availableSkills" 
-                  class="skill-chip-btn" 
-                  [class.active]="isSkillSelected(skill)"
+                  class="skill-chip" 
+                  [class.selected]="isSkillSelected(skill)"
                   (click)="toggleSkill(skill)">
-            <mat-icon *ngIf="isSkillSelected(skill)" style="font-size: 16px; width: 16px; height: 16px;">check</mat-icon>
+            <mat-icon *ngIf="isSkillSelected(skill)">check</mat-icon>
             {{ skill }}
+          </button>
+        </div>
+
+        <h5 class="sub-block-title">
+          <mat-icon color="accent">military_tech</mat-icon>
+          Labels &amp; Agréments Reconnus (Optionnel)
+        </h5>
+        <div class="chips-container">
+          <button type="button" *ngFor="let cert of availableCertifications" 
+                  class="cert-chip" 
+                  [class.selected]="isCertificationSelected(cert)"
+                  (click)="toggleCertification(cert)">
+            <mat-icon *ngIf="isCertificationSelected(cert)">verified</mat-icon>
+            {{ cert }}
           </button>
         </div>
       </div>
 
-      <!-- SECTION 3 : GARANTIE DÉCENNALE & ASSURANCE RC PRO -->
-      <div class="form-section-card">
-        <div class="section-title">
-          <mat-icon>security</mat-icon>
-          <span>Assurance Responsabilité Civile Pro &amp; Décennale</span>
-        </div>
+    </div>
 
-        <div class="row g-2">
+    <!-- =================================================== -->
+    <!-- ÉTAPE 3 : ASSURANCES & VALIDATION -->
+    <!-- =================================================== -->
+    <div *ngIf="currentStep === 3" class="wizard-step-content fade-in">
+      
+      <div class="step-form-block">
+        <h4 class="block-title">
+          <mat-icon>shield</mat-icon>
+          Garantie Décennale &amp; Assurance Responsabilité Civile Pro (Loi Spinetta)
+        </h4>
+        <p class="small text-muted mb-3">
+          La loi française exige une assurance décennale valide pour toute prestation liée au gros œuvre, à la plomberie et au bâtiment.
+        </p>
+
+        <div class="row g-3">
           <div class="col-md-4">
             <mat-form-field appearance="outline" class="w-100">
-              <mat-label>Compagnie d'Assurance</mat-label>
+              <mat-label>Compagnie d'assurance</mat-label>
               <mat-icon matPrefix class="me-2 text-muted">shield</mat-icon>
-              <input matInput id="insuranceProvider" name="insuranceProvider" 
-                     [(ngModel)]="consultantData.insuranceProvider" placeholder="Ex: SMABTP, AXA, Allianz" />
+              <input matInput [(ngModel)]="consultantData.insuranceProvider" placeholder="Ex: SMABTP, AXA, Allianz" />
             </mat-form-field>
           </div>
 
@@ -185,8 +277,7 @@
             <mat-form-field appearance="outline" class="w-100">
               <mat-label>N° de Police / Contrat</mat-label>
               <mat-icon matPrefix class="me-2 text-muted">policy</mat-icon>
-              <input matInput id="insurancePolicyNumber" name="insurancePolicyNumber" 
-                     [(ngModel)]="consultantData.insurancePolicyNumber" placeholder="Ex: DEC-2026-8874" />
+              <input matInput [(ngModel)]="consultantData.insurancePolicyNumber" placeholder="Ex: DEC-2026-9874" />
             </mat-form-field>
           </div>
 
@@ -194,18 +285,17 @@
             <mat-form-field appearance="outline" class="w-100">
               <mat-label>Date d'échéance</mat-label>
               <mat-icon matPrefix class="me-2 text-muted">event</mat-icon>
-              <input matInput id="insuranceExpiryDate" name="insuranceExpiryDate" 
-                     [(ngModel)]="consultantData.insuranceExpiryDate" type="date" />
+              <input matInput [(ngModel)]="consultantData.insuranceExpiryDate" type="date" />
             </mat-form-field>
           </div>
         </div>
 
-        <!-- Upload Attestation Assurance -->
-        <div class="insurance-upload-box mt-2">
+        <!-- Upload Attestation -->
+        <div class="insurance-upload-card mt-2">
           <div class="file-upload-modern-mini" (click)="insuranceInput.click()">
             <mat-icon class="upload-mini-icon text-primary">attach_file</mat-icon>
             <div class="upload-mini-text">
-              <span *ngIf="!insuranceDocFileName"><strong>Joindre l'attestation d'assurance décennale</strong> (PDF, JPG - Optionnel mais recommandé)</span>
+              <span *ngIf="!insuranceDocFileName"><strong>Joindre l'attestation d'assurance décennale</strong> (PDF, JPG)</span>
               <span *ngIf="insuranceDocFileName" class="text-success fw-bold">🛡️ {{ insuranceDocFileName }}</span>
             </div>
           </div>
@@ -213,17 +303,67 @@
         </div>
       </div>
 
-    </form>
+      <!-- Récapitulatif du Dossier -->
+      <div class="dossier-recap-card mt-3">
+        <h5 class="recap-title">
+          <mat-icon class="text-success">checklist</mat-icon>
+          Récapitulatif de votre dossier
+        </h5>
+        <div class="recap-grid">
+          <div class="recap-item">
+            <span class="label">Entreprise :</span>
+            <span class="value">{{ consultantData.companyName || 'Non renseigné' }}</span>
+          </div>
+          <div class="recap-item">
+            <span class="label">SIRET :</span>
+            <span class="value">{{ consultantData.siret || 'En cours' }}</span>
+          </div>
+          <div class="recap-item">
+            <span class="label">Métier :</span>
+            <span class="value">{{ consultantData.jobTitle || 'Non renseigné' }} ({{ consultantData.experienceYears }} ans)</span>
+          </div>
+          <div class="recap-item">
+            <span class="label">Périmètre :</span>
+            <span class="value">{{ consultantData.interventionRadiusKm || 25 }} km</span>
+          </div>
+          <div class="recap-item">
+            <span class="label">Assureur :</span>
+            <span class="value">{{ consultantData.insuranceProvider || 'SMABTP' }}</span>
+          </div>
+          <div class="recap-item">
+            <span class="label">Spécialités :</span>
+            <span class="value">{{ selectedSkills.size }} sélectionnée(s)</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
   </div>
 
-  <!-- Dialog Actions -->
-  <div class="dialog-modern-actions">
-    <button mat-stroked-button type="button" (click)="onCancel()">
-      Annuler
-    </button>
-    <button mat-raised-button color="primary" type="button" (click)="onSave()">
-      <mat-icon>verified</mat-icon>
-      Valider mon Dossier Artisan
-    </button>
+  <!-- Wizard Footer Actions -->
+  <div class="wizard-footer">
+    <div class="footer-left">
+      <button mat-stroked-button type="button" (click)="onCancel()" class="btn-cancel">
+        Annuler
+      </button>
+    </div>
+
+    <div class="footer-right">
+      <button mat-stroked-button type="button" *ngIf="currentStep > 1" (click)="prevStep()" class="btn-prev">
+        <mat-icon>chevron_left</mat-icon>
+        Précédent
+      </button>
+
+      <button mat-raised-button color="primary" type="button" *ngIf="currentStep < totalSteps" (click)="nextStep()" class="btn-next">
+        Suivant
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+
+      <button mat-raised-button color="primary" type="button" *ngIf="currentStep === totalSteps" (click)="onSave()" class="btn-submit">
+        <mat-icon>verified</mat-icon>
+        Valider et Enregistrer mon Dossier
+      </button>
+    </div>
   </div>
 </div>
