@@ -25,8 +25,11 @@ public class ReservationDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     
-    // Géolocalisation
+    // Géolocalisation & Accès chantier
     private Double latitude;
     private Double longitude;
     private String address;
+    private String buildingDetails;
+    private String housingType;
+    private String urgency;
 }

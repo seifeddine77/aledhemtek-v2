@@ -41,9 +41,23 @@ public class ConsultantController {
     }
 
     @GetMapping("/get-consultant/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ConsultantDTO> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(consultantService.getConsultantById(id));
+    @PreAuthorize("hasRole('ADMIN') or hasRole('CONSULTANT')")
+    public ResponseEntity<?> getById(@PathVariable Long id, org.springframework.security.core.Authentication authentication) {
+        try {
+            ConsultantDTO consultant = consultantService.getConsultantById(id);
+            if (consultant == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Consultant not found"));
+            }
+            boolean isAdmin = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ADMIN"));
+            if (!isAdmin && !authentication.getName().equalsIgnoreCase(consultant.getEmail())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "Access denied - You can only access your own profile"));
+            }
+            return ResponseEntity.ok(consultant);
+        } catch (jakarta.persistence.EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Consultant not found"));
+        }
     }
 
     @PutMapping("/approve/{id}")
@@ -59,9 +73,26 @@ public class ConsultantController {
     }
 
     @PutMapping("/update/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CONSULTANT')")
-    public ResponseEntity<ConsultantDTO> update(@PathVariable Long id, @RequestBody ConsultantDTO dto) {
-        return ResponseEntity.ok(consultantService.updateConsultant(id, dto));
+    @PreAuthorize("hasRole('ADMIN') or hasRole('CONSULTANT')")
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody ConsultantDTO dto, org.springframework.security.core.Authentication authentication) {
+        try {
+            ConsultantDTO existing = consultantService.getConsultantById(id);
+            if (existing == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Consultant not found"));
+            }
+            boolean isAdmin = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ADMIN"));
+            if (!isAdmin && !authentication.getName().equalsIgnoreCase(existing.getEmail())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "Access denied - You can only update your own profile"));
+            }
+            if (!isAdmin) {
+                dto.setStatus(existing.getStatus());
+            }
+            return ResponseEntity.ok(consultantService.updateConsultant(id, dto));
+        } catch (jakarta.persistence.EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Consultant not found"));
+        }
     }
 
     @DeleteMapping("/delete/{id}")
@@ -118,6 +149,35 @@ public class ConsultantController {
         }
     }
 
+    @GetMapping("/uploads/insurances/{filename:.+}")
+    public ResponseEntity<Resource> getInsuranceDoc(@PathVariable String filename, 
+                                                    @RequestParam(value = "download", defaultValue = "false") boolean download) {
+        try {
+            if (filename == null || filename.contains("..") || filename.contains("/") || filename.contains("\\")) {
+                return ResponseEntity.badRequest().build();
+            }
+            Path baseDir = storageProperties.getResolvedRootPath().resolve("insurances").toAbsolutePath().normalize();
+            Path file = baseDir.resolve(filename).normalize().toAbsolutePath();
+            if (!file.startsWith(baseDir)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            Resource resource = new UrlResource(file.toUri());
+            if (resource.exists() && resource.isReadable()) {
+                String contentType = Files.probeContentType(file);
+                if (contentType == null) contentType = "application/pdf";
+                String disposition = download ? "attachment" : "inline";
+                return ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(contentType))
+                        .header(HttpHeaders.CONTENT_DISPOSITION, disposition + "; filename=\"" + resource.getFilename() + "\"")
+                        .body(resource);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
     @PostMapping("/create-consultant")
     public ResponseEntity<?> createConsultant(
             @RequestParam("firstName") String firstName,
@@ -133,8 +193,15 @@ public class ConsultantController {
             @RequestParam(value = "profession", required = false) String profession,
             @RequestParam(value = "exp", required = false) String exp,
             @RequestParam(value = "companyName", required = false) String companyName,
+            @RequestParam(value = "siret", required = false) String siret,
+            @RequestParam(value = "insuranceProvider", required = false) String insuranceProvider,
+            @RequestParam(value = "insurancePolicyNumber", required = false) String insurancePolicyNumber,
+            @RequestParam(value = "insuranceExpiryDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date insuranceExpiryDate,
+            @RequestParam(value = "interventionRadiusKm", required = false) String interventionRadiusKm,
+            @RequestParam(value = "skills", required = false) String skills,
             @RequestParam(value = "profilePic", required = false) MultipartFile profilePic,
-            @RequestParam(value = "resume", required = false) MultipartFile resume
+            @RequestParam(value = "resume", required = false) MultipartFile resume,
+            @RequestParam(value = "insuranceDoc", required = false) MultipartFile insuranceDoc
     ) {
         try {
             ConsultantDTO dto = new ConsultantDTO();
@@ -146,18 +213,25 @@ public class ConsultantController {
             dto.setDob(dob);
             dto.setCountry(country);
             dto.setCity(city);
-            dto.setZip(zip != null ? Integer.parseInt(zip) : 0);
+            dto.setZip(zip != null && !zip.isBlank() ? Integer.parseInt(zip) : 0);
             dto.setAddress(address);
             dto.setProfession(profession);
-            dto.setExp(exp != null ? Integer.parseInt(exp) : 0);
+            dto.setExp(exp != null && !exp.isBlank() ? Integer.parseInt(exp) : 0);
             dto.setCompanyName(companyName);
+            dto.setSiret(siret);
+            dto.setInsuranceProvider(insuranceProvider);
+            dto.setInsurancePolicyNumber(insurancePolicyNumber);
+            dto.setInsuranceExpiryDate(insuranceExpiryDate);
+            dto.setInterventionRadiusKm(interventionRadiusKm != null && !interventionRadiusKm.isBlank() ? Integer.parseInt(interventionRadiusKm) : 25);
+            dto.setSkills(skills);
             dto.setProfilePicFile(profilePic);
             dto.setResume(resume);
+            dto.setInsuranceDocFile(insuranceDoc);
             dto.setStatus(AccountStatus.PENDING);
 
             return consultantService.createConsultant(dto);
         } catch (NumberFormatException e) {
-            return ResponseEntity.badRequest().body("Invalid number format for zip or exp.");
+            return ResponseEntity.badRequest().body("Invalid number format for zip, exp or radius.");
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(

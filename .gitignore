@@ -172,3 +172,4 @@ Thumbs.db
 # But exclude test outputs
 test-output/
 test-results/
+scratch/

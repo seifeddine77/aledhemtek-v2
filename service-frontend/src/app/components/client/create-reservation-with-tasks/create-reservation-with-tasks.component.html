@@ -107,6 +107,62 @@
               <span>La date et l'heure de fin seront calculées automatiquement en fonction des tâches sélectionnées</span>
             </div>
 
+            <!-- Section Type de Logement & Urgence -->
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Type de bien / Logement</mat-label>
+                <mat-select formControlName="housingType">
+                  <mat-option value="APPARTEMENT">Appartement</mat-option>
+                  <mat-option value="MAISON">Maison Individuelle</mat-option>
+                  <mat-option value="LOCAL_PRO">Local Commercial / Bureaux</mat-option>
+                </mat-select>
+                <mat-icon matSuffix>apartment</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Niveau d'urgence</mat-label>
+                <mat-select formControlName="urgency">
+                  <mat-option value="NORMAL">Standard / Sur Rendez-vous</mat-option>
+                  <mat-option value="URGENT_24H">Urgent (Intervention sous 24h)</mat-option>
+                  <mat-option value="EMERGENCY_4H">Dépannage Express (&lt; 4h)</mat-option>
+                </mat-select>
+                <mat-icon matSuffix>warning_amber</mat-icon>
+              </mat-form-field>
+            </div>
+
+            <!-- Section Accès Chantier & Logistique -->
+            <div class="site-access-box p-3 mb-3" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;">
+              <h5 class="d-flex align-items-center gap-2 mb-2" style="font-size: 0.875rem; font-weight: 700; color: #334155;">
+                <mat-icon style="font-size: 18px; width: 18px; height: 18px; color: #2563eb;">vpn_key</mat-icon>
+                Précisions d'accès chantier (Recommandé pour l'artisan)
+              </h5>
+              <div class="row g-2">
+                <div class="col-md-3">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Étage</mat-label>
+                    <input matInput formControlName="floor" placeholder="Ex: 3ème" />
+                  </mat-form-field>
+                </div>
+                <div class="col-md-3">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Digicode / Code</mat-label>
+                    <input matInput formControlName="accessCode" placeholder="Ex: A1234" />
+                  </mat-form-field>
+                </div>
+                <div class="col-md-3">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Interphone / Nom</mat-label>
+                    <input matInput formControlName="interphone" placeholder="Ex: Dupont" />
+                  </mat-form-field>
+                </div>
+                <div class="col-md-3 d-flex align-items-center">
+                  <mat-checkbox formControlName="hasElevator" color="primary">
+                    Ascenseur disponible
+                  </mat-checkbox>
+                </div>
+              </div>
+            </div>
+
             <!-- Section Géolocalisation -->
             <div class="geolocation-section">
               <h4>

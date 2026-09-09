@@ -57,6 +57,13 @@ public class ConsultantServiceImpl implements ConsultantInterface {
         dto.setExp(c.getExp());
         dto.setCompanyName(c.getCompanyName());
         dto.setResumePath(c.getResumePath());
+        dto.setSiret(c.getSiret());
+        dto.setInsuranceProvider(c.getInsuranceProvider());
+        dto.setInsurancePolicyNumber(c.getInsurancePolicyNumber());
+        dto.setInsuranceExpiryDate(c.getInsuranceExpiryDate());
+        dto.setInterventionRadiusKm(c.getInterventionRadiusKm());
+        dto.setSkills(c.getSkills());
+        dto.setInsuranceDocPath(c.getInsuranceDocPath());
         return dto;
     }
 
@@ -74,6 +81,12 @@ public class ConsultantServiceImpl implements ConsultantInterface {
         consultant.setProfession(dto.getProfession());
         consultant.setExp(dto.getExp());
         consultant.setCompanyName(dto.getCompanyName());
+        consultant.setSiret(dto.getSiret());
+        consultant.setInsuranceProvider(dto.getInsuranceProvider());
+        consultant.setInsurancePolicyNumber(dto.getInsurancePolicyNumber());
+        consultant.setInsuranceExpiryDate(dto.getInsuranceExpiryDate());
+        consultant.setInterventionRadiusKm(dto.getInterventionRadiusKm() != null ? dto.getInterventionRadiusKm() : 25);
+        consultant.setSkills(dto.getSkills());
         consultant.setStatus(AccountStatus.PENDING);
         return consultant;
     }
@@ -114,6 +127,16 @@ public class ConsultantServiceImpl implements ConsultantInterface {
                 Files.createDirectories(resumePath);
                 resumeFile.transferTo(resumePath.resolve(resumeName).toFile());
                 consultant.setResumePath(resumeName);
+            }
+
+            // Save insurance document if exists
+            if (dto.getInsuranceDocFile() != null && !dto.getInsuranceDocFile().isEmpty()) {
+                MultipartFile insuranceFile = dto.getInsuranceDocFile();
+                String insuranceName = UUID.randomUUID() + "_" + insuranceFile.getOriginalFilename();
+                Path insurancePath = storageProperties.getResolvedRootPath().resolve("insurances");
+                Files.createDirectories(insurancePath);
+                insuranceFile.transferTo(insurancePath.resolve(insuranceName).toFile());
+                consultant.setInsuranceDocPath(insuranceName);
             }
 
             // Assign "CONSULTANT" role
@@ -189,6 +212,12 @@ public class ConsultantServiceImpl implements ConsultantInterface {
         consultant.setProfession(dto.getProfession());
         consultant.setExp(dto.getExp());
         consultant.setCompanyName(dto.getCompanyName());
+        if (dto.getSiret() != null) consultant.setSiret(dto.getSiret());
+        if (dto.getInsuranceProvider() != null) consultant.setInsuranceProvider(dto.getInsuranceProvider());
+        if (dto.getInsurancePolicyNumber() != null) consultant.setInsurancePolicyNumber(dto.getInsurancePolicyNumber());
+        if (dto.getInsuranceExpiryDate() != null) consultant.setInsuranceExpiryDate(dto.getInsuranceExpiryDate());
+        if (dto.getInterventionRadiusKm() != null) consultant.setInterventionRadiusKm(dto.getInterventionRadiusKm());
+        if (dto.getSkills() != null) consultant.setSkills(dto.getSkills());
         return mapToDTO(consultantRepository.save(consultant));
     }
 

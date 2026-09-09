@@ -346,4 +346,30 @@ public class PaymentProcessingService {
         
         return stats;
     }
+
+    /**
+     * Get all payments with pagination and optional status filter
+     */
+    public org.springframework.data.domain.Page<Payment> getAllPayments(org.springframework.data.domain.Pageable pageable, Payment.PaymentStatus status) {
+        if (status != null) {
+            return paymentRepository.findByStatus(status, pageable);
+        }
+        return paymentRepository.findAll(pageable);
+    }
+
+    /**
+     * Bulk validate payments
+     */
+    @org.springframework.transaction.annotation.Transactional
+    public java.util.List<Payment> validateMultiplePayments(java.util.List<Long> paymentIds, boolean approved, String notes) {
+        java.util.List<Payment> results = new java.util.ArrayList<>();
+        for (Long id : paymentIds) {
+            try {
+                results.add(validatePayment(id, approved, notes));
+            } catch (Exception e) {
+                logger.error("Failed to validate payment ID {}: {}", id, e.getMessage());
+            }
+        }
+        return results;
+    }
 }

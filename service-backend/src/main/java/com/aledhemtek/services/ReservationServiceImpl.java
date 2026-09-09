@@ -25,9 +25,7 @@ public class ReservationServiceImpl implements ReservationService {
     private final ClientRepository clientRepository;
     private final ConsultantRepository consultantRepository;
     private final TaskRepository taskRepository;
-    
-    @Autowired
-    private AutoInvoiceService autoInvoiceService;
+    private final AutoInvoiceService autoInvoiceService;
 
     @Override
     public ReservationDto createReservation(ReservationDto reservationDto) {
@@ -207,6 +205,11 @@ public class ReservationServiceImpl implements ReservationService {
         Reservation reservation = reservationRepository.findById(reservationId)
             .orElseThrow(() -> new RuntimeException("Reservation not found"));
         
+        if (reservation.getStatus() == Reservation.ReservationStatus.CANCELLED || 
+            reservation.getStatus() == Reservation.ReservationStatus.COMPLETED) {
+            throw new IllegalStateException("Cannot assign consultant to a " + reservation.getStatus() + " reservation");
+        }
+        
         Consultant consultant = consultantRepository.findById(consultantId)
             .orElseThrow(() -> new RuntimeException("Consultant not found"));
         
@@ -216,6 +219,7 @@ public class ReservationServiceImpl implements ReservationService {
         }
         
         reservation.setConsultant(consultant);
+        reservation.setAssigned(true);
         reservation.setStatus(Reservation.ReservationStatus.ASSIGNED);
         reservation.setUpdatedAt(LocalDateTime.now());
         
@@ -223,34 +227,68 @@ public class ReservationServiceImpl implements ReservationService {
         return updatedReservation.getReservationDto();
     }
 
+    private void validateStatusTransition(Reservation reservation, Reservation.ReservationStatus newStatus) {
+        Reservation.ReservationStatus currentStatus = reservation.getStatus();
+        if (currentStatus == newStatus) {
+            return;
+        }
+        if (currentStatus == Reservation.ReservationStatus.CANCELLED) {
+            throw new IllegalStateException("Impossible de modifier le statut d'une réservation annulée");
+        }
+        if (currentStatus == Reservation.ReservationStatus.COMPLETED) {
+            throw new IllegalStateException("Impossible de modifier le statut d'une réservation déjà terminée");
+        }
+        if (newStatus == Reservation.ReservationStatus.CANCELLED) {
+            return; // Annulation permise depuis PENDING, ASSIGNED, IN_PROGRESS
+        }
+        switch (currentStatus) {
+            case PENDING:
+                if (newStatus != Reservation.ReservationStatus.ASSIGNED) {
+                    throw new IllegalStateException("Une réservation en attente ne peut passer qu'à ASSIGNED ou CANCELLED");
+                }
+                if (reservation.getConsultant() == null) {
+                    throw new IllegalStateException("Impossible de passer à ASSIGNED sans consultant assigné");
+                }
+                break;
+            case ASSIGNED:
+                if (newStatus != Reservation.ReservationStatus.IN_PROGRESS) {
+                    throw new IllegalStateException("Une réservation assignée ne peut passer qu'à IN_PROGRESS ou CANCELLED");
+                }
+                break;
+            case IN_PROGRESS:
+                if (newStatus != Reservation.ReservationStatus.COMPLETED) {
+                    throw new IllegalStateException("Une réservation en cours ne peut passer qu'à COMPLETED ou CANCELLED");
+                }
+                break;
+            default:
+                throw new IllegalStateException("Transition de statut invalide de " + currentStatus + " vers " + newStatus);
+        }
+    }
+
     @Override
     public ReservationDto updateReservationStatus(Long reservationId, Reservation.ReservationStatus status) {
-        System.out.println("[DEBUG] updateReservationStatus called - ID: " + reservationId + ", Status: " + status);
-        
         Reservation reservation = reservationRepository.findById(reservationId)
-            .orElseThrow(() -> new RuntimeException("Reservation not found"));
+            .orElseThrow(() -> new RuntimeException("Reservation not found with id " + reservationId));
+        
+        validateStatusTransition(reservation, status);
         
         Reservation.ReservationStatus oldStatus = reservation.getStatus();
-        System.out.println("[DEBUG] Old status: " + oldStatus + ", New status: " + status);
-        
         reservation.setStatus(status);
+        if (status == Reservation.ReservationStatus.ASSIGNED) {
+            reservation.setAssigned(true);
+        }
         reservation.setUpdatedAt(LocalDateTime.now());
         
         Reservation updatedReservation = reservationRepository.save(reservation);
-        System.out.println("[DEBUG] Reservation status updated successfully");
         
         // Déclencher la génération automatique de facture si la réservation passe à COMPLETED
         if (status == Reservation.ReservationStatus.COMPLETED && oldStatus != Reservation.ReservationStatus.COMPLETED) {
-            System.out.println("[DEBUG] Triggering automatic invoice generation for reservation " + reservationId);
             try {
                 autoInvoiceService.generateInvoiceForCompletedReservation(reservationId);
-                System.out.println("[DEBUG] Invoice generation triggered successfully");
             } catch (Exception e) {
                 System.err.println("[ERROR] Failed to trigger invoice generation: " + e.getMessage());
                 e.printStackTrace();
             }
-        } else {
-            System.out.println("[DEBUG] No invoice generation needed - Status: " + status + ", OldStatus: " + oldStatus);
         }
         
         return updatedReservation.getReservationDto();
@@ -273,10 +311,13 @@ public class ReservationServiceImpl implements ReservationService {
             entity.setStatus(dto.getStatus());
         }
         
-        // Mapper les données de géolocalisation
+        // Mapper les données de géolocalisation et conditions d'accès
         entity.setLatitude(dto.getLatitude());
         entity.setLongitude(dto.getLongitude());
         entity.setAddress(dto.getAddress());
+        entity.setBuildingDetails(dto.getBuildingDetails());
+        entity.setHousingType(dto.getHousingType());
+        entity.setUrgency(dto.getUrgency());
     }
     
     /**

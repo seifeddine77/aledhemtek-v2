@@ -179,6 +179,7 @@ public class ClientController {
 
     //delete account
     @DeleteMapping("delete-client/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteClient(@PathVariable Long id) {
         try {
             clientService.deleteClient(id);

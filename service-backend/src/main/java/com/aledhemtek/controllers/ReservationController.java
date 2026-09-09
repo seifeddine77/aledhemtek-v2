@@ -15,6 +15,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import com.aledhemtek.config.CustomUserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -35,10 +37,30 @@ public class ReservationController {
     private final TaskRepository taskRepository;
     private final AutoInvoiceService autoInvoiceService;
 
+    private boolean isAdmin(Authentication authentication) {
+        if (authentication == null) return false;
+        return authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ADMIN"));
+    }
+
+    private Long getAuthenticatedUserId(Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails) {
+            return ((CustomUserDetails) authentication.getPrincipal()).getUser().getId();
+        }
+        return null;
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('CLIENT') or hasRole('ADMIN')")
-    public ResponseEntity<ReservationDto> createReservation(@RequestBody ReservationDto reservationDto) {
+    public ResponseEntity<ReservationDto> createReservation(@RequestBody ReservationDto reservationDto, Authentication authentication) {
         try {
+            if (!isAdmin(authentication)) {
+                Long authUserId = getAuthenticatedUserId(authentication);
+                reservationDto.setClientId(authUserId);
+                reservationDto.setStatus(ReservationStatus.PENDING);
+                reservationDto.setAssigned(false);
+                reservationDto.setConsultantId(null);
+            }
             ReservationDto createdReservation = reservationService.createReservation(reservationDto);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdReservation);
         } catch (Exception e) {
@@ -49,22 +71,35 @@ public class ReservationController {
 
     @PostMapping("/with-task-ids")
     @PreAuthorize("hasRole('CLIENT') or hasRole('ADMIN')")
-    public ResponseEntity<ReservationDto> createReservationWithTaskIds(@RequestBody Map<String, Object> requestData) {
+    public ResponseEntity<ReservationDto> createReservationWithTaskIds(@RequestBody Map<String, Object> requestData, Authentication authentication) {
         try {
             // Extraire les données de la requête
             String title = (String) requestData.get("title");
             String description = (String) requestData.get("description");
             String startDate = (String) requestData.get("startDate");
             String endDate = (String) requestData.get("endDate");
-            String status = (String) requestData.get("status");
-            Boolean assigned = (Boolean) requestData.get("assigned");
-            Long clientId = Long.valueOf(requestData.get("clientId").toString());
+            
+            Long authUserId = getAuthenticatedUserId(authentication);
+            Long clientId;
+            ReservationStatus reservationStatus;
+            Boolean assigned;
+            
+            if (!isAdmin(authentication)) {
+                clientId = authUserId;
+                reservationStatus = ReservationStatus.PENDING;
+                assigned = false;
+            } else {
+                clientId = requestData.get("clientId") != null ? Long.valueOf(requestData.get("clientId").toString()) : authUserId;
+                String statusStr = (String) requestData.get("status");
+                reservationStatus = statusStr != null ? ReservationStatus.valueOf(statusStr) : ReservationStatus.PENDING;
+                assigned = (Boolean) requestData.get("assigned");
+            }
+            
             @SuppressWarnings("unchecked")
             List<Integer> taskIdsInt = (List<Integer>) requestData.get("taskIds");
-            // Notes optionnelles pour la réservation (non utilisées dans cette version)
             
             // Convertir les IDs de tâches
-            List<Long> taskIds = taskIdsInt.stream().map(Long::valueOf).toList();
+            List<Long> taskIds = taskIdsInt != null ? taskIdsInt.stream().map(Long::valueOf).toList() : List.of();
             
             // Créer les TaskDto à partir des IDs
             List<TaskDto> tasks = taskIds.stream().map(taskId -> {
@@ -79,7 +114,7 @@ public class ReservationController {
             reservationDto.setDescription(description);
             reservationDto.setStartDate(LocalDateTime.parse(startDate));
             reservationDto.setEndDate(LocalDateTime.parse(endDate));
-            reservationDto.setStatus(ReservationStatus.valueOf(status));
+            reservationDto.setStatus(reservationStatus);
             reservationDto.setAssigned(assigned != null ? assigned : false);
             reservationDto.setClientId(clientId);
             reservationDto.setTasks(tasks);
@@ -94,10 +129,27 @@ public class ReservationController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
-    public ResponseEntity<ReservationDto> updateReservation(
+    public ResponseEntity<?> updateReservation(
             @PathVariable Long id, 
-            @RequestBody ReservationDto reservationDto) {
+            @RequestBody ReservationDto reservationDto,
+            Authentication authentication) {
         try {
+            ReservationDto existing = reservationService.getReservationById(id);
+            if (existing == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+            if (!isAdmin(authentication)) {
+                Long authUserId = getAuthenticatedUserId(authentication);
+                if (!existing.getClientId().equals(authUserId)) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(Map.of("error", "Access denied - You can only update your own reservations"));
+                }
+                // Client cannot arbitrarily change status, assigned, or consultantId via update
+                reservationDto.setStatus(existing.getStatus());
+                reservationDto.setAssigned(existing.isAssigned());
+                reservationDto.setConsultantId(existing.getConsultantId());
+                reservationDto.setClientId(existing.getClientId());
+            }
             ReservationDto updatedReservation = reservationService.updateReservation(id, reservationDto);
             return ResponseEntity.ok(updatedReservation);
         } catch (Exception e) {
@@ -116,13 +168,23 @@ public class ReservationController {
         }
     }
 
-
-
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT') or hasRole('CONSULTANT')")
-    public ResponseEntity<ReservationDto> getReservationById(@PathVariable Long id) {
+    public ResponseEntity<?> getReservationById(@PathVariable Long id, Authentication authentication) {
         try {
             ReservationDto reservation = reservationService.getReservationById(id);
+            if (reservation == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+            if (!isAdmin(authentication)) {
+                Long authUserId = getAuthenticatedUserId(authentication);
+                boolean isClientOwner = reservation.getClientId() != null && reservation.getClientId().equals(authUserId);
+                boolean isConsultantOwner = reservation.getConsultantId() != null && reservation.getConsultantId().equals(authUserId);
+                if (!isClientOwner && !isConsultantOwner) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(Map.of("error", "Access denied - You cannot view this reservation"));
+                }
+            }
             return ResponseEntity.ok(reservation);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -138,14 +200,28 @@ public class ReservationController {
 
     @GetMapping("/consultant/{consultantId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CONSULTANT')")
-    public ResponseEntity<List<ReservationDto>> getReservationsByConsultant(@PathVariable Long consultantId) {
+    public ResponseEntity<?> getReservationsByConsultant(@PathVariable Long consultantId, Authentication authentication) {
+        if (!isAdmin(authentication)) {
+            Long authUserId = getAuthenticatedUserId(authentication);
+            if (!consultantId.equals(authUserId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "Access denied - You can only view your own assigned reservations"));
+            }
+        }
         List<ReservationDto> reservations = reservationService.getReservationsByConsultant(consultantId);
         return ResponseEntity.ok(reservations);
     }
 
     @GetMapping("/client/{clientId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
-    public ResponseEntity<List<ReservationDto>> getReservationsByClient(@PathVariable Long clientId) {
+    public ResponseEntity<?> getReservationsByClient(@PathVariable Long clientId, Authentication authentication) {
+        if (!isAdmin(authentication)) {
+            Long authUserId = getAuthenticatedUserId(authentication);
+            if (!clientId.equals(authUserId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "Access denied - You can only view your own reservations"));
+            }
+        }
         log.info("Getting reservations for client ID: {}", clientId);
         List<ReservationDto> reservations = reservationService.getReservationsByClient(clientId);
         log.info("Found {} reservations for client {}", reservations.size(), clientId);
@@ -166,10 +242,18 @@ public class ReservationController {
 
     @GetMapping("/calendar/consultant/{consultantId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CONSULTANT')")
-    public ResponseEntity<List<ReservationDto>> getConsultantCalendar(
+    public ResponseEntity<?> getConsultantCalendar(
             @PathVariable Long consultantId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            Authentication authentication) {
+        if (!isAdmin(authentication)) {
+            Long authUserId = getAuthenticatedUserId(authentication);
+            if (!consultantId.equals(authUserId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "Access denied - You can only view your own calendar"));
+            }
+        }
         List<ReservationDto> calendar = reservationService.getConsultantCalendar(consultantId, startDate, endDate);
         return ResponseEntity.ok(calendar);
     }
@@ -196,34 +280,49 @@ public class ReservationController {
     }
 
     @PutMapping("/{reservationId}/status/{status}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('CONSULTANT')")
-    public ResponseEntity<ReservationDto> updateReservationStatus(
+    @PreAuthorize("hasRole('ADMIN') or hasRole('CONSULTANT') or hasRole('CLIENT')")
+    public ResponseEntity<?> updateReservationStatus(
             @PathVariable Long reservationId,
-            @PathVariable String status) {
+            @PathVariable String status,
+            Authentication authentication) {
         try {
-            // Convert String status to ReservationStatus enum
+            ReservationDto existing = reservationService.getReservationById(reservationId);
+            if (existing == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "Reservation not found"));
+            }
             ReservationStatus reservationStatus = ReservationStatus.valueOf(status.toUpperCase());
-            ReservationDto updatedReservation = reservationService.updateReservationStatus(reservationId, reservationStatus);
-
-            // Check if the status is COMPLETED to trigger auto-invoice generation
-            if (reservationStatus == ReservationStatus.COMPLETED) {
-                try {
-                    log.info("Reservation {} completed, triggering auto-invoice generation.", reservationId);
-                    autoInvoiceService.generateInvoiceForCompletedReservation(reservationId);
-                    log.info("Auto-invoice generation successfully triggered for reservation {}.", reservationId);
-                } catch (Exception e) {
-                    log.error("Failed to auto-generate invoice for reservation {}: {}", reservationId, e.getMessage(), e);
-                    // We don't want to fail the status update if invoice generation fails, so we just log the error.
+            
+            if (!isAdmin(authentication)) {
+                Long authUserId = getAuthenticatedUserId(authentication);
+                boolean isAssignedConsultant = existing.getConsultantId() != null && existing.getConsultantId().equals(authUserId);
+                boolean isOwnerClient = existing.getClientId() != null && existing.getClientId().equals(authUserId);
+                
+                if (isAssignedConsultant) {
+                    // Consultant can advance status
+                } else if (isOwnerClient) {
+                    // Client can ONLY cancel
+                    if (reservationStatus != ReservationStatus.CANCELLED) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                .body(Map.of("error", "Access denied - Clients can only cancel reservations"));
+                    }
+                } else {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(Map.of("error", "Access denied - You are not authorized to update this reservation"));
                 }
             }
-
+            
+            ReservationDto updatedReservation = reservationService.updateReservationStatus(reservationId, reservationStatus);
             return ResponseEntity.ok(updatedReservation);
         } catch (IllegalArgumentException e) {
             log.error("Invalid status value provided: {}", status, e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Statut invalide: " + status));
+        } catch (IllegalStateException e) {
+            log.warn("Invalid state transition for reservation {}: {}", reservationId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             log.error("Error updating reservation status for reservation {}: {}", reservationId, e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
         }
     }
 

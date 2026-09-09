@@ -6,9 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import com.aledhemtek.config.CustomUserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/evaluations")
@@ -17,18 +20,35 @@ public class EvaluationController {
     
     @Autowired
     private EvaluationService evaluationService;
+
+    private boolean isAdmin(Authentication authentication) {
+        if (authentication == null) return false;
+        return authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ADMIN"));
+    }
+
+    private Long getAuthenticatedUserId(Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails) {
+            return ((CustomUserDetails) authentication.getPrincipal()).getUser().getId();
+        }
+        return null;
+    }
     
     /**
      * Créer une nouvelle évaluation
      */
     @PostMapping
     @PreAuthorize("hasRole('CLIENT')")
-    public ResponseEntity<EvaluationDto> createEvaluation(@RequestBody EvaluationDto evaluationDto) {
+    public ResponseEntity<?> createEvaluation(@RequestBody EvaluationDto evaluationDto, Authentication authentication) {
         try {
+            Long authUserId = getAuthenticatedUserId(authentication);
+            evaluationDto.setClientId(authUserId);
             EvaluationDto createdEvaluation = evaluationService.createEvaluation(evaluationDto);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdEvaluation);
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         }
     }
     
@@ -37,10 +57,22 @@ public class EvaluationController {
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('CLIENT') or hasRole('ADMIN')")
-    public ResponseEntity<EvaluationDto> updateEvaluation(
+    public ResponseEntity<?> updateEvaluation(
             @PathVariable Long id, 
-            @RequestBody EvaluationDto evaluationDto) {
+            @RequestBody EvaluationDto evaluationDto,
+            Authentication authentication) {
         try {
+            EvaluationDto existing = evaluationService.getEvaluationById(id);
+            if (existing == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+            if (!isAdmin(authentication)) {
+                Long authUserId = getAuthenticatedUserId(authentication);
+                if (!existing.getClientId().equals(authUserId)) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(Map.of("error", "Access denied - You can only edit your own evaluation"));
+                }
+            }
             EvaluationDto updatedEvaluation = evaluationService.updateEvaluation(id, evaluationDto);
             return ResponseEntity.ok(updatedEvaluation);
         } catch (Exception e) {
@@ -80,7 +112,7 @@ public class EvaluationController {
      * Récupérer toutes les évaluations d'un client
      */
     @GetMapping("/client/{clientId}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('CLIENT') and #clientId == authentication.principal.user.id)")
     public ResponseEntity<List<EvaluationDto>> getEvaluationsByClientId(@PathVariable Long clientId) {
         try {
             List<EvaluationDto> evaluations = evaluationService.getEvaluationsByClientId(clientId);
@@ -123,8 +155,19 @@ public class EvaluationController {
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('CLIENT')")
-    public ResponseEntity<Void> deleteEvaluation(@PathVariable Long id) {
+    public ResponseEntity<?> deleteEvaluation(@PathVariable Long id, Authentication authentication) {
         try {
+            EvaluationDto existing = evaluationService.getEvaluationById(id);
+            if (existing == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+            if (!isAdmin(authentication)) {
+                Long authUserId = getAuthenticatedUserId(authentication);
+                if (!existing.getClientId().equals(authUserId)) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(Map.of("error", "Access denied - You can only delete your own evaluation"));
+                }
+            }
             evaluationService.deleteEvaluation(id);
             return ResponseEntity.noContent().build();
         } catch (Exception e) {

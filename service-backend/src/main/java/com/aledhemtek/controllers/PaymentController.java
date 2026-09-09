@@ -256,6 +256,100 @@ public class PaymentController {
     }
 
     /**
+     * Get all payments for admin with pagination and filters
+     */
+    @GetMapping("/admin/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getAllPaymentsAdmin(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "paymentDate") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir,
+            @RequestParam(required = false) String status) {
+        try {
+            org.springframework.data.domain.Sort sort = sortDir.equalsIgnoreCase("desc") ?
+                    org.springframework.data.domain.Sort.by(sortBy).descending() :
+                    org.springframework.data.domain.Sort.by(sortBy).ascending();
+            org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, sort);
+            
+            Payment.PaymentStatus paymentStatus = null;
+            if (status != null && !status.isBlank() && !status.equalsIgnoreCase("ALL")) {
+                paymentStatus = Payment.PaymentStatus.valueOf(status.toUpperCase());
+            }
+            
+            org.springframework.data.domain.Page<Payment> paymentsPage = paymentProcessingService.getAllPayments(pageable, paymentStatus);
+            
+            java.util.List<Map<String, Object>> paymentDtos = paymentsPage.getContent().stream()
+                .map(payment -> {
+                    Map<String, Object> dto = new java.util.HashMap<>();
+                    dto.put("id", payment.getId());
+                    dto.put("paymentReference", payment.getPaymentReference());
+                    dto.put("amount", payment.getAmount());
+                    dto.put("paymentMethod", payment.getPaymentMethod() != null ? payment.getPaymentMethod().toString() : "OTHER");
+                    dto.put("status", payment.getStatus() != null ? payment.getStatus().toString() : "PENDING");
+                    dto.put("notes", payment.getNotes());
+                    dto.put("paymentDate", payment.getPaymentDate() != null ? payment.getPaymentDate().toString() : null);
+                    dto.put("createdAt", payment.getCreatedAt() != null ? payment.getCreatedAt().toString() : null);
+                    dto.put("updatedAt", payment.getUpdatedAt() != null ? payment.getUpdatedAt().toString() : null);
+                    
+                    if (payment.getInvoice() != null) {
+                        dto.put("invoiceNumber", payment.getInvoice().getInvoiceNumber());
+                        dto.put("invoiceId", payment.getInvoice().getId());
+                        
+                        if (payment.getInvoice().getReservation() != null && 
+                            payment.getInvoice().getReservation().getClient() != null) {
+                            var client = payment.getInvoice().getReservation().getClient();
+                            dto.put("clientName", client.getFirstName() + " " + client.getLastName());
+                            dto.put("clientEmail", client.getEmail());
+                        }
+                    }
+                    return dto;
+                })
+                .collect(java.util.stream.Collectors.toList());
+            
+            Map<String, Object> response = new java.util.HashMap<>();
+            response.put("content", paymentDtos);
+            response.put("totalElements", paymentsPage.getTotalElements());
+            response.put("totalPages", paymentsPage.getTotalPages());
+            response.put("size", paymentsPage.getSize());
+            response.put("number", paymentsPage.getNumber());
+            response.put("first", paymentsPage.isFirst());
+            response.put("last", paymentsPage.isLast());
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to get all payments: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Validate multiple payments at once
+     */
+    @PostMapping("/admin/validate-multiple")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> validateMultiplePayments(@RequestBody Map<String, Object> request) {
+        try {
+            @SuppressWarnings("unchecked")
+            java.util.List<Integer> paymentIdsInt = (java.util.List<Integer>) request.get("paymentIds");
+            boolean approved = Boolean.parseBoolean(request.get("approved").toString());
+            String notes = request.getOrDefault("notes", "").toString();
+            
+            java.util.List<Long> paymentIds = paymentIdsInt.stream().map(Long::valueOf).toList();
+            java.util.List<Payment> validated = paymentProcessingService.validateMultiplePayments(paymentIds, approved, notes);
+            
+            return ResponseEntity.ok(Map.of(
+                "status", "success",
+                "count", validated.size(),
+                "message", approved ? validated.size() + " paiements validés avec succès" : validated.size() + " paiements rejetés"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Bulk validation failed: " + e.getMessage()));
+        }
+    }
+
+    /**
      * Get payment statistics
      */
     @GetMapping("/statistics")

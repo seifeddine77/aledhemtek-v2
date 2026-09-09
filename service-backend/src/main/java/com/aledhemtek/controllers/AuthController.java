@@ -51,6 +51,10 @@ public class AuthController {
             );
         } catch (BadCredentialsException e) {
             return new ResponseEntity<>("Incorrect email or password", HttpStatus.UNAUTHORIZED);
+        } catch (org.springframework.security.authentication.DisabledException e) {
+            return new ResponseEntity<>("Compte désactivé ou en attente d'approbation", HttpStatus.FORBIDDEN);
+        } catch (org.springframework.security.authentication.LockedException e) {
+            return new ResponseEntity<>("Compte verrouillé", HttpStatus.FORBIDDEN);
         }
 
         final UserDetails userDetails = userDetailsService.loadUserByUsername(authRequestDTO.getEmail());

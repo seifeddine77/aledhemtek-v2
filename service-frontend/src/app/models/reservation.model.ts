@@ -17,10 +17,13 @@ export interface Reservation {
   createdAt?: string;
   updatedAt?: string;
   
-  // Géolocalisation
+  // Géolocalisation & Accès Chantier
   latitude?: number;
   longitude?: number;
   address?: string;
+  buildingDetails?: string;
+  housingType?: string;
+  urgency?: string;
 }
 
 export enum ReservationStatus {

@@ -47,7 +47,7 @@ public class ClientService implements ClientInterface {
         dto.setCity(clt.getCity());
         dto.setZip(clt.getZip());
         dto.setAddress(clt.getAddress());
-        dto.setPassword(clt.getPassword());
+        dto.setPassword(null); // Never expose password hash in DTO
         dto.setProfilePic(clt.getProfilePic());
         return dto;
     }
@@ -139,18 +139,35 @@ public class ClientService implements ClientInterface {
     public ClientDTO updateClient(Long id, ClientDTO dto) {
         try {
             Client client = clientRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Client not found"));
-            mapToEntity(dto); // update existing entity
+                    .orElseThrow(() -> new RuntimeException("Client not found with id " + id));
+            
+            if (dto.getFirstName() != null) client.setFirstName(dto.getFirstName());
+            if (dto.getLastName() != null) client.setLastName(dto.getLastName());
+            if (dto.getPhone() != null) client.setPhone(dto.getPhone());
+            if (dto.getDob() != null) client.setDob(dto.getDob());
+            if (dto.getCountry() != null) client.setCountry(dto.getCountry());
+            if (dto.getCity() != null) client.setCity(dto.getCity());
+            if (dto.getZip() != null) client.setZip(dto.getZip());
+            if (dto.getAddress() != null) client.setAddress(dto.getAddress());
+            if (dto.getEmail() != null && !dto.getEmail().isBlank()) client.setEmail(dto.getEmail());
+            if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+                client.setPassword(passwordEncoder.encode(dto.getPassword()));
+            }
+            if (dto.getProfilePic() != null) client.setProfilePic(dto.getProfilePic());
+
             Client updated = clientRepository.save(client);
             return mapToDTO(updated);
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
+            throw new RuntimeException("Failed to update client: " + e.getMessage(), e);
         }
     }
 
     @Override
     public void deleteClient(Long id) {
-
+        Client client = clientRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Client not found with id " + id));
+        client.setEnabled(false);
+        clientRepository.save(client);
     }
 }

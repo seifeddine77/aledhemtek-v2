@@ -6,9 +6,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatIcon } from '@angular/material/icon';
+import { MatIconModule } from '@angular/material/icon';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { cleanText } from '../../pipes/clean-text.pipe';
+import { AiService } from '../../services/ai.service';
 
 @Component({
   selector: 'app-consultant-dialog',
@@ -20,7 +24,10 @@ import { cleanText } from '../../pipes/clean-text.pipe';
     MatInputModule,
     MatButtonModule,
     MatCardModule,
-    MatIcon,
+    MatIconModule,
+    MatChipsModule,
+    MatTooltipModule,
+    MatProgressBarModule,
     MatSnackBarModule
   ],
   templateUrl: './consultant-dialog.component.html',
@@ -30,55 +37,191 @@ export class ConsultantDialogComponent {
   consultantData = {
     companyName: '',
     jobTitle: '',
-    experienceYears: ''
+    experienceYears: 5,
+    siret: '',
+    interventionRadiusKm: 25,
+    skills: '',
+    insuranceProvider: '',
+    insurancePolicyNumber: '',
+    insuranceExpiryDate: ''
   };
+
+  // Liste des spécialités courantes
+  availableSkills: string[] = [
+    'Plomberie sanitaire',
+    'Chauffage & Climatisation',
+    'Recherche de fuite',
+    'Électricité générale',
+    'Tableau électrique NF C 15-100',
+    'Dépannage d\'urgence 24/7',
+    'Serrurerie de sécurité',
+    'Rénovation salle de bain',
+    'Pose de carrelage',
+    'Peinture & Enduit',
+    'Menuiserie bois/PVC',
+    'Pompe à chaleur (PAC)'
+  ];
+  selectedSkills: Set<string> = new Set();
 
   resumeFile: File | null = null;
   resumeFileName: string = '';
 
+  insuranceDocFile: File | null = null;
+  insuranceDocFileName: string = '';
+
+  // États IA & OCR
+  isAnalyzingCv = false;
+  aiAnalyzed = false;
+  aiConfidence = 0;
+  aiMessage = '';
+
+  // État vérification SIRET
+  siretStatus: 'idle' | 'valid' | 'invalid' = 'idle';
+  siretMessage = '';
+
   constructor(
     private dialogRef: MatDialogRef<ConsultantDialogComponent>,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private aiService: AiService
   ) {}
 
   onFileSelected(event: any): void {
     const file = event.target.files[0];
     if (file) {
-      console.log('[DEBUG] File selected:', file);
       this.resumeFile = file;
       this.resumeFileName = file.name;
+      this.aiAnalyzed = false;
+    }
+  }
+
+  onInsuranceFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.insuranceDocFile = file;
+      this.insuranceDocFileName = file.name;
+    }
+  }
+
+  toggleSkill(skill: string): void {
+    if (this.selectedSkills.has(skill)) {
+      this.selectedSkills.delete(skill);
     } else {
-      console.warn('[DEBUG] No file selected.');
+      this.selectedSkills.add(skill);
+    }
+    this.syncSkillsText();
+  }
+
+  isSkillSelected(skill: string): boolean {
+    return this.selectedSkills.has(skill);
+  }
+
+  private syncSkillsText(): void {
+    this.consultantData.skills = Array.from(this.selectedSkills).join(', ');
+  }
+
+  /**
+   * Analyse automatique du CV ou document d'artisan par le moteur IA / OCR
+   */
+  analyzeWithAi(): void {
+    if (!this.resumeFile) {
+      this.snackBar.open('Veuillez d\'abord sélectionner un CV ou extrait Kbis (PDF ou Document).', 'Fermer', {
+        duration: 3500,
+        panelClass: ['modern-snackbar']
+      });
+      return;
+    }
+
+    this.isAnalyzingCv = true;
+    this.aiService.parseResume(this.resumeFile).subscribe({
+      next: (res) => {
+        this.isAnalyzingCv = false;
+        this.aiAnalyzed = true;
+        this.aiConfidence = Math.round((res.confidenceScore || 0.85) * 100);
+
+        if (res.companyName) this.consultantData.companyName = res.companyName;
+        if (res.profession) this.consultantData.jobTitle = res.profession;
+        if (res.exp) this.consultantData.experienceYears = res.exp;
+        if (res.siret) {
+          this.consultantData.siret = res.siret;
+          this.checkSiret();
+        }
+        if (res.insuranceProvider) this.consultantData.insuranceProvider = res.insuranceProvider;
+        if (res.insurancePolicyNumber) this.consultantData.insurancePolicyNumber = res.insurancePolicyNumber;
+        if (res.insuranceExpiryDate) this.consultantData.insuranceExpiryDate = res.insuranceExpiryDate;
+        if (res.suggestedRadiusKm) this.consultantData.interventionRadiusKm = res.suggestedRadiusKm;
+
+        if (res.skills && res.skills.length > 0) {
+          res.skills.forEach(s => {
+            this.selectedSkills.add(s);
+            if (!this.availableSkills.includes(s)) {
+              this.availableSkills.push(s);
+            }
+          });
+          this.syncSkillsText();
+        }
+
+        this.snackBar.open(
+          `✨ Profil analysé avec succès par l'IA (${this.aiConfidence}% de confiance) ! Les champs ont été pré-remplis.`,
+          'Super',
+          { duration: 5500, panelClass: ['modern-snackbar'] }
+        );
+      },
+      error: (err) => {
+        this.isAnalyzingCv = false;
+        console.warn('Erreur lors du parsing IA:', err);
+        this.snackBar.open(
+          'L\'analyse IA automatique n\'a pas pu aboutir. Vous pouvez remplir les champs manuellement.',
+          'Fermer',
+          { duration: 4000, panelClass: ['modern-snackbar'] }
+        );
+      }
+    });
+  }
+
+  /**
+   * Vérification en temps réel du SIRET (format et somme de contrôle Luhn)
+   */
+  checkSiret(): void {
+    const raw = (this.consultantData.siret || '').replace(/\s+/g, '');
+    if (!raw) {
+      this.siretStatus = 'idle';
+      this.siretMessage = '';
+      return;
+    }
+
+    if (raw.length === 14) {
+      this.aiService.verifySiret(raw).subscribe({
+        next: (res) => {
+          this.siretStatus = res.valid ? 'valid' : 'invalid';
+          this.siretMessage = res.message;
+          if (res.formatted) {
+            this.consultantData.siret = res.formatted;
+          }
+        },
+        error: () => {
+          this.siretStatus = /^\d{14}$/.test(raw) ? 'valid' : 'idle';
+        }
+      });
+    } else {
+      this.siretStatus = 'invalid';
+      this.siretMessage = 'Le numéro SIRET doit contenir exactement 14 chiffres.';
     }
   }
 
   onCancel(): void {
-    this.dialogRef.close(); // Close without data
+    this.dialogRef.close();
   }
 
   onSave(): void {
-    console.log('[DEBUG] Submit clicked');
-
-    // Clean inputs to avoid encoding glitches
     this.consultantData.companyName = cleanText(this.consultantData.companyName || '').trim();
     this.consultantData.jobTitle = cleanText(this.consultantData.jobTitle || '').trim();
+    this.consultantData.siret = cleanText(this.consultantData.siret || '').replace(/\s+/g, '');
+    this.consultantData.insuranceProvider = cleanText(this.consultantData.insuranceProvider || '').trim();
+    this.consultantData.insurancePolicyNumber = cleanText(this.consultantData.insurancePolicyNumber || '').trim();
 
-    console.log('[DEBUG] Consultant Data:', this.consultantData);
-    console.log('[DEBUG] Resume File:', this.resumeFile);
-
-    if (!this.consultantData.companyName) console.error('[ERROR] Missing companyName');
-    if (!this.consultantData.jobTitle) console.error('[ERROR] Missing jobTitle');
-    if (!this.consultantData.experienceYears) console.error('[ERROR] Missing experienceYears');
-    if (!this.resumeFile) console.error('[ERROR] Missing resume file');
-
-    if (
-      !this.consultantData.companyName ||
-      !this.consultantData.jobTitle ||
-      !this.consultantData.experienceYears ||
-      !this.resumeFile
-    ) {
+    if (!this.consultantData.companyName || !this.consultantData.jobTitle || !this.resumeFile) {
       this.snackBar.open(
-        'Veuillez renseigner tous les champs obligatoires et joindre votre CV ou justificatif.',
+        'Veuillez renseigner le nom de l\'entreprise, le métier et joindre votre CV / justificatif.',
         'Fermer',
         { duration: 4500, panelClass: ['modern-snackbar'] }
       );
@@ -87,10 +230,11 @@ export class ConsultantDialogComponent {
 
     const result = {
       ...this.consultantData,
-      resume: this.resumeFile
+      skills: this.consultantData.skills || Array.from(this.selectedSkills).join(', '),
+      resume: this.resumeFile,
+      insuranceDoc: this.insuranceDocFile
     };
 
-    console.log('[DEBUG] Consultant data submitted to parent:', result);
-    this.dialogRef.close(result); // Pass the result to parent
+    this.dialogRef.close(result);
   }
 }

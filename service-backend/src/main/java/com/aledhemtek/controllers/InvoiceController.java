@@ -48,6 +48,7 @@ public class InvoiceController {
      * Create a new invoice
      */
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Invoice> createInvoice(@RequestBody Invoice invoice) {
         try {
             Invoice createdInvoice = invoiceService.createInvoice(invoice);
@@ -61,6 +62,7 @@ public class InvoiceController {
      * Create invoice from reservation
      */
     @PostMapping("/from-reservation/{reservationId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Invoice> createInvoiceFromReservation(@PathVariable Long reservationId) {
         try {
             // This would need a reservation service to fetch the reservation
@@ -105,6 +107,7 @@ public class InvoiceController {
      * Get invoice by number
      */
     @GetMapping("/number/{invoiceNumber}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Invoice> getInvoiceByNumber(@PathVariable String invoiceNumber) {
         Optional<Invoice> invoice = invoiceService.getInvoiceByNumber(invoiceNumber);
         return invoice.map(ResponseEntity::ok)
@@ -115,6 +118,7 @@ public class InvoiceController {
      * Update invoice
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Invoice> updateInvoice(@PathVariable Long id, @RequestBody Invoice invoice) {
         try {
             invoice.setId(id);
@@ -129,6 +133,7 @@ public class InvoiceController {
      * Delete invoice
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteInvoice(@PathVariable Long id) {
         try {
             invoiceService.deleteInvoice(id);
@@ -142,6 +147,7 @@ public class InvoiceController {
      * Get invoices by status
      */
     @GetMapping("/status/{status}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Invoice>> getInvoicesByStatus(@PathVariable Invoice.InvoiceStatus status) {
         List<Invoice> invoices = invoiceService.getInvoicesByStatus(status);
         return ResponseEntity.ok(invoices);
@@ -151,6 +157,7 @@ public class InvoiceController {
      * Get invoices by client ID
      */
     @GetMapping("/client/{clientId}")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('CLIENT') and #clientId == authentication.principal.user.id)")
     public ResponseEntity<List<Invoice>> getInvoicesByClientId(@PathVariable Long clientId) {
         List<Invoice> invoices = invoiceService.getInvoicesByClientId(clientId);
         return ResponseEntity.ok(invoices);
@@ -160,6 +167,7 @@ public class InvoiceController {
      * Search invoices
      */
     @GetMapping("/search")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<Invoice>> searchInvoices(
             @RequestParam String searchTerm,
             @RequestParam(defaultValue = "0") int page,
@@ -174,6 +182,7 @@ public class InvoiceController {
      * Get overdue invoices
      */
     @GetMapping("/overdue")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Invoice>> getOverdueInvoices() {
         List<Invoice> invoices = invoiceService.getOverdueInvoices();
         return ResponseEntity.ok(invoices);
@@ -183,6 +192,7 @@ public class InvoiceController {
      * Get unpaid invoices
      */
     @GetMapping("/unpaid")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Invoice>> getUnpaidInvoices() {
         List<Invoice> invoices = invoiceService.getUnpaidInvoices();
         return ResponseEntity.ok(invoices);
@@ -192,6 +202,7 @@ public class InvoiceController {
      * Get recent invoices
      */
     @GetMapping("/recent")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Invoice>> getRecentInvoices() {
         List<Invoice> invoices = invoiceService.getRecentInvoices();
         return ResponseEntity.ok(invoices);
@@ -201,6 +212,7 @@ public class InvoiceController {
      * Add item to invoice
      */
     @PostMapping("/{id}/items")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Invoice> addItemToInvoice(@PathVariable Long id, @RequestBody InvoiceItem item) {
         try {
             Invoice updatedInvoice = invoiceService.addItemToInvoice(id, item);
@@ -214,6 +226,7 @@ public class InvoiceController {
      * Remove item from invoice
      */
     @DeleteMapping("/{id}/items/{itemId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Invoice> removeItemFromInvoice(@PathVariable Long id, @PathVariable Long itemId) {
         try {
             Invoice updatedInvoice = invoiceService.removeItemFromInvoice(id, itemId);
@@ -241,6 +254,7 @@ public class InvoiceController {
      * Mark invoice as sent
      */
     @PutMapping("/{id}/mark-sent")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Invoice> markInvoiceAsSent(@PathVariable Long id) {
         try {
             Invoice updatedInvoice = invoiceService.markInvoiceAsSent(id);
@@ -254,6 +268,7 @@ public class InvoiceController {
      * Mark invoice as paid
      */
     @PutMapping("/{id}/mark-paid")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Invoice> markInvoiceAsPaid(@PathVariable Long id) {
         try {
             Invoice updatedInvoice = invoiceService.markInvoiceAsPaid(id);
@@ -267,6 +282,7 @@ public class InvoiceController {
      * Cancel invoice
      */
     @PutMapping("/{id}/cancel")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Invoice> cancelInvoice(@PathVariable Long id) {
         try {
             Invoice updatedInvoice = invoiceService.cancelInvoice(id);
@@ -307,6 +323,7 @@ public class InvoiceController {
      * Send invoice by email
      */
     @PostMapping("/{id}/send-email")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> sendInvoiceByEmail(
             @PathVariable Long id, 
             @RequestBody Map<String, String> emailRequest) {
@@ -333,6 +350,7 @@ public class InvoiceController {
      * Get invoices by date range
      */
     @GetMapping("/date-range")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Invoice>> getInvoicesByDateRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
@@ -345,6 +363,7 @@ public class InvoiceController {
      * Get statistics
      */
     @GetMapping("/statistics")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> getInvoiceStatistics() {
         try {
             Map<String, Object> stats = Map.of(
@@ -367,6 +386,7 @@ public class InvoiceController {
      * Update overdue invoices status
      */
     @PostMapping("/update-overdue")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> updateOverdueInvoicesStatus() {
         try {
             invoiceService.updateOverdueInvoicesStatus();
@@ -384,52 +404,6 @@ public class InvoiceController {
         }
     }
     
-    /**
-     * PUBLIC DEBUG: Test endpoint to diagnose invoice loading issues (no auth required)
-     */
-    @GetMapping("/public/debug/test-loading")
-    public ResponseEntity<Map<String, Object>> publicDebugInvoiceLoading() {
-        Map<String, Object> debugInfo = new HashMap<>();
-        
-        try {
-            // Test 1: Test pagination endpoint directly
-            Pageable testPageable = PageRequest.of(0, 3);
-            Page<Invoice> paginatedResult = invoiceService.getAllInvoices(testPageable);
-            debugInfo.put("paginationTest", Map.of(
-                "totalElements", paginatedResult.getTotalElements(),
-                "totalPages", paginatedResult.getTotalPages(),
-                "currentPageSize", paginatedResult.getContent().size(),
-                "hasContent", paginatedResult.hasContent()
-            ));
-            
-            // Test 2: Get basic invoice data (without circular references)
-            List<Map<String, Object>> invoiceDetails = new ArrayList<>();
-            for (Invoice invoice : paginatedResult.getContent()) {
-                Map<String, Object> invoiceData = new HashMap<>();
-                invoiceData.put("id", invoice.getId());
-                invoiceData.put("invoiceNumber", invoice.getInvoiceNumber());
-                invoiceData.put("status", invoice.getStatus().toString());
-                invoiceData.put("totalAmount", invoice.getTotalAmount());
-                invoiceData.put("clientName", invoice.getClientName());
-                invoiceData.put("clientEmail", invoice.getClientEmail());
-                invoiceData.put("reservationId", invoice.getReservationId());
-                invoiceDetails.add(invoiceData);
-            }
-            debugInfo.put("invoiceDetails", invoiceDetails);
-            
-            debugInfo.put("status", "SUCCESS");
-            debugInfo.put("timestamp", LocalDateTime.now().toString());
-            
-            return ResponseEntity.ok(debugInfo);
-            
-        } catch (Exception e) {
-            debugInfo.put("status", "ERROR");
-            debugInfo.put("error", e.getMessage());
-            debugInfo.put("errorClass", e.getClass().getSimpleName());
-            debugInfo.put("stackTrace", e.getStackTrace()[0].toString());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(debugInfo);
-        }
-    }
     
     /**
      * Protected endpoint to get all invoices (ADMIN only)
@@ -487,174 +461,10 @@ public class InvoiceController {
     }
     
     /**
-     * Create a test invoice for debugging purposes
-     */
-    @GetMapping("/public/create-test")
-    public ResponseEntity<Map<String, Object>> createTestInvoice() {
-        try {
-            // Create a simple test invoice with manual invoice number
-            Invoice testInvoice = new Invoice();
-            testInvoice.setInvoiceNumber("INV-TEST-" + System.currentTimeMillis());
-            testInvoice.setTotalAmount(225.0);
-            testInvoice.setAmountExclTax(187.5);
-            testInvoice.setTaxAmount(37.5);
-            testInvoice.setTaxRate(20.0);
-            testInvoice.setStatus(Invoice.InvoiceStatus.PENDING);
-            testInvoice.setNotes("Facture de test créée automatiquement - Test simple");
-            testInvoice.setIssueDate(LocalDateTime.now());
-            testInvoice.setDueDate(LocalDateTime.now().plusDays(30));
-            testInvoice.setEmailSent(false);
-            testInvoice.setReminderCount(0);
-            testInvoice.setAutoGenerated(false);
-            
-            // Save directly via repository to bypass service logic temporarily
-            Invoice savedInvoice = invoiceRepository.save(testInvoice);
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Facture de test créée avec succès (méthode directe)");
-            response.put("invoiceId", savedInvoice.getId());
-            response.put("invoiceNumber", savedInvoice.getInvoiceNumber());
-            response.put("totalAmount", savedInvoice.getTotalAmount());
-            response.put("status", savedInvoice.getStatus());
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("success", false);
-            errorResponse.put("error", e.getMessage());
-            errorResponse.put("message", "Erreur lors de la création de la facture de test");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
-    }
-    
-    /**
-     * Create a simple test invoice using the corrected service
-     */
-    @GetMapping("/public/create-test-simple")
-    public ResponseEntity<?> createSimpleTestInvoice() {
-        try {
-            Invoice invoice = new Invoice();
-            invoice.setTotalAmount(150.0);
-            invoice.setAmountExclTax(125.0);
-            invoice.setTaxAmount(25.0);
-            invoice.setTaxRate(20.0);
-            invoice.setStatus(Invoice.InvoiceStatus.PENDING);
-            invoice.setNotes("Test simple avec service corrigé");
-            
-            Invoice saved = invoiceService.createInvoice(invoice);
-            
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Facture créée avec succès !",
-                "invoiceNumber", saved.getInvoiceNumber(),
-                "id", saved.getId(),
-                "totalAmount", saved.getTotalAmount(),
-                "status", saved.getStatus()
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.ok(Map.of(
-                "success", false,
-                "error", e.getMessage(),
-                "message", "Erreur lors de la création"
-            ));
-        }
-    }
-    
-    /**
-     * Create a test invoice via service for debugging purposes
-     */
-    @GetMapping("/public/create-test-service")
-    public ResponseEntity<Map<String, Object>> createTestInvoiceViaService() {
-        try {
-            // Create a test invoice (without reservation for testing)
-            Invoice testInvoice = new Invoice();
-            testInvoice.setStatus(Invoice.InvoiceStatus.PENDING);
-            testInvoice.setNotes("Facture de test créée automatiquement - Sans réservation");
-            
-            // Add test invoice items
-            InvoiceItem item1 = new InvoiceItem();
-            item1.setDesignation("Service de test 1");
-            item1.setDescription("Description du service de test 1");
-            item1.setQuantity(2);
-            item1.setUnitPrice(50.0);
-            item1.setTaxRate(20.0);
-            item1.setInvoice(testInvoice);
-            
-            InvoiceItem item2 = new InvoiceItem();
-            item2.setDesignation("Service de test 2");
-            item2.setDescription("Description du service de test 2");
-            item2.setQuantity(1);
-            item2.setUnitPrice(75.0);
-            item2.setTaxRate(20.0);
-            item2.setInvoice(testInvoice);
-            
-            testInvoice.getInvoiceItems().add(item1);
-            testInvoice.getInvoiceItems().add(item2);
-            
-            // Save the invoice
-            Invoice savedInvoice = invoiceService.createInvoice(testInvoice);
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Facture de test créée avec succès");
-            response.put("invoiceId", savedInvoice.getId());
-            response.put("invoiceNumber", savedInvoice.getInvoiceNumber());
-            response.put("totalAmount", savedInvoice.getTotalAmount());
-            response.put("status", savedInvoice.getStatus());
-            response.put("clientName", savedInvoice.getClientName());
-            response.put("clientEmail", savedInvoice.getClientEmail());
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("success", false);
-            errorResponse.put("error", e.getMessage());
-            errorResponse.put("message", "Erreur lors de la création de la facture de test");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
-    }
-    
-    /**
-     * TEMPORARY: Create a test invoice for debugging (POST version)
-     */
-    @PostMapping("/public/create-test")
-    public ResponseEntity<Map<String, Object>> createTestInvoicePost() {
-        return createTestInvoice();
-    }
-    
-    /**
-     * TEMPORARY: Test automatic invoice generation for a reservation
-     */
-    @GetMapping("/public/test-auto-generation/{reservationId}")
-    public ResponseEntity<Map<String, Object>> testAutoInvoiceGeneration(@PathVariable Long reservationId) {
-        try {
-            // Test the automatic invoice generation service
-            autoInvoiceService.generateInvoiceForCompletedReservation(reservationId);
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Génération automatique de facture testée pour la réservation " + reservationId);
-            response.put("reservationId", reservationId);
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("success", false);
-            errorResponse.put("error", e.getMessage());
-            errorResponse.put("message", "Erreur lors de la génération automatique de facture");
-            errorResponse.put("reservationId", reservationId);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
-    }
-    
-    /**
-     * Test PDF generation for a specific invoice
+     * Test PDF generation for a specific invoice (ADMIN only)
      */
     @GetMapping("/{id}/test-pdf")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> testPDFGeneration(@PathVariable Long id) {
         try {
             Optional<Invoice> invoiceOpt = invoiceService.getInvoiceById(id);
@@ -691,9 +501,10 @@ public class InvoiceController {
     }
     
     /**
-     * Test email sending with PDF attachment for a specific invoice
+     * Test email sending with PDF attachment for a specific invoice (ADMIN only)
      */
     @PostMapping("/{id}/test-email")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> testEmailSending(@PathVariable Long id) {
         try {
             Optional<Invoice> invoiceOpt = invoiceService.getInvoiceById(id);

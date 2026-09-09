@@ -46,15 +46,14 @@ public class ClientInvoiceController {
     @PreAuthorize("hasRole('CLIENT')")
     public ResponseEntity<?> getMyInvoices(Authentication authentication) {
         try {
-            String clientEmail = authentication != null ? authentication.getName() : null;
-            if (clientEmail == null) {
+            Long clientId = null;
+            if (authentication != null && authentication.getPrincipal() instanceof com.aledhemtek.config.CustomUserDetails) {
+                clientId = ((com.aledhemtek.config.CustomUserDetails) authentication.getPrincipal()).getUser().getId();
+            }
+            if (clientId == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Unauthorized"));
             }
-            org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 1000);
-            List<Invoice> invoices = invoiceService.getAllInvoices(pageable).getContent().stream()
-                .filter(i -> i.getReservation() != null && i.getReservation().getClient() != null 
-                             && clientEmail.equalsIgnoreCase(i.getReservation().getClient().getEmail()))
-                .toList();
+            List<Invoice> invoices = invoiceService.getInvoicesByClientId(clientId);
             
             List<Map<String, Object>> invoiceList = invoices.stream()
                 .map(this::transformInvoiceForClient)
@@ -76,15 +75,14 @@ public class ClientInvoiceController {
     @PreAuthorize("hasRole('CLIENT')")
     public ResponseEntity<?> getMyInvoiceStats(Authentication authentication) {
         try {
-            String clientEmail = authentication != null ? authentication.getName() : null;
-            if (clientEmail == null) {
+            Long clientId = null;
+            if (authentication != null && authentication.getPrincipal() instanceof com.aledhemtek.config.CustomUserDetails) {
+                clientId = ((com.aledhemtek.config.CustomUserDetails) authentication.getPrincipal()).getUser().getId();
+            }
+            if (clientId == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Unauthorized"));
             }
-            org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 1000);
-            List<Invoice> invoices = invoiceService.getAllInvoices(pageable).getContent().stream()
-                .filter(i -> i.getReservation() != null && i.getReservation().getClient() != null 
-                             && clientEmail.equalsIgnoreCase(i.getReservation().getClient().getEmail()))
-                .toList();
+            List<Invoice> invoices = invoiceService.getInvoicesByClientId(clientId);
             Map<String, Object> stats = calculateInvoiceStats(invoices);
             return ResponseEntity.ok(stats);
             

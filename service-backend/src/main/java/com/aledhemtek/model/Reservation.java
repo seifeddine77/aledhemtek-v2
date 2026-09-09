@@ -73,6 +73,15 @@ public class Reservation {
     @Column(name = "address")
     private String address;
 
+    @Column(name = "building_details", length = 500)
+    private String buildingDetails;
+
+    @Column(name = "housing_type", length = 50)
+    private String housingType;
+
+    @Column(name = "urgency", length = 30)
+    private String urgency;
+
     public enum ReservationStatus {
         PENDING,
         ASSIGNED,
@@ -101,6 +110,9 @@ public class Reservation {
         dto.setLatitude(latitude);
         dto.setLongitude(longitude);
         dto.setAddress(address);
+        dto.setBuildingDetails(buildingDetails);
+        dto.setHousingType(housingType);
+        dto.setUrgency(urgency);
         if (reservationTasks != null) {
             dto.setTasks(reservationTasks.stream().map(rt -> {
                 var taskDto = rt.getTask().getTaskDto();

@@ -2,6 +2,8 @@ package com.aledhemtek.repositories;
 
 import com.aledhemtek.model.Payment;
 import com.aledhemtek.model.Invoice;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -33,6 +35,11 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
      * Find payments by status
      */
     List<Payment> findByStatus(Payment.PaymentStatus status);
+
+    /**
+     * Find payments by status with pagination
+     */
+    Page<Payment> findByStatus(Payment.PaymentStatus status, Pageable pageable);
     
     /**
      * Find payments by payment method

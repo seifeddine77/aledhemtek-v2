@@ -44,6 +44,10 @@ public class StorageServiceImpl implements StorageService {
                 throw new RuntimeException("Failed to store empty file.");
             }
 
+            if (entityType == null || entityType.contains("..") || entityType.contains("/") || entityType.contains("\\")) {
+                throw new IllegalArgumentException("Type d'entité invalide: " + entityType);
+            }
+
             // Utiliser le répertoire de service dédié pour les catégories, services et tâches
             Path entityPath = this.serviceRootLocation.resolve(entityType).normalize();
 
@@ -63,8 +67,14 @@ public class StorageServiceImpl implements StorageService {
 
             String extension = "";
             if (originalFilename.contains(".")) {
-                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+                extension = originalFilename.substring(originalFilename.lastIndexOf(".")).toLowerCase();
             }
+
+            java.util.Set<String> allowedExtensions = java.util.Set.of(".jpg", ".jpeg", ".png", ".webp", ".pdf");
+            if (!allowedExtensions.contains(extension)) {
+                throw new IllegalArgumentException("Type de fichier non autorisé. Formats acceptés: " + allowedExtensions);
+            }
+
             String newFileName = UUID.randomUUID().toString() + extension;
 
             Path destinationFile = entityPath.resolve(Paths.get(newFileName)).normalize().toAbsolutePath();

@@ -14,6 +14,7 @@ import { MatStepperModule } from '@angular/material/stepper';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatSelectModule } from '@angular/material/select';
 import { ReservationService } from '../../../services/reservation.service';
 import { AuthService } from '../../../services/auth.service';
 import { GeolocationService, CustomGeolocationPosition } from '../../../services/geolocation.service';
@@ -41,6 +42,7 @@ import { cleanText } from '../../../pipes/clean-text.pipe';
     MatProgressBarModule,
     MatDividerModule,
     MatCheckboxModule,
+    MatSelectModule,
     TaskSelectorComponent,
     LocationMapComponent
   ],
@@ -128,7 +130,13 @@ export class CreateReservationWithTasksComponent implements OnInit {
       startDate: ['', Validators.required],
       startTime: ['', Validators.required],
       endDate: [''],
-      endTime: ['']
+      endTime: [''],
+      housingType: ['APPARTEMENT'],
+      urgency: ['NORMAL'],
+      floor: [''],
+      hasElevator: [false],
+      accessCode: [''],
+      interphone: ['']
     });
 
     // Étape 2: Sélection des tâches
@@ -259,6 +267,12 @@ export class CreateReservationWithTasksComponent implements OnInit {
     // Construire les IDs des tâches sélectionnées pour la réservation
     const taskIds = this.selectedTasks.map(selectedTask => selectedTask.task.id);
 
+    let buildingAccessDetails = '';
+    if (formData.floor) buildingAccessDetails += `Étage: ${formData.floor}. `;
+    buildingAccessDetails += formData.hasElevator ? 'Ascenseur: Oui. ' : 'Ascenseur: Non. ';
+    if (formData.accessCode) buildingAccessDetails += `Digicode: ${formData.accessCode}. `;
+    if (formData.interphone) buildingAccessDetails += `Interphone: ${formData.interphone}.`;
+
     return {
       title: cleanText(formData.title || ''),
       description: cleanText(formData.description || ''),
@@ -269,6 +283,9 @@ export class CreateReservationWithTasksComponent implements OnInit {
       clientId: this.currentUser?.id,
       taskIds: taskIds,
       notes: cleanText(confirmationData.notes || ''),
+      housingType: formData.housingType || 'APPARTEMENT',
+      urgency: formData.urgency || 'NORMAL',
+      buildingDetails: cleanText(buildingAccessDetails.trim()),
       // Ajouter les données de géolocalisation si disponibles
       latitude: this.currentPosition?.latitude,
       longitude: this.currentPosition?.longitude,

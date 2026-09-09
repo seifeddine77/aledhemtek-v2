@@ -31,12 +31,22 @@ public class ConsultantDTO {
     private String companyName;
     private String password;
 
+    private String siret;
+    private String insuranceProvider;
+    private String insurancePolicyNumber;
+    private Date insuranceExpiryDate;
+    private Integer interventionRadiusKm = 25;
+    private String skills;
+    private String insuranceDocPath;
+
     private String profilePic;    // stored filename
     private String resumePath;    // stored filename
     @JsonIgnore
     private transient MultipartFile profilePicFile; // for upload only
     @JsonIgnore
     private transient MultipartFile resume;         // for upload only
+    @JsonIgnore
+    private transient MultipartFile insuranceDocFile; // for upload only
 }
 
 

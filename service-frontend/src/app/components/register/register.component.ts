@@ -177,9 +177,16 @@ export class RegisterComponent implements OnInit {
         (this.client as any).consultantData = {
           companyName: result.companyName,
           jobTitle: result.jobTitle,
-          experienceYears: result.experienceYears
+          experienceYears: result.experienceYears,
+          siret: result.siret,
+          insuranceProvider: result.insuranceProvider,
+          insurancePolicyNumber: result.insurancePolicyNumber,
+          insuranceExpiryDate: result.insuranceExpiryDate,
+          interventionRadiusKm: result.interventionRadiusKm,
+          skills: result.skills
         };
         (this.client as any).resumeFile = result.resume;
+        (this.client as any).insuranceDocFile = result.insuranceDoc;
         this.hasConsultantData = true;
       } else if (!this.hasConsultantData) {
         // Kept on client if cancelled
@@ -288,8 +295,18 @@ export class RegisterComponent implements OnInit {
         formData.append('profession', consultantData.jobTitle || 'Artisan');
         formData.append('exp', consultantData.experienceYears?.toString() || '3');
         formData.append('companyName', consultantData.companyName || 'Artisan Indépendant');
+        if (consultantData.siret) formData.append('siret', consultantData.siret);
+        if (consultantData.insuranceProvider) formData.append('insuranceProvider', consultantData.insuranceProvider);
+        if (consultantData.insurancePolicyNumber) formData.append('insurancePolicyNumber', consultantData.insurancePolicyNumber);
+        if (consultantData.insuranceExpiryDate) formData.append('insuranceExpiryDate', consultantData.insuranceExpiryDate);
+        if (consultantData.interventionRadiusKm) formData.append('interventionRadiusKm', consultantData.interventionRadiusKm.toString());
+        if (consultantData.skills) formData.append('skills', consultantData.skills);
+
         if ((this.client as any).resumeFile) {
           formData.append('resume', (this.client as any).resumeFile);
+        }
+        if ((this.client as any).insuranceDocFile) {
+          formData.append('insuranceDoc', (this.client as any).insuranceDocFile);
         }
 
         this.authService.registerConsultant(formData).subscribe({

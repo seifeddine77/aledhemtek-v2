@@ -24,6 +24,28 @@ public class Consultant extends User {
     @Enumerated(EnumType.STRING)
     private AccountStatus status = AccountStatus.PENDING;
 
+    @Column(nullable = true, length = 14)
+    private String siret;
+
+    @Column(nullable = true)
+    private String insuranceProvider;
+
+    @Column(nullable = true)
+    private String insurancePolicyNumber;
+
+    @Temporal(TemporalType.DATE)
+    @Column(nullable = true)
+    private java.util.Date insuranceExpiryDate;
+
+    @Column(nullable = true)
+    private Integer interventionRadiusKm = 25;
+
+    @Column(nullable = true, length = 1000)
+    private String skills;
+
+    @Column(nullable = true)
+    private String insuranceDocPath;
+
     public ConsultantDTO getDto() {
         ConsultantDTO dto = new ConsultantDTO();
         dto.setId(getId());
@@ -42,6 +64,13 @@ public class Consultant extends User {
         dto.setExp(getExp());
         dto.setCompanyName(getCompanyName());
         dto.setResumePath(getResumePath());
+        dto.setSiret(getSiret());
+        dto.setInsuranceProvider(getInsuranceProvider());
+        dto.setInsurancePolicyNumber(getInsurancePolicyNumber());
+        dto.setInsuranceExpiryDate(getInsuranceExpiryDate());
+        dto.setInterventionRadiusKm(getInterventionRadiusKm());
+        dto.setSkills(getSkills());
+        dto.setInsuranceDocPath(getInsuranceDocPath());
         return dto;
     }
 }

@@ -6,8 +6,17 @@
         <mat-icon>engineering</mat-icon>
       </div>
       <div>
-        <h2>Profil Professionnel Consultant</h2>
-        <p class="text-muted m-0" style="font-size: 0.8125rem;">Complétez vos informations d'activité pour proposer vos services</p>
+        <h2>Dossier Professionnel Artisan &amp; Consultant</h2>
+        <div class="d-flex align-items-center gap-2 mt-1">
+          <span class="badge-legal-compliance">
+            <mat-icon style="font-size: 14px; width: 14px; height: 14px;">verified</mat-icon>
+            Conformité Légale &amp; RNE
+          </span>
+          <span class="badge-insurance">
+            <mat-icon style="font-size: 14px; width: 14px; height: 14px;">shield</mat-icon>
+            Garantie Décennale
+          </span>
+        </div>
       </div>
     </div>
     <button mat-icon-button (click)="onCancel()" aria-label="Fermer">
@@ -17,61 +26,190 @@
 
   <!-- Dialog Body -->
   <div class="dialog-modern-body">
-    <form (ngSubmit)="onSave()" #consultantForm="ngForm" class="form-grid-1">
-      
-      <mat-form-field appearance="outline" class="w-100">
-        <mat-label>Nom de l'entreprise ou Raison sociale</mat-label>
-        <mat-icon matPrefix class="me-2 text-muted">business</mat-icon>
-        <input matInput id="companyName" name="companyName" [(ngModel)]="consultantData.companyName" 
-               placeholder="Ex: SARL Bati-Plomb ou Auto-entrepreneur" autocomplete="organization" required />
-        <mat-hint>Nom commercial ou raison juridique</mat-hint>
-      </mat-form-field>
 
-      <mat-form-field appearance="outline" class="w-100">
-        <mat-label>Spécialité / Métier principal</mat-label>
-        <mat-icon matPrefix class="me-2 text-muted">work_outline</mat-icon>
-        <input matInput id="jobTitle" name="jobTitle" [(ngModel)]="consultantData.jobTitle" 
-               placeholder="Ex: Plombier chauffagiste certifié" autocomplete="organization-title" required />
-        <mat-hint>Votre domaine d'expertise principal</mat-hint>
-      </mat-form-field>
+    <!-- 🌟 SECTION IA & OCR : Auto-remplissage Magique -->
+    <div class="ai-magic-card">
+      <div class="ai-magic-header">
+        <div class="ai-sparkle-icon">
+          <mat-icon>auto_awesome</mat-icon>
+        </div>
+        <div class="ai-magic-title">
+          <h3>Pré-remplissage Magique par IA &amp; OCR</h3>
+          <p>Déposez votre CV ou Kbis : notre IA extrait instantanément vos coordonnées, SIRET, métier et compétences !</p>
+        </div>
+      </div>
 
-      <mat-form-field appearance="outline" class="w-100">
-        <mat-label>Années d'expérience professionnelle</mat-label>
-        <mat-icon matPrefix class="me-2 text-muted">timeline</mat-icon>
-        <input matInput id="experienceYears" name="experienceYears" [(ngModel)]="consultantData.experienceYears" 
-               type="number" min="0" max="60" placeholder="Ex: 7" required />
-        <mat-hint>Nombre d'années de pratique dans le domaine</mat-hint>
-      </mat-form-field>
-
-      <!-- CV / Justificatif Upload -->
-      <div class="file-upload-box">
-        <label class="form-label fw-bold mb-2 d-flex align-items-center gap-2">
-          <mat-icon class="text-primary" style="font-size: 20px; width: 20px; height: 20px;">description</mat-icon>
-          Curriculum Vitae ou Justificatif professionnel
-        </label>
-        
-        <div class="file-upload-modern" (click)="resumeInput.click()">
-          <div class="file-upload-icon">
-            <mat-icon>cloud_upload</mat-icon>
-          </div>
-          <div class="file-upload-text">
-            <strong>Cliquez ici pour sélectionner</strong> ou glissez un fichier
-            <div class="text-muted small mt-1">Formats acceptés : PDF, DOC, DOCX (Max 10 Mo)</div>
+      <div class="ai-upload-row">
+        <div class="file-upload-modern-mini" (click)="resumeInput.click()">
+          <mat-icon class="upload-mini-icon">cloud_upload</mat-icon>
+          <div class="upload-mini-text">
+            <span *ngIf="!resumeFileName"><strong>Sélectionner un CV / Kbis</strong> (PDF, DOCX)</span>
+            <span *ngIf="resumeFileName" class="text-success fw-bold">📄 {{ resumeFileName }}</span>
           </div>
         </div>
-        <input type="file" id="resumeFile" #resumeInput style="display: none" (change)="onFileSelected($event)" accept=".pdf,.doc,.docx" />
+        <input type="file" id="resumeFile" #resumeInput style="display: none" (change)="onFileSelected($event)" accept=".pdf,.doc,.docx,.txt" />
 
-        <div *ngIf="resumeFileName" class="file-upload-preview mt-2">
-          <div class="header-icon" style="width: 40px; height: 40px;">
-            <mat-icon>article</mat-icon>
+        <button mat-raised-button color="accent" type="button" class="btn-ai-scan"
+                (click)="analyzeWithAi()" [disabled]="!resumeFile || isAnalyzingCv">
+          <mat-icon *ngIf="!isAnalyzingCv">psychology</mat-icon>
+          <mat-icon *ngIf="isAnalyzingCv" class="spinning-icon">sync</mat-icon>
+          <span *ngIf="!isAnalyzingCv">Scanner par IA</span>
+          <span *ngIf="isAnalyzingCv">Analyse en cours...</span>
+        </button>
+      </div>
+
+      <!-- Barre de progression IA -->
+      <mat-progress-bar *ngIf="isAnalyzingCv" mode="indeterminate" class="mt-2 ai-progress"></mat-progress-bar>
+
+      <!-- Badge de succès IA -->
+      <div *ngIf="aiAnalyzed" class="ai-success-banner mt-2">
+        <mat-icon class="text-success">check_circle</mat-icon>
+        <span>Profil extrait avec succès (Indice de confiance : <strong>{{ aiConfidence }}%</strong>). Vous pouvez ajuster les champs ci-dessous.</span>
+      </div>
+    </div>
+
+    <form (ngSubmit)="onSave()" #consultantForm="ngForm" class="form-sections-container">
+
+      <!-- SECTION 1 : IDENTITÉ JURIDIQUE & MÉTIER -->
+      <div class="form-section-card">
+        <div class="section-title">
+          <mat-icon>business</mat-icon>
+          <span>Entreprise &amp; Métier</span>
+        </div>
+
+        <div class="row g-2">
+          <div class="col-md-7">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Nom de l'entreprise ou Raison sociale</mat-label>
+              <mat-icon matPrefix class="me-2 text-muted">store</mat-icon>
+              <input matInput id="companyName" name="companyName" [(ngModel)]="consultantData.companyName" 
+                     placeholder="Ex: SARL Bâti-Plomb Pro" autocomplete="organization" required />
+            </mat-form-field>
           </div>
-          <div class="file-details">
-            <div class="file-name">{{ resumeFileName }}</div>
-            <div class="file-size text-success fw-semibold">Fichier prêt pour validation</div>
+
+          <div class="col-md-5">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Numéro SIRET (14 chiffres)</mat-label>
+              <mat-icon matPrefix class="me-2 text-muted">pin</mat-icon>
+              <input matInput id="siret" name="siret" [(ngModel)]="consultantData.siret" 
+                     (blur)="checkSiret()" (keyup.enter)="checkSiret()"
+                     placeholder="Ex: 823 456 789 00012" maxlength="17" />
+              <mat-icon matSuffix *ngIf="siretStatus === 'valid'" class="text-success" matTooltip="SIRET valide">check_circle</mat-icon>
+              <mat-icon matSuffix *ngIf="siretStatus === 'invalid'" class="text-danger" matTooltip="SIRET invalide">error</mat-icon>
+              <mat-hint *ngIf="siretMessage" [class.text-success]="siretStatus === 'valid'" [class.text-danger]="siretStatus === 'invalid'">
+                {{ siretMessage }}
+              </mat-hint>
+            </mat-form-field>
           </div>
-          <button mat-icon-button color="warn" type="button" (click)="resumeFile = null; resumeFileName = ''" matTooltip="Supprimer ce fichier">
-            <mat-icon>delete_outline</mat-icon>
+        </div>
+
+        <div class="row g-2 mt-1">
+          <div class="col-md-8">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Spécialité / Métier principal</mat-label>
+              <mat-icon matPrefix class="me-2 text-muted">handyman</mat-icon>
+              <input matInput id="jobTitle" name="jobTitle" [(ngModel)]="consultantData.jobTitle" 
+                     placeholder="Ex: Plombier Chauffagiste Certifié" autocomplete="organization-title" required />
+            </mat-form-field>
+          </div>
+
+          <div class="col-md-4">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Années d'expérience</mat-label>
+              <mat-icon matPrefix class="me-2 text-muted">history_edu</mat-icon>
+              <input matInput id="experienceYears" name="experienceYears" [(ngModel)]="consultantData.experienceYears" 
+                     type="number" min="0" max="60" placeholder="Ex: 8" required />
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 2 : ZONE GÉOGRAPHIQUE & COMPÉTENCES -->
+      <div class="form-section-card">
+        <div class="section-title">
+          <mat-icon>near_me</mat-icon>
+          <span>Périmètre d'Intervention &amp; Compétences</span>
+        </div>
+
+        <div class="row g-2 align-items-center mb-2">
+          <div class="col-md-6">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Rayon d'intervention (km)</mat-label>
+              <mat-icon matPrefix class="me-2 text-muted">explore</mat-icon>
+              <input matInput id="interventionRadiusKm" name="interventionRadiusKm" 
+                     [(ngModel)]="consultantData.interventionRadiusKm" type="number" min="5" max="150" />
+              <span matSuffix class="pe-2 text-muted">km</span>
+              <mat-hint>Distance maximale de déplacement depuis votre atelier</mat-hint>
+            </mat-form-field>
+          </div>
+          <div class="col-md-6">
+            <div class="radius-info-badge">
+              <mat-icon color="primary">radar</mat-icon>
+              <span>Vous recevrez les demandes de chantiers dans un rayon de <strong>{{ consultantData.interventionRadiusKm || 25 }} km</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <label class="form-label fw-semibold small text-muted d-block mb-1">
+          Sélectionnez vos spécialités et domaines de compétence :
+        </label>
+        <div class="skills-chips-wrapper">
+          <button type="button" *ngFor="let skill of availableSkills" 
+                  class="skill-chip-btn" 
+                  [class.active]="isSkillSelected(skill)"
+                  (click)="toggleSkill(skill)">
+            <mat-icon *ngIf="isSkillSelected(skill)" style="font-size: 16px; width: 16px; height: 16px;">check</mat-icon>
+            {{ skill }}
           </button>
+        </div>
+      </div>
+
+      <!-- SECTION 3 : GARANTIE DÉCENNALE & ASSURANCE RC PRO -->
+      <div class="form-section-card">
+        <div class="section-title">
+          <mat-icon>security</mat-icon>
+          <span>Assurance Responsabilité Civile Pro &amp; Décennale</span>
+        </div>
+
+        <div class="row g-2">
+          <div class="col-md-4">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Compagnie d'Assurance</mat-label>
+              <mat-icon matPrefix class="me-2 text-muted">shield</mat-icon>
+              <input matInput id="insuranceProvider" name="insuranceProvider" 
+                     [(ngModel)]="consultantData.insuranceProvider" placeholder="Ex: SMABTP, AXA, Allianz" />
+            </mat-form-field>
+          </div>
+
+          <div class="col-md-4">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>N° de Police / Contrat</mat-label>
+              <mat-icon matPrefix class="me-2 text-muted">policy</mat-icon>
+              <input matInput id="insurancePolicyNumber" name="insurancePolicyNumber" 
+                     [(ngModel)]="consultantData.insurancePolicyNumber" placeholder="Ex: DEC-2026-8874" />
+            </mat-form-field>
+          </div>
+
+          <div class="col-md-4">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Date d'échéance</mat-label>
+              <mat-icon matPrefix class="me-2 text-muted">event</mat-icon>
+              <input matInput id="insuranceExpiryDate" name="insuranceExpiryDate" 
+                     [(ngModel)]="consultantData.insuranceExpiryDate" type="date" />
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Upload Attestation Assurance -->
+        <div class="insurance-upload-box mt-2">
+          <div class="file-upload-modern-mini" (click)="insuranceInput.click()">
+            <mat-icon class="upload-mini-icon text-primary">attach_file</mat-icon>
+            <div class="upload-mini-text">
+              <span *ngIf="!insuranceDocFileName"><strong>Joindre l'attestation d'assurance décennale</strong> (PDF, JPG - Optionnel mais recommandé)</span>
+              <span *ngIf="insuranceDocFileName" class="text-success fw-bold">🛡️ {{ insuranceDocFileName }}</span>
+            </div>
+          </div>
+          <input type="file" id="insuranceDocFile" #insuranceInput style="display: none" (change)="onInsuranceFileSelected($event)" accept=".pdf,.jpg,.jpeg,.png" />
         </div>
       </div>
 
@@ -84,9 +222,8 @@
       Annuler
     </button>
     <button mat-raised-button color="primary" type="button" (click)="onSave()">
-      <mat-icon>check</mat-icon>
-      Enregistrer mon profil
+      <mat-icon>verified</mat-icon>
+      Valider mon Dossier Artisan
     </button>
   </div>
 </div>
-

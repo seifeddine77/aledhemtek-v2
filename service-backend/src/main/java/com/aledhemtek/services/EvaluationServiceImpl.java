@@ -35,9 +35,19 @@ public class EvaluationServiceImpl implements EvaluationService {
         Reservation reservation = reservationRepository.findById(evaluationDto.getReservationId())
                 .orElseThrow(() -> new RuntimeException("Reservation not found with id: " + evaluationDto.getReservationId()));
         
+        // Vérifier que la réservation est COMPLETED
+        if (reservation.getStatus() != Reservation.ReservationStatus.COMPLETED) {
+            throw new IllegalStateException("Seules les réservations terminées (COMPLETED) peuvent être évaluées");
+        }
+        
         // Vérifier que le client existe
         User client = userRepository.findById(evaluationDto.getClientId())
                 .orElseThrow(() -> new RuntimeException("Client not found with id: " + evaluationDto.getClientId()));
+        
+        // Vérifier que le client est bien le propriétaire de la réservation
+        if (reservation.getClient() == null || !reservation.getClient().getId().equals(client.getId())) {
+            throw new IllegalArgumentException("Le client spécifié n'est pas le propriétaire de cette réservation");
+        }
         
         // Vérifier qu'il n'y a pas déjà une évaluation pour cette réservation
         if (evaluationRepository.existsByReservationId(evaluationDto.getReservationId())) {
